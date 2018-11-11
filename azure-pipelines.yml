@@ -12,9 +12,12 @@ variables:
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
   major: 1
-  minor: 1
+  minor: 0
 
 name: $(major).$(minor)$(rev:.r)
+
+trigger:
+- master
 
 steps:
 - task: richardfennellBM.BM-VSTS-Versioning-Task.Version-Assemblies-Task.VersionAssemblies@2
