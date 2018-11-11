@@ -1,0 +1,58 @@
+﻿div {
+    display: block;
+}
+
+table.confluenceTable {
+    border-collapse: collapse;
+    margin: 5px 0 5px 2px;
+    width: auto;
+}
+
+table {
+    display: table;
+    border-collapse: separate;
+    border-spacing: 2px;
+    border-color: grey;
+}
+
+tbody {
+    display: table-row-group;
+    vertical-align: middle;
+    border-color: inherit;
+}
+
+tr {
+    display: table-row;
+    vertical-align: inherit;
+    border-color: inherit;
+}
+
+th.confluenceTh {
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    padding: 3px 4px;
+    text-align: center;
+}
+
+th {
+    font-weight: bold;
+    text-align: -internal-center;
+}
+
+td, th {
+    display: table-cell;
+    vertical-align: inherit;
+}
+
+    td.confluenceTd {
+        border: 1px solid #ccc;
+        padding: 3px 4px;
+    }
+
+dfn, cite {
+    font-style: italic;
+}
+
+    cite:before {
+        content: "\2014 \2009";
+    }

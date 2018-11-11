@@ -1,0 +1,92 @@
+{
+  // the short name of the project to migrate from
+  "source-project": "SCRUM",
+  // the name of the project to migrate to
+  "target-project": "Jira-181108-s",
+  // the name of the query to use for identifying work items to migrate
+  // the query must be a flat query
+  "query": "project = SCRUM ORDER BY Rank ASC",
+  // where logs and export data are saved on disk
+  "workspace": "C:\\Temp\\JiraExport\\",
+  // requires customization per account and sometimes project
+  "epic-link-field": "customfield_10008",
+  "sprint-field": "customfield_10007",
+  // how many items to retrieve with one call
+  "batch-size": 20,
+  // Debug, Info, Warning, Error or Critical
+  "log-level": "Debug",
+  // where to store attachments
+  "attachment-folder": "Attachments",
+  // user mapping file (content needs to be in format [jira username]=[vsts username])
+  "user-mapping-file": "users.txt",
+  "base-area-path": "Migrated",
+  "base-iteration-path": "Migrated",
+  "ignore-failed-links": true,
+  "process-template": "Scrum", 
+  "field-map": {
+    "field": [
+      {
+        "source": "summary",
+        "target": "System.Title",
+        "mapper": "MapTitle"
+      },
+      {
+        "source": "assignee",
+        "target": "System.AssignedTo",
+        "mapper": "MapUser"
+      },
+      {
+        "source": "description",
+        "target": "System.Description"
+      },
+      {
+        "source": "priority",
+        "target": "Microsoft.VSTS.Common.Priority",
+        "mapper": "MapPriority"
+      },
+      {
+        "source": "customfield_10007",
+        "target": "System.IterationPath",
+        "mapper": "MapSprint"
+      },
+      {
+        "source": "labels",
+        "target": "System.Tags",
+        "mapper": "MapTags"
+      },
+      {
+        "source": "comment",
+        "target": "System.History"
+      },
+      {
+        "source": "status",
+        "target": "System.State",
+        "not-for": "Task",
+        "mapper": "MapStateBugAndPBI"
+      },
+      {
+        "source": "status",
+        "target": "System.State",
+        "for": "Task",
+        "mapper": "MapStateTask"
+      },
+      {
+        "source": "customfield_10004",
+        "target": "Microsoft.VSTS.Scheduling.Effort",
+        "for": "Epic,Feature,Product Backlog Item,Bug",
+        "type": "double"
+      },
+      {
+        "source": "remainingEstimate",
+        "target": "Microsoft.VSTS.Scheduling.RemainingWork",
+        "for": "Bug,Task",
+        "type": "double"
+      },
+      {
+        "source": "description",
+        "target": "Microsoft.VSTS.TCM.ReproSteps",
+        "for": "Bug"
+      }
+    ]
+  }
+}

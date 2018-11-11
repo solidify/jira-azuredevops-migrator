@@ -1,0 +1,59 @@
+{
+    "manifestVersion": 1,
+    "id": "jira-devops-migration",
+    "name": "Jira to Azure DevOps/TFS work item migration tool",
+    "version": "0.0.1",
+    "public": false,
+    "publisher": "solidify-labs",
+    "targets": [
+      {
+        "id": "Microsoft.VisualStudio.Services.Integration"
+      }
+    ],
+    "description": "Jira to Azure DevOps Migration Tool. Using this tool you can export data from Jira and import it as work items in Azure DevOps and Team Foundation Server.",
+    "categories": [
+      "Integrate"
+    ],
+    "tags": [
+      "migration",
+      "jira"
+    ],
+    "links": {
+      "home": {
+        "uri": "https://github.com/solidify/jira-azuredevops-migrator"
+      },
+      "getstarted": {
+        "uri": "https://github.com/solidify/jira-azuredevops-migrator"
+      },
+      "learn": {
+        "uri": "https://github.com/solidify/jira-azuredevops-migrator"
+      },
+      "support": {
+        "uri": "https://github.com/solidify/jira-azuredevops-migrator/issues"
+      }
+    },
+    "repository": {
+      "type": "git",
+      "uri": "https://github.com/solidify/jira-azuredevops-migrator.git"
+    },
+    "icons": {
+      "default": "images/extension-icon.png"
+    },
+    "branding": {
+      "color": "rgb(0, 0, 0)",
+      "theme": "dark"
+    },
+    "screenshots": [
+      {
+        "path": "images/screenshot1.png"
+      }
+    ],
+    "content": {
+      "details": {
+        "path": "README.md"
+      },
+      "license": {
+        "path": "LICENSE.md"
+      }
+    }
+  }
