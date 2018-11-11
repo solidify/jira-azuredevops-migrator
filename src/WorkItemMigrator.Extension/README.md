@@ -24,7 +24,7 @@ Some of the capabilities include:
 
 The tools are provided as-is but will require detailed understanding of how to migrate work items between different systems in order to do a successful migration. If you need support or help with migrations feel free to [contact the team at Solidify](mailto:info@solidify.se) for expert consulting.
 
-* See the [migration process overview](https://github.com/solidify/jira-azuredevops-migrator/docs/overview.md) for information on how to get started.
+* See the [migration process overview](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/overview.md) for information on how to get started.
 * Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/jira-to-vsts-migration-work-items/) for more context of the process.
 
 # Tested with
