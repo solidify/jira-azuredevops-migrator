@@ -12,7 +12,7 @@
     ],
     "description": "Jira to Azure DevOps Migration Tool. Using this tool you can export data from Jira and import it as work items in Azure DevOps and Team Foundation Server.",
     "categories": [
-      "Integrate"
+      "Azure Boards"
     ],
     "tags": [
       "migration",
