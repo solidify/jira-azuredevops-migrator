@@ -42,6 +42,7 @@ steps:
   inputs:
     rootFolder: src/WorkItemMigrator.Extension
     outputPath: '$(Build.ArtifactStagingDirectory)\jira-devops-workitem-migrator-$(Build.BuildNumber).vsix'
+    bypassLocalValidation: true
 
 - task: CopyFiles@2
   displayName: 'Copy JiraExport files'
