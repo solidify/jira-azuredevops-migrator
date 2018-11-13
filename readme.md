@@ -2,9 +2,9 @@
 
 The Jira to Azure DevOps work item migration tool lets you export data from Jira and import it as work items in Azure DevOps or Microsoft Team Foundation Server.
 
-|Build|Release|
-|---|---|
-|[![Build Status](https://solidify.visualstudio.com/OSS/_apis/build/status/jira-azuredevops-migrator)](https://solidify.visualstudio.com/OSS/_build/latest?definitionId=50)|[![Deployment status](https://solidify.vsrm.visualstudio.com/_apis/public/Release/badge/9d04c453-c16d-4cd5-aadd-4162a63d5df5/4/12)](https://solidify.visualstudio.com/OSS/_release?definitionId=4)|
+|Build|Quality|Release|
+|---|---|---|
+|[![Build Status](https://solidify.visualstudio.com/OSS/_apis/build/status/jira-azuredevops-migrator)](https://solidify.visualstudio.com/OSS/_build/latest?definitionId=50)|[![](https://sonarcloud.io/api/project_badges/measure?project=jira-azuredevops-migrator&metric=alert_status)](https://sonarcloud.io/dashboard?id=jira-azuredevops-migrator)|[![Deployment status](https://solidify.vsrm.visualstudio.com/_apis/public/Release/badge/9d04c453-c16d-4cd5-aadd-4162a63d5df5/4/12)](https://solidify.visualstudio.com/OSS/_release?definitionId=4)|
 
 # Features
 
