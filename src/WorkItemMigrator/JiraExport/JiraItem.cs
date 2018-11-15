@@ -145,7 +145,7 @@ namespace JiraExport
             string attKey = string.Empty;
             string attFilename = string.Empty;
 
-            RevisionChangeType changeType = RevisionChangeType.Added;
+            RevisionChangeType changeType;
 
             if (item.From == null && item.To != null)
             {
@@ -223,7 +223,7 @@ namespace JiraExport
         {
             string targetItemKey = string.Empty;
             string linkTypeString = string.Empty;
-            RevisionChangeType changeType = RevisionChangeType.Added;
+            RevisionChangeType changeType;
 
             if (item.From == null && item.To != null)
             {
@@ -349,12 +349,11 @@ namespace JiraExport
 
         private static string[] ParseCustomField(string fieldName, JToken value, JiraProvider provider)
         {
-            if (provider.Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out var customField) && customField != null)
+            if (provider.Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out var customField) && 
+                customField != null && 
+                provider.Jira.RestClient.Settings.CustomFieldSerializers.TryGetValue(customField.CustomType, out var serializer))
             {
-                if (provider.Jira.RestClient.Settings.CustomFieldSerializers.TryGetValue(customField.CustomType, out var serializer))
-                {
                     return serializer.FromJson(value);
-                }
             }
 
             return null;

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace Migration.Common
 {
-    public class VersionInfo
+    public static class VersionInfo
     {
         public static string GetVersionInfo()
         {

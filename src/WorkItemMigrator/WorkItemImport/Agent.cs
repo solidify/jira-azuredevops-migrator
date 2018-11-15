@@ -156,11 +156,16 @@ namespace WorkItemImport
             ProjectHttpClient projectClient = RestConnection.GetClient<ProjectHttpClient>();
             Logger.Log(LogLevel.Info, "Retreiving project info from Azure DevOps/TFS...");
             TeamProject project = null;
+
             try
             {
                 project = await projectClient.GetProject(Settings.Project);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Exception during get project: " + ex.Message);
+            }
+
             if (project == null)
                 project = await CreateProject(Settings.Project, $"{Settings.ProcessTemplate} project for Jira migration", Settings.ProcessTemplate);
 
@@ -366,7 +371,7 @@ namespace WorkItemImport
         {
             bool success = true;
 
-            if (!wi.IsOpen | !wi.IsPartialOpen)
+            if (!wi.IsOpen || !wi.IsPartialOpen)
                 wi.PartialOpen();
 
             foreach (var fieldRev in fields)
@@ -572,7 +577,7 @@ namespace WorkItemImport
 
         private bool DetectCycle(WorkItem startingWi, RelatedLink startingLink)
         {
-            var nextWi = startingWi;
+            WorkItem nextWi;
             var nextWiLink = startingLink;
 
             do
@@ -673,11 +678,11 @@ namespace WorkItemImport
             {
                 rev.Fields.Add(new WiField() { ReferenceName = changedDateRef, Value = rev.Time.ToString("o") });
             }
-        }      
+        }
 
         private bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev)
         {
-            string currentDescription = wi.Type.Name == "Bug" ? wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value.ToString() as string : wi.Description;
+            string currentDescription = wi.Type.Name == "Bug" ? wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value.ToString() : wi.Description;
             if (string.IsNullOrWhiteSpace(currentDescription))
                 return false;
 
@@ -691,7 +696,7 @@ namespace WorkItemImport
 
                     if (tfsAtt != null)
                     {
-                        currentDescription.Replace(att.FilePath, tfsAtt.Uri.AbsoluteUri);
+                        currentDescription = currentDescription.Replace(att.FilePath, tfsAtt.Uri.AbsoluteUri);
                         descUpdated = true;
                     }
                     else
@@ -710,6 +715,15 @@ namespace WorkItemImport
 
                 wi.Fields["System.ChangedDate"].Value = changedDate;
                 wi.Fields["System.ChangedBy"].Value = rev.Author;
+
+                if (wi.Type.Name == "Bug")
+                {
+                    wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value = currentDescription;
+                }
+                else
+                {
+                    wi.Fields["System.Description"].Value = currentDescription;
+                }
             }
 
             return descUpdated;

@@ -3,8 +3,9 @@ using System;
 
 namespace WorkItemImport
 {
-    class Program
+    static class Program
     {
+        [STAThread]
         static void Main(string[] args)
         {
             Logger.Log(LogLevel.Info, $"Work Item Importer v{VersionInfo.GetVersionInfo()}");

@@ -13,7 +13,7 @@ namespace Migration.Common
         Critical
     }
 
-    public class Logger
+    public static class Logger
     {
         private static string _logFilePath;
         private static LogLevel _logLevel;
