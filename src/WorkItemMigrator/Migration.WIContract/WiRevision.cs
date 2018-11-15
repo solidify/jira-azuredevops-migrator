@@ -18,7 +18,7 @@ namespace Migration.WIContract
         CMMI
     }
 
-    public class WorkItemType
+    public static class WorkItemType
     {
         public static string ProductBacklogItem => "Product Backlog Item";
         public static string UserStory => "User Story";

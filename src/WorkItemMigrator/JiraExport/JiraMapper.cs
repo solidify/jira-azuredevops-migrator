@@ -13,8 +13,8 @@ namespace JiraExport
 {
     internal class JiraMapper : BaseMapper<JiraRevision>
     {
-        private JiraProvider jiraProvider;
-        private Dictionary<string, FieldMapping<JiraRevision>> _fieldMappingsPerType;
+        private readonly JiraProvider jiraProvider;
+        private readonly Dictionary<string, FieldMapping<JiraRevision>> _fieldMappingsPerType;
 
         public JiraMapper(JiraProvider jiraProvider, ConfigJson config) : base(jiraProvider?.Settings?.UserMappingFile)
         {
@@ -31,7 +31,7 @@ namespace JiraExport
         /// <param name="field"></param>
         /// <param name="type"></param>
         /// <returns>True if link is added, false if it's not</returns>
-        private bool AddRemoveSingleLink(JiraRevision r, List<WiLink> links, string field, string type)
+        private void AddRemoveSingleLink(JiraRevision r, List<WiLink> links, string field, string type)
         {
             if (r.Fields.TryGetValue(field, out object value))
             {
@@ -70,12 +70,8 @@ namespace JiraExport
                     };
 
                     links.Add(link);
-
-                    return true;
                 }
             }
-
-            return false;
         }
 
         private List<string> GetWorkItemTypes(string notFor = "")
@@ -103,24 +99,20 @@ namespace JiraExport
             };
         }
 
-        protected override string MapUser(string username)
+        protected override string MapUser(string sourceUser)
         {
-            if (string.IsNullOrWhiteSpace(username))
+            if (string.IsNullOrWhiteSpace(sourceUser))
                 return null;
 
-            var email = jiraProvider.GetUserEmail(username);
+            var email = jiraProvider.GetUserEmail(sourceUser);
             return base.MapUser(email);
         }
 
         internal WiItem Map(JiraItem issue, TemplateType template)
         {
-            List<WiRevision> revisions = new List<WiRevision>();
-
             string type = MapType(issue.Type, template);
-
-            revisions = issue.Revisions.Select(r => MapRevision(r, template)).ToList();
-
-            MapLastDescription(revisions, issue, template);
+            var revisions = issue.Revisions.Select(r => MapRevision(r, template)).ToList();
+            MapLastDescription(revisions, issue);
 
             return new WiItem()
             {
@@ -261,9 +253,9 @@ namespace JiraExport
             var userStoryFields = new FieldMapping<JiraRevision>();
             List<string> witList = null;
             var processFields = (from f in config.FieldMap.Fields where f.Process == "Common" || f.Process == "All" || f.Process == config.ProcessTemplate select f).ToList();
-            foreach (var item in processFields) 
+            foreach (var item in processFields)
             {
-                if (item.Source != null) 
+                if (item.Source != null)
                 {
                     // If not-for and for has not been set (should never happen) then get all work item types
                     if (string.IsNullOrWhiteSpace(item.NotFor) && string.IsNullOrWhiteSpace(item.For))
@@ -278,7 +270,7 @@ namespace JiraExport
                         // Check if not-for has been set, if so get all work item types except that one, else for has been set and get those
                         witList = !string.IsNullOrWhiteSpace(item.NotFor) ? GetWorkItemTypes(item.NotFor) : item.For.Split(',').ToList();
                     }
-                    
+
                     Func<JiraRevision, (bool, object)> value;
                     if (item.Type == "string")
                     {
@@ -395,17 +387,6 @@ namespace JiraExport
             };
         }
 
-        private static Func<JiraRevision, (bool, object)> Init(object constant)
-        {
-            return (r) =>
-            {
-                if (r.Index == 0)
-                    return (true, constant);
-                else
-                    return (false, null);
-            };
-        }
-
         private (bool, object) MapTitle(JiraRevision r)
         {
             if (r.Fields.TryGetValue("summary", out object summary))
@@ -482,23 +463,23 @@ namespace JiraExport
             }
         }
 
-        private object MapSeverity(string jiraSeverity)
-        {
-            switch (jiraSeverity.ToLowerInvariant())
-            {
-                case "blocker":
-                case "critical":
-                case "highest": return 1;
-                case "major":
-                case "high": return 2;
-                case "medium":
-                case "low": return 3;
-                case "lowest":
-                case "minor":
-                case "trivial": return 4;
-                default: return null;
-            }
-        }
+        //private object MapSeverity(string jiraSeverity)
+        //{
+        //    switch (jiraSeverity.ToLowerInvariant())
+        //    {
+        //        case "blocker":
+        //        case "critical":
+        //        case "highest": return 1;
+        //        case "major":
+        //        case "high": return 2;
+        //        case "medium":
+        //        case "low": return 3;
+        //        case "lowest":
+        //        case "minor":
+        //        case "trivial": return 4;
+        //        default: return null;
+        //    }
+        //}
 
         protected string MapType(string type, TemplateType template)
         {
@@ -523,27 +504,23 @@ namespace JiraExport
             {
                 case "Task": return backlogItem;
                 case "Sub-task": return WorkItemType.Task;
-                case "Story": return backlogItem; 
+                case "Story": return backlogItem;
                 case "Bug": return WorkItemType.Bug;
-                case "Epic": return WorkItemType.Feature; 
+                case "Epic": return WorkItemType.Feature;
                 default: return backlogItem;
             }
         }
 
-        private void MapLastDescription(List<WiRevision> revisions, JiraItem issue, TemplateType template)
+        private void MapLastDescription(List<WiRevision> revisions, JiraItem issue)
         {
-            var descFieldName = issue.Type == "Bug" ? "Microsoft.VSTS.TCM.ReproSteps" : "System.Description"; 
-
+            var descFieldName = issue.Type == "Bug" ? "Microsoft.VSTS.TCM.ReproSteps" : "System.Description";
             var lastDescUpdateRev =
                 ((IEnumerable<WiRevision>)revisions)
                .Reverse()
                .FirstOrDefault(r => r.Fields.Any(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase)));
-
             var lastDescUpdate = lastDescUpdateRev
                                 ?.Fields
                                 ?.FirstOrDefault(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase));
-
-
             var renderedDescription = MapRenderedDescription(issue);
 
             if (lastDescUpdate == null && !string.IsNullOrWhiteSpace(renderedDescription))
@@ -553,7 +530,10 @@ namespace JiraExport
                 lastDescUpdateRev.Fields.Add(lastDescUpdate);
             }
 
-            lastDescUpdate.Value = renderedDescription;
+            if (lastDescUpdate != null)
+            {
+                lastDescUpdate.Value = renderedDescription;
+            }
 
             lastDescUpdateRev.AttachmentReferences = true;
         }
@@ -566,10 +546,10 @@ namespace JiraExport
             foreach (var att in issue.Revisions.SelectMany(r => r.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value)))
             {
                 if (!string.IsNullOrWhiteSpace(att.ThumbUrl) && wiHtml.Contains(att.ThumbUrl))
-                    wiHtml.Replace(att.ThumbUrl, att.ThumbUrl);
+                    wiHtml = wiHtml.Replace(att.ThumbUrl, att.ThumbUrl);
 
                 if (!string.IsNullOrWhiteSpace(att.Url) && wiHtml.Contains(att.Url))
-                    wiHtml.Replace(att.Url, att.Url);
+                    wiHtml = wiHtml.Replace(att.Url, att.Url);
             }
 
             string imageWrapPattern = "<span class=\"image-wrap\".*?>.*?(<img .*? />).*?</span>";
