@@ -7,6 +7,7 @@ namespace Migration.Common
     public class Journal
     {
         #region Static methods
+
         internal static Journal Init(MigrationContext context)
         {
             var journal = new Journal(context);
@@ -22,7 +23,8 @@ namespace Migration.Common
 
         #endregion
 
-        #region parsing
+        #region Parsing
+
         internal static Journal Load(Journal journal)
         {
             if (File.Exists(journal.ItemsPath))
@@ -50,8 +52,6 @@ namespace Migration.Common
 
         #endregion
 
-        private MigrationContext _context;
-
         public Dictionary<string, (int, int)> ProcessedRevisions { get; private set; } = new Dictionary<string, (int, int)>();
 
         public Dictionary<string, int> ProcessedAttachments { get; private set; } = new Dictionary<string, int>();
@@ -60,10 +60,8 @@ namespace Migration.Common
 
         public Journal(MigrationContext context)
         {
-            _context = context;
-
-            ItemsPath = Path.Combine(_context.MigrationWorkspace, "itemsJournal.txt");
-            AttachmentsPath = Path.Combine(_context.MigrationWorkspace, "attachmentsJournal.txt");
+            ItemsPath = Path.Combine(context.MigrationWorkspace, "itemsJournal.txt");
+            AttachmentsPath = Path.Combine(context.MigrationWorkspace, "attachmentsJournal.txt");
         }
 
         public void MarkRevProcessed(string originId, int wiId, int rev)
@@ -91,8 +89,7 @@ namespace Migration.Common
 
         public bool IsItemMigrated(string originId, int rev)
         {
-            (int, int) migrationResult;
-            if (!ProcessedRevisions.TryGetValue(originId, out migrationResult))
+            if (!ProcessedRevisions.TryGetValue(originId, out (int, int) migrationResult))
                 return false;
 
             (int targetId, int migratedRev) = migrationResult;
@@ -101,8 +98,7 @@ namespace Migration.Common
 
         public int GetMigratedId(string originId)
         {
-            (int, int) migrationResult;
-            if (!ProcessedRevisions.TryGetValue(originId, out migrationResult))
+            if (!ProcessedRevisions.TryGetValue(originId, out (int, int) migrationResult))
                 return -1;
 
             (int wiId, int rev) = migrationResult;

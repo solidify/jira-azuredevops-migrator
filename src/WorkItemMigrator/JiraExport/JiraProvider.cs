@@ -176,7 +176,7 @@ namespace JiraExport
                 {
                     foreach (var remoteAtt in attChanges)
                     {
-                        var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value, rev.ParentItem.Key, web);
+                        var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value, web);
                         if (jiraAtt != null && !string.IsNullOrWhiteSpace(jiraAtt.LocalPath))
                         {
                             Logger.Log(LogLevel.Info, $"Downloaded {jiraAtt.ToString()} to {jiraAtt.LocalPath}");
@@ -223,7 +223,7 @@ namespace JiraExport
             }
         }
 
-        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att, string key, WebClientWrapper web)
+        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att, WebClientWrapper web)
         {
             try
             {
@@ -241,7 +241,7 @@ namespace JiraExport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Warning, $"Attachment ({att.ToString()}) download failed. Message: {ex.Message}");
+                Logger.Log(LogLevel.Warning, $"Attachment download failed. Message: {ex.Message}");
             }
 
             if (att != null && !string.IsNullOrWhiteSpace(att.ThumbUrl))
@@ -275,7 +275,7 @@ namespace JiraExport
             }
         }
 
-        Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
+        readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
         public string GetUserEmail(string username)
         {
             if (_userEmailCache.TryGetValue(username, out string email))

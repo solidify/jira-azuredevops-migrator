@@ -4,7 +4,6 @@ using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Migration.Common;
 using Migration.Common.Config;
 using System;
-using System.Threading.Tasks;
 
 namespace WorkItemImport
 {
@@ -38,7 +37,7 @@ namespace WorkItemImport
 
             commandLineApplication.OnExecute(() =>
             {
-                bool forceFresh = forceOption.HasValue() ? true : false;
+                bool forceFresh = forceOption.HasValue();
 
                 if (configOption.HasValue())
                 {

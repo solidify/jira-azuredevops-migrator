@@ -2,7 +2,7 @@
 
 namespace WorkItemImport
 {
-    public class RevisionReference : IComparable<RevisionReference>, IEquatable<RevisionReference>
+    public sealed class RevisionReference : IComparable<RevisionReference>, IEquatable<RevisionReference>
     {
         public string OriginId { get; set; }
         public int RevIndex { get; set; }
@@ -10,25 +10,24 @@ namespace WorkItemImport
 
         public int CompareTo(RevisionReference other)
         {
-            int result = this.Time.CompareTo(other.Time);
+            int result = Time.CompareTo(other.Time);
             if (result != 0) return result;
 
-            result = this.OriginId.CompareTo(other.OriginId);
+            result = OriginId.CompareTo(other.OriginId);
             if (result != 0) return result;
 
-            return this.RevIndex.CompareTo(other.RevIndex);
+            return RevIndex.CompareTo(other.RevIndex);
         }
 
         public bool Equals(RevisionReference other)
         {
-            return this.OriginId.Equals(other.OriginId, StringComparison.InvariantCultureIgnoreCase) && this.RevIndex == other.RevIndex;
+            return OriginId.Equals(other.OriginId, StringComparison.InvariantCultureIgnoreCase) && RevIndex == other.RevIndex;
         }
 
         public override bool Equals(object obj)
         {
-            var other = obj as RevisionReference;
-            if (other == null) return false;
-            return this.Equals(other);
+            if (!(obj is RevisionReference other)) return false;
+            return Equals(other);
         }
 
         public override int GetHashCode()

@@ -33,22 +33,22 @@ namespace Migration.Common.Config
             catch (FileNotFoundException ex)
             {
                 Logger.Log(LogLevel.Error, "Required JSON configuration file was not found. Please ensure that this file is in the correct location.");
-                throw ex;
+                throw;
             }
             catch (PathTooLongException ex)
             {
                 Logger.Log(LogLevel.Error, "Required JSON configuration file could not be accessed because the file path is too long. Please store your files for this application in a folder location with a shorter path name.");
-                throw ex;
+                throw;
             }
             catch (UnauthorizedAccessException ex)
             {
                 Logger.Log(LogLevel.Error, "Cannot read from the JSON configuration file because you are not authorized to access it. Please try running this application as administrator or moving it to a folder location that does not require special access.");
-                throw ex;
+                throw;
             }
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Cannot read from the JSON configuration file. Please ensure it is formatted properly.");
-                throw ex;
+                throw;
             }
         }
 

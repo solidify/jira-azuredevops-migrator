@@ -45,7 +45,7 @@ namespace JiraExport
 
             commandLineApplication.OnExecute(() =>
             {
-                bool forceFresh = forceOption.HasValue() ? true : false;
+                bool forceFresh = forceOption.HasValue();
 
                 if (configOption.HasValue())
                 {
