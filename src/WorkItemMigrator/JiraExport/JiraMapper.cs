@@ -251,13 +251,14 @@ namespace JiraExport
             var featureFields = new FieldMapping<JiraRevision>();
             var requirementFields = new FieldMapping<JiraRevision>();
             var userStoryFields = new FieldMapping<JiraRevision>();
+            var processTemplate = config.ProcessTemplate.ToLower();
             List<string> witList = null;
             var processFields = (from f in config.FieldMap.Fields where f.Process == "Common" || f.Process == "All" || f.Process == config.ProcessTemplate select f).ToList();
             foreach (var item in processFields)
             {
                 if (item.Source != null)
                 {
-                    // If not-for and for has not been set (should never happen) then get all work item types
+                    // If not-for AND for has not been set (both should never be set together) then get all work item types
                     if (string.IsNullOrWhiteSpace(item.NotFor) && string.IsNullOrWhiteSpace(item.For))
                     {
                         if (witList == null)
@@ -292,10 +293,30 @@ namespace JiraExport
                                 value = IfChanged<string>(item.Source, MapTags);
                                 break;
                             case "MapStateTask":
-                                value = IfChanged<string>(item.Source, MapStateTask);
+                                value = IfChanged<string>(item.Source); // Default value, should be overridden by value below
+                                if((!string.IsNullOrWhiteSpace(item.NotFor) && (!item.NotFor.Contains(WorkItemType.Bug) || !item.NotFor.Contains(WorkItemType.ProductBacklogItem)))
+                                    || !string.IsNullOrWhiteSpace(item.For) && item.For.Contains(WorkItemType.Task))
+                                {
+                                    if (processTemplate == TemplateType.Scrum.ToString().ToLower())
+                                        value = IfChanged<string>(item.Source, MapScrumStateTask);
+                                    else if (processTemplate == TemplateType.Agile.ToString().ToLower())
+                                        value = IfChanged<string>(item.Source, MapAgileStateTask);
+                                    else if (processTemplate == TemplateType.CMMI.ToString().ToLower())
+                                        value = IfChanged<string>(item.Source, MapCMMIStateTask);
+                                }
                                 break;
                             case "MapStateBugAndPBI":
-                                value = IfChanged<string>(item.Source, MapStateBugAndPBI);
+                                value = IfChanged<string>(item.Source); // Default value, should be overridden by value below
+                                if((!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(WorkItemType.Task))
+                                    || !string.IsNullOrWhiteSpace(item.For) && (item.For.Split(',').Contains(WorkItemType.Bug) || item.For.Split(',').Contains(WorkItemType.ProductBacklogItem)))
+                                {
+                                    if (processTemplate == TemplateType.Scrum.ToString().ToLower())
+                                        value = IfChanged<string>(item.Source, MapScrumStateBugAndPBI);
+                                    else if (processTemplate == TemplateType.Agile.ToString().ToLower())
+                                        value = IfChanged<string>(item.Source, MapAgileStateBugAndPBI);
+                                    else if (processTemplate == TemplateType.CMMI.ToString().ToLower())
+                                        value = IfChanged<string>(item.Source, MapCMMIStateBugAndPBI);
+                                }
                                 break;
                             default:
                                 value = IfChanged<string>(item.Source);
@@ -395,7 +416,7 @@ namespace JiraExport
                 return (false, null);
         }
 
-        private string MapStateTask(string jiraState)
+        private string MapScrumStateTask(string jiraState)
         {
             jiraState = jiraState.ToLowerInvariant();
             switch (jiraState)
@@ -408,7 +429,33 @@ namespace JiraExport
             }
         }
 
-        private object MapStateBugAndPBI(string jiraState)
+        private string MapAgileStateTask(string jiraState)
+        {
+            jiraState = jiraState.ToLowerInvariant();
+            switch (jiraState)
+            {
+                case "to do": return "New";
+                case "done": return "Closed";
+                case "in progress": return "Active";
+                case "ready for test": return "Ready for test";
+                default: return "New";
+            }
+        }
+
+        private string MapCMMIStateTask(string jiraState)
+        {
+            jiraState = jiraState.ToLowerInvariant();
+            switch (jiraState)
+            {
+                case "to do": return "Proposed";
+                case "done": return "Closed";
+                case "in progress": return "Active";
+                case "ready for test": return "Ready for test";
+                default: return "Proposed";
+            }
+        }
+
+        private object MapScrumStateBugAndPBI(string jiraState)
         {
             jiraState = jiraState.ToLowerInvariant();
             switch (jiraState)
@@ -416,7 +463,31 @@ namespace JiraExport
                 case "to do": return "New";
                 case "done": return "Done";
                 case "in progress": return "Committed";
-                default: return "Committed";
+                default: return "New";
+            }
+        }
+
+        private object MapAgileStateBugAndPBI(string jiraState)
+        {
+            jiraState = jiraState.ToLowerInvariant();
+            switch (jiraState)
+            {
+                case "to do": return "New";
+                case "done": return "Closed";
+                case "in progress": return "Active";
+                default: return "New";
+            }
+        }
+
+        private object MapCMMIStateBugAndPBI(string jiraState)
+        {
+            jiraState = jiraState.ToLowerInvariant();
+            switch (jiraState)
+            {
+                case "to do": return "Proposed";
+                case "done": return "Closed";
+                case "in progress": return "Active";
+                default: return "Proposed";
             }
         }
 
@@ -514,6 +585,7 @@ namespace JiraExport
         private void MapLastDescription(List<WiRevision> revisions, JiraItem issue)
         {
             var descFieldName = issue.Type == "Bug" ? "Microsoft.VSTS.TCM.ReproSteps" : "System.Description";
+
             var lastDescUpdateRev =
                 ((IEnumerable<WiRevision>)revisions)
                .Reverse()
