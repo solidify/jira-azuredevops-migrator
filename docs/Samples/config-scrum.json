@@ -1,28 +1,62 @@
 {
-  // the short name of the project to migrate from
   "source-project": "SCRUM",
-  // the name of the project to migrate to
   "target-project": "Jira-181108-s",
-  // the name of the query to use for identifying work items to migrate
-  // the query must be a flat query
   "query": "project = SCRUM ORDER BY Rank ASC",
-  // where logs and export data are saved on disk
   "workspace": "C:\\Temp\\JiraExport\\",
-  // requires customization per account and sometimes project
   "epic-link-field": "customfield_10008",
   "sprint-field": "customfield_10007",
-  // how many items to retrieve with one call
   "batch-size": 20,
-  // Debug, Info, Warning, Error or Critical
   "log-level": "Debug",
-  // where to store attachments
   "attachment-folder": "Attachments",
-  // user mapping file (content needs to be in format [jira username]=[vsts username])
   "user-mapping-file": "users.txt",
   "base-area-path": "Migrated",
   "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
-  "process-template": "Scrum", 
+  "process-template": "Scrum",
+  "link-map": {
+    "link": [
+      {
+        "source": "Epic",
+        "target": "System.LinkTypes.Hierarchy-Reverse"
+      },
+      {
+        "source": "Parent",
+        "target": "System.LinkTypes.Hierarchy-Reverse"
+      },
+      {
+        "source": "Relates",
+        "target": "System.LinkTypes.Related"
+      },
+      {
+        "source": "Duplicate",
+        "target": "System.LinkTypes.Duplicate-Forward"
+      }
+    ]
+  },
+  "type-map":{
+    "type": [
+      {
+        "source": "User Story",
+        "target": "Feature"
+      },
+      {
+        "source": "Epic",
+        "target": "Epic"
+      },
+      {
+        "source": "Bug",
+        "target": "Bug"
+      },
+      {
+        "source": "Task",
+        "target": "Product Backlog Item"
+      },
+      {
+        "source": "Sub-task",
+        "target": "Task"
+      }
+    ]
+  },
   "field-map": {
     "field": [
       {
@@ -42,7 +76,50 @@
       {
         "source": "priority",
         "target": "Microsoft.VSTS.Common.Priority",
-        "mapper": "MapPriority"
+        "mapping": {
+          "values": [
+            {
+              "source": "blocker",
+              "target": 1
+            },
+            {
+              "source": "critical",
+              "target": 1
+            },
+            {
+              "source": "highest",
+              "target": 1
+            },
+            {
+              "source": "major",
+              "target": 2
+            },
+            {
+              "source": "high",
+              "target": 2
+            },
+            {
+              "source": "medium",
+              "target": 3
+            },
+            {
+              "source": "low",
+              "target": 3
+            },
+            {
+              "source": "lowest",
+              "target": 4
+            },
+            {
+              "source": "minor",
+              "target": 4
+            },
+            {
+              "source": "trivial",
+              "target": 4
+            }
+          ]
+        }
       },
       {
         "source": "customfield_10007",
@@ -61,14 +138,65 @@
       {
         "source": "status",
         "target": "System.State",
-        "not-for": "Task",
-        "mapper": "MapStateBugAndPBI"
+        "for": "Task",
+        "mapping": {
+          "values": [
+            {
+              "source": "To Do",
+              "target": "To Do"
+            },
+            {
+              "source": "Done",
+              "target": "Done"
+            },
+            {
+              "source": "In Progress",
+              "target": "In Progress"
+            }
+          ]
+        }
       },
       {
         "source": "status",
         "target": "System.State",
-        "for": "Task",
-        "mapper": "MapStateTask"
+        "for": "Bug,Product Backlog Item",
+        "mapping": {
+          "values": [
+            {
+              "source": "To Do",
+              "target": "New"
+            },
+            {
+              "source": "Done",
+              "target": "Done"
+            },
+            {
+              "source": "In Progress",
+              "target": "Committed"
+            }
+          ]
+        }
+      },
+      {
+        "source": "status",
+        "target": "System.State",
+        "for": "Epic,Feature",
+        "mapping": {
+          "values": [
+            {
+              "source": "To Do",
+              "target": "New"
+            },
+            {
+              "source": "Done",
+              "target": "Done"
+            },
+            {
+              "source": "In Progress",
+              "target": "In Progress"
+            }
+          ]
+        }
       },
       {
         "source": "customfield_10004",

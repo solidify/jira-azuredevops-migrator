@@ -53,7 +53,13 @@
     <Compile Include="Config\ConfigReaderJson.cs" />
     <Compile Include="Config\Field.cs" />
     <Compile Include="Config\IConfigReader.cs" />
-    <Compile Include="Config\ConfigMap.cs" />
+    <Compile Include="Config\FieldMap.cs" />
+    <Compile Include="Config\Link.cs" />
+    <Compile Include="Config\LinkMap.cs" />
+    <Compile Include="Config\Mapping.cs" />
+    <Compile Include="Config\Value.cs" />
+    <Compile Include="Config\Type.cs" />
+    <Compile Include="Config\TypeMap.cs" />
     <Compile Include="FieldMapping.cs" />
     <Compile Include="ISourceRevision.cs" />
     <Compile Include="Journal.cs" />

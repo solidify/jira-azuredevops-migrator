@@ -22,7 +22,7 @@ namespace Migration.Common.Config
         [JsonProperty("mapper")]
         public string Mapper { get; set; }
 
-        [JsonProperty("process")]
-        public string Process { get; set; } = "Common";
+        [JsonProperty("mapping")]
+        public Mapping Mapping { get; set; }
     }
 }
