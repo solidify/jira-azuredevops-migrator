@@ -13,13 +13,13 @@ namespace JiraExport
 {
     internal class JiraMapper : BaseMapper<JiraRevision>
     {
-        private readonly JiraProvider jiraProvider;
+        private readonly JiraProvider _jiraProvider;
         private readonly Dictionary<string, FieldMapping<JiraRevision>> _fieldMappingsPerType;
         private readonly ConfigJson _config;
 
-        public JiraMapper(JiraProvider _jiraProvider, ConfigJson config) : base(_jiraProvider?.Settings?.UserMappingFile)
+        public JiraMapper(JiraProvider jiraProvider, ConfigJson config) : base(jiraProvider?.Settings?.UserMappingFile)
         {
-            _jiraProvider = _jiraProvider;
+            _jiraProvider = jiraProvider;
             _config = config;
             _fieldMappingsPerType = InitializeFieldMappings();
         }
@@ -114,22 +114,29 @@ namespace JiraExport
             if (string.IsNullOrWhiteSpace(sourceUser))
                 return null;
 
-            var email = jiraProvider.GetUserEmail(sourceUser);
+            var email = _jiraProvider.GetUserEmail(sourceUser);
             return base.MapUser(email);
         }
 
         internal WiItem Map(JiraItem issue, TemplateType template)
         {
-            var type = (from t in _config.TypeMap.Types where t.Source == issue.Type select t.Target).FirstOrDefault();
-            var revisions = issue.Revisions.Select(r => MapRevision(r, template)).ToList();
-            MapLastDescription(revisions, issue);
+            var wiItem = new WiItem();
 
-            return new WiItem()
+            if (_config.TypeMap.Types != null)
             {
-                OriginId = issue.Key,
-                Type = type,
-                Revisions = revisions
-            };
+                var type = (from t in _config.TypeMap.Types where t.Source == issue.Type select t.Target).FirstOrDefault();
+
+                if (type != null)
+                {
+                    var revisions = issue.Revisions.Select(r => MapRevision(r, template)).ToList();
+                    MapLastDescription(revisions, issue);
+
+                    wiItem.OriginId = issue.Key;
+                    wiItem.Type = type;
+                    wiItem.Revisions = revisions;
+                }
+            }
+            return wiItem;
         }
 
         private List<WiLink> MapLinks(JiraRevision r)
@@ -142,24 +149,27 @@ namespace JiraExport
             foreach (var jiraLinkAction in r.LinkActions)
             {
                 var changeType = jiraLinkAction.ChangeType == RevisionChangeType.Added ? ReferenceChangeType.Added : ReferenceChangeType.Removed;
-                var linkType = (from t in _config.LinkMap.Links where t.Source == jiraLinkAction.Value.LinkType select t.Target).FirstOrDefault();
 
-                if (linkType != null)
+                var link = new WiLink();
+
+                if (_config.LinkMap.Links != null)
                 {
-                    var link = new WiLink()
-                    {
-                        Change = changeType,
-                        SourceOriginId = jiraLinkAction.Value.SourceItem,
-                        TargetOriginId = jiraLinkAction.Value.TargetItem,
-                        WiType = linkType
-                    };
+                    var linkType = (from t in _config.LinkMap.Links where t.Source == jiraLinkAction.Value.LinkType select t.Target).FirstOrDefault();
 
-                    links.Add(link);
+                    if (linkType != null)
+                    {
+                        link.Change = changeType;
+                        link.SourceOriginId = jiraLinkAction.Value.SourceItem;
+                        link.TargetOriginId = jiraLinkAction.Value.TargetItem;
+                        link.WiType = linkType;
+
+                        links.Add(link);
+                    }
                 }
             }
 
             // map epic link
-            AddRemoveSingleLink(r, links, jiraProvider.Settings.EpicLinkField, "Epic");
+            AddRemoveSingleLink(r, links, _jiraProvider.Settings.EpicLinkField, "Epic");
 
             // map parent
             AddRemoveSingleLink(r, links, "parent", "Parent");
@@ -173,7 +183,7 @@ namespace JiraExport
             if (rev.AttachmentActions == null)
                 return attachments;
 
-            jiraProvider.DownloadAttachments(rev).Wait();
+            _jiraProvider.DownloadAttachments(rev).Wait();
 
             foreach (var att in rev.AttachmentActions)
             {
@@ -207,30 +217,38 @@ namespace JiraExport
 
         private List<WiField> MapFields(JiraRevision r, TemplateType template)
         {
-            List<WiField> fields = new List<WiField>();
-            var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
+            var fields = new List<WiField>();
+            var link = new WiLink();
 
-            if (_fieldMappingsPerType.TryGetValue(type, out var mapping))
+            if (_config.LinkMap.Links != null)
             {
-                foreach (var field in mapping)
-                {
-                    try
-                    {
-                        var fieldreference = field.Key;
-                        var (include, value) = field.Value(r);
+                var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
-                        if (include)
-                        {
-                            fields.Add(new WiField()
-                            {
-                                ReferenceName = fieldreference,
-                                Value = value
-                            });
-                        }
-                    }
-                    catch (Exception ex)
+                if(type != null)
+                {
+                    if (_fieldMappingsPerType.TryGetValue(type, out var mapping))
                     {
-                        Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
+                        foreach (var field in mapping)
+                        {
+                            try
+                            {
+                                var fieldreference = field.Key;
+                                var (include, value) = field.Value(r);
+
+                                if (include)
+                                {
+                                    fields.Add(new WiField()
+                                    {
+                                        ReferenceName = fieldreference,
+                                        Value = value
+                                    });
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
+                            }
+                        }
                     }
                 }
             }
@@ -270,7 +288,7 @@ namespace JiraExport
                                 value = IfChanged<string>(item.Source, MapUser);
                                 break;
                             case "MapSprint":
-                                value = IfChanged<string>(jiraProvider.Settings.SprintField, MapSprint);
+                                value = IfChanged<string>(_jiraProvider.Settings.SprintField, MapSprint);
                                 break;
                             case "MapTags":
                                 value = IfChanged<string>(item.Source, MapTags);

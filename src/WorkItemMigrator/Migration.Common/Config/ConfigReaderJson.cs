@@ -64,12 +64,28 @@ namespace Migration.Common.Config
             {
                 result = JsonConvert.DeserializeObject<ConfigJson>(input);
                 var obj = JObject.Parse(input);
+
                 var fields = obj.SelectToken("field-map.field").Select(jt => jt.ToObject<Field>()).ToList();
                 if (result.FieldMap.Fields == null)
                 {
                     result.FieldMap.Fields = new List<Field>();
                 }
                 result.FieldMap.Fields.AddRange(fields);
+
+                var links = obj.SelectToken("link-map.link").Select(li => li.ToObject<Link>()).ToList();
+                if(result.LinkMap.Links == null)
+                {
+                    result.LinkMap.Links = new List<Link>();
+                }
+                result.LinkMap.Links.AddRange(links);
+
+                var types = obj.SelectToken("type-map.type").Select(li => li.ToObject<Type>()).ToList();
+                if (result.TypeMap.Types == null)
+                {
+                    result.TypeMap.Types = new List<Type>();
+                }
+                result.TypeMap.Types.AddRange(types);
+
             }
             catch (Exception ex)
             {

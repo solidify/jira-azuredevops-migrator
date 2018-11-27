@@ -1,8 +1,8 @@
 {
   "source-project": "SCRUM",
-  "target-project": "Jira-181108-s",
+  "target-project": "Jira-181127-p",
   "query": "project = SCRUM ORDER BY Rank ASC",
-  "workspace": "C:\\Temp\\JiraExport\\",
+  "workspace": "C:\\Solidify\\JiraExport\\",
   "epic-link-field": "customfield_10008",
   "sprint-field": "customfield_10007",
   "batch-size": 20,
@@ -36,12 +36,16 @@
   "type-map":{
     "type": [
       {
-        "source": "User Story",
+        "source": "Feature",
         "target": "Feature"
       },
       {
         "source": "Epic",
         "target": "Epic"
+      },
+      {
+        "source": "User Story",
+        "target": "Feature"
       },
       {
         "source": "Bug",
