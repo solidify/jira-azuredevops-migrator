@@ -112,9 +112,10 @@ namespace JiraExport
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
                 var mapper = new JiraMapper(jiraProvider, config);
                 var localProvider = new WiItemProvider(migrationWorkspace);
-
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));
-                foreach (var issue in jiraProvider.EnumerateIssues(jiraSettings.JQL, forceFresh ? new HashSet<string>(Enumerable.Empty<string>()) : exportedKeys, downloadOptions))
+                var skips = forceFresh ? new HashSet<string>(Enumerable.Empty<string>()) : exportedKeys;
+
+                foreach (var issue in jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions))
                 {
                     WiItem wiItem = mapper.Map(issue, template);
                     localProvider.Save(wiItem);

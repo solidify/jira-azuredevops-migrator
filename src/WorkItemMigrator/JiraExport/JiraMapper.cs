@@ -417,7 +417,7 @@ namespace JiraExport
                     {
                         if (item.Mapping?.Values != null)
                         {
-                            var mappedValue = (from s in item.Mapping.Values where s.Source == value select s.Target);
+                            var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
                             return (true, mappedValue);
                         }
                     }

@@ -44,8 +44,8 @@
         "target": "Epic"
       },
       {
-        "source": "User Story",
-        "target": "Feature"
+        "source": "Story",
+        "target": "Product Backlog Item"
       },
       {
         "source": "Bug",
@@ -83,44 +83,44 @@
         "mapping": {
           "values": [
             {
-              "source": "blocker",
-              "target": 1
+              "source": "Blocker",
+              "target": "1"
             },
             {
-              "source": "critical",
-              "target": 1
+              "source": "Critical",
+              "target": "1"
             },
             {
-              "source": "highest",
-              "target": 1
+              "source": "Highest",
+              "target": "1"
             },
             {
-              "source": "major",
-              "target": 2
+              "source": "Major",
+              "target": "2"
             },
             {
-              "source": "high",
-              "target": 2
+              "source": "High",
+              "target": "2"
             },
             {
-              "source": "medium",
-              "target": 3
+              "source": "Medium",
+              "target": "3"
             },
             {
-              "source": "low",
-              "target": 3
+              "source": "Low",
+              "target": "3"
             },
             {
-              "source": "lowest",
-              "target": 4
+              "source": "Lowest",
+              "target": "4"
             },
             {
-              "source": "minor",
-              "target": 4
+              "source": "Minor",
+              "target": "4"
             },
             {
-              "source": "trivial",
-              "target": 4
+              "source": "Trivial",
+              "target": "4"
             }
           ]
         }
