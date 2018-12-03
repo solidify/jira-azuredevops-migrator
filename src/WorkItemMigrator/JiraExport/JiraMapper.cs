@@ -219,7 +219,7 @@ namespace JiraExport
         {
             var fields = new List<WiField>();
 
-            if (_config.LinkMap.Links != null)
+            if (_config.TypeMap.Types != null)
             {
                 var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
