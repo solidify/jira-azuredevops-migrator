@@ -77,7 +77,7 @@ namespace JiraExport
 
         private List<string> GetWorkItemTypes(params string[] notFor)
         {
-            var list = new List<string>();
+            List<string> list;
             if (notFor != null && notFor.Any())
             {
                 list = WorkItemType.GetWorkItemTypes(notFor);
@@ -91,10 +91,10 @@ namespace JiraExport
 
         #region Mapping definitions
 
-        private WiRevision MapRevision(JiraRevision r, TemplateType template)
+        private WiRevision MapRevision(JiraRevision r)
         {
             List<WiAttachment> attachments = MapAttachments(r);
-            List<WiField> fields = MapFields(r, template);
+            List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
 
             return new WiRevision()
@@ -118,7 +118,7 @@ namespace JiraExport
             return base.MapUser(email);
         }
 
-        internal WiItem Map(JiraItem issue, TemplateType template)
+        internal WiItem Map(JiraItem issue)
         {
             var wiItem = new WiItem();
 
@@ -128,7 +128,7 @@ namespace JiraExport
 
                 if (type != null)
                 {
-                    var revisions = issue.Revisions.Select(r => MapRevision(r, template)).ToList();
+                    var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
                     MapLastDescription(revisions, issue);
 
                     wiItem.OriginId = issue.Key;
@@ -215,10 +215,9 @@ namespace JiraExport
             return attachments;
         }
 
-        private List<WiField> MapFields(JiraRevision r, TemplateType template)
+        private List<WiField> MapFields(JiraRevision r)
         {
             var fields = new List<WiField>();
-            var link = new WiLink();
 
             if (_config.LinkMap.Links != null)
             {
