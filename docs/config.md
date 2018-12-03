@@ -31,7 +31,25 @@ The migration configuration file is defined in a json file with the properties d
 |**base-iteration-path**|False|string|Iteration path|
 |**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored|
 |**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI|
+|**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types|
+|**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS|
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item|
+
+## Link properties
+Name-value pairs of work item link types to map in the migration.
+
+|Name|Required|Type|Description|
+|---|---|---|---|
+|source|True|string|Source Jira link type|
+|target|True|string|Target Azure DevOps/TFS link type|
+
+## Type properties
+Name-value pairs of work item types to map in the migration.
+
+|Name|Required|Type|Description|
+|---|---|---|---|
+|source|True|string|Source Jira work item type|
+|target|True|string|Target Azure DevOps/TFS work item type|
 
 ## Field properties
 |Name|Required|Type|Description|
@@ -43,35 +61,82 @@ The migration configuration file is defined in a json file with the properties d
 |**type**|False|string|Data type, i.e string, int, double. Defaults to string|
 |**process-template**|False|string|Process template this field is available for, i.e Scrum, Agile or CMMI |
 |**mapper**|False|string|Mapper function user for value translation|
+|**mapping**|False|json|List of **values** to map to and from in the migration|
+
+## Value properties
+Name-value pairs of field values to map in the migration.
+
+|Name|Required|Type|Description|
+|---|---|---|---|
+|source|True|string|Source value|
+|target|True|string|Target value|
 
 ## Example configuration
 
 ```json
 {
-  // the short name of the Jira project to migrate from
   "source-project": "SCRUM",
-  // the name of the Azure DevOps project to migrate to
-  "target-project": "Jira-Import",
-  // the name of the query to use for identifying work items to migrate
-  // the query must be a flat query
+  "target-project": "Jira-181127-p",
   "query": "project = SCRUM ORDER BY Rank ASC",
-  // where logs and export data are saved on disk
-  "workspace": "C:\\Temp\\JiraMigration\\",
-  // requires customization per account and sometimes project
+  "workspace": "C:\\Solidify\\JiraExport\\",
   "epic-link-field": "customfield_10008",
   "sprint-field": "customfield_10007",
-  // how many items to retrieve with one call
   "batch-size": 20,
-  // Debug, Info, Warning, Error or Critical
   "log-level": "Debug",
-  // where to store attachments
   "attachment-folder": "Attachments",
-  // user mapping file
   "user-mapping-file": "users.txt",
   "base-area-path": "Migrated",
   "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
-  "process-template": "Scrum", 
+  "process-template": "Scrum",
+  "link-map": {
+    "link": [
+      {
+        "source": "Epic",
+        "target": "System.LinkTypes.Hierarchy-Reverse"
+      },
+      {
+        "source": "Parent",
+        "target": "System.LinkTypes.Hierarchy-Reverse"
+      },
+      {
+        "source": "Relates",
+        "target": "System.LinkTypes.Related"
+      },
+      {
+        "source": "Duplicate",
+        "target": "System.LinkTypes.Duplicate-Forward"
+      }
+    ]
+  },
+  "type-map":{
+    "type": [
+      {
+        "source": "Feature",
+        "target": "Feature"
+      },
+      {
+        "source": "Epic",
+        "target": "Epic"
+      },
+      {
+        "source": "Story",
+        "target": "Product Backlog Item"
+      },
+      {
+        "source": "Bug",
+        "target": "Bug"
+      },
+      {
+        "source": "Task",
+        "target": "Product Backlog Item"
+      },
+      {
+        "source": "Sub-task",
+        "target": "Task"
+      }
+    ]
+  },
   "field-map": {
     "field": [
       {
@@ -91,7 +156,50 @@ The migration configuration file is defined in a json file with the properties d
       {
         "source": "priority",
         "target": "Microsoft.VSTS.Common.Priority",
-        "mapper": "MapPriority"
+        "mapping": {
+          "values": [
+            {
+              "source": "Blocker",
+              "target": "1"
+            },
+            {
+              "source": "Critical",
+              "target": "1"
+            },
+            {
+              "source": "Highest",
+              "target": "1"
+            },
+            {
+              "source": "Major",
+              "target": "2"
+            },
+            {
+              "source": "High",
+              "target": "2"
+            },
+            {
+              "source": "Medium",
+              "target": "3"
+            },
+            {
+              "source": "Low",
+              "target": "3"
+            },
+            {
+              "source": "Lowest",
+              "target": "4"
+            },
+            {
+              "source": "Minor",
+              "target": "4"
+            },
+            {
+              "source": "Trivial",
+              "target": "4"
+            }
+          ]
+        }
       },
       {
         "source": "customfield_10007",
@@ -110,14 +218,65 @@ The migration configuration file is defined in a json file with the properties d
       {
         "source": "status",
         "target": "System.State",
-        "not-for": "Task",
-        "mapper": "MapStateBugAndPBI"
+        "for": "Task",
+        "mapping": {
+          "values": [
+            {
+              "source": "To Do",
+              "target": "To Do"
+            },
+            {
+              "source": "Done",
+              "target": "Done"
+            },
+            {
+              "source": "In Progress",
+              "target": "In Progress"
+            }
+          ]
+        }
       },
       {
         "source": "status",
         "target": "System.State",
-        "for": "Task",
-        "mapper": "MapStateTask"
+        "for": "Bug,Product Backlog Item",
+        "mapping": {
+          "values": [
+            {
+              "source": "To Do",
+              "target": "New"
+            },
+            {
+              "source": "Done",
+              "target": "Done"
+            },
+            {
+              "source": "In Progress",
+              "target": "Committed"
+            }
+          ]
+        }
+      },
+      {
+        "source": "status",
+        "target": "System.State",
+        "for": "Epic,Feature",
+        "mapping": {
+          "values": [
+            {
+              "source": "To Do",
+              "target": "New"
+            },
+            {
+              "source": "Done",
+              "target": "Done"
+            },
+            {
+              "source": "In Progress",
+              "target": "In Progress"
+            }
+          ]
+        }
       },
       {
         "source": "customfield_10004",
