@@ -15,7 +15,7 @@ namespace JiraExport
     public class RevisionAction<T>
     {
         public RevisionChangeType ChangeType { get; set; }
-        public T Value;
+        public T Value { get; set; }
 
         public override string ToString()
         {

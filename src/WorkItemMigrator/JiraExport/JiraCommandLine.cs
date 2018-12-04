@@ -85,16 +85,6 @@ namespace JiraExport
                     default: logLevel = LogLevel.Debug; break;
                 }
 
-                // template used in Azure DevOps/TFS
-                TemplateType template;
-                switch(config.ProcessTemplate.ToLower())
-                {
-                    case "scrum": template = TemplateType.Scrum; break;
-                    case "agile": template = TemplateType.Agile; break;
-                    case "cmmi": template = TemplateType.CMMI; break;
-                    default: template = TemplateType.Scrum; break;
-                }
-
                 var downloadOptions = JiraProvider.DownloadOptions.IncludeParentEpics | JiraProvider.DownloadOptions.IncludeSubItems | JiraProvider.DownloadOptions.IncludeParents;
 
                 Logger.Init(migrationWorkspace, logLevel);
@@ -112,11 +102,12 @@ namespace JiraExport
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
                 var mapper = new JiraMapper(jiraProvider, config);
                 var localProvider = new WiItemProvider(migrationWorkspace);
-
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));
-                foreach (var issue in jiraProvider.EnumerateIssues(jiraSettings.JQL, forceFresh ? new HashSet<string>(Enumerable.Empty<string>()) : exportedKeys, downloadOptions))
+                var skips = forceFresh ? new HashSet<string>(Enumerable.Empty<string>()) : exportedKeys;
+
+                foreach (var issue in jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions))
                 {
-                    WiItem wiItem = mapper.Map(issue, template);
+                    WiItem wiItem = mapper.Map(issue);
                     localProvider.Save(wiItem);
                     Logger.Log(LogLevel.Info, $"Exported {wiItem.ToString()}");
                 }

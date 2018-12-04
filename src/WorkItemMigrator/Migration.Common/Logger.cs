@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Migration.Common
 {
@@ -22,7 +23,7 @@ namespace Migration.Common
 
         public static void Init(string dirPath, LogLevel level)
         {
-            if(!Directory.Exists(dirPath))
+            if (!Directory.Exists(dirPath))
             {
                 Directory.CreateDirectory(dirPath);
             }
@@ -125,11 +126,21 @@ namespace Migration.Common
 
         public static void Summary()
         {
-            foreach (var warning in Warnings)
-                LogInternal(LogLevel.Warning, warning);
-
-            foreach (var error in Errors)
-                LogInternal(LogLevel.Error, error);
+            if ((Warnings != null && Warnings.Any()) || Errors != null && Errors.Any())
+            {
+                Console.WriteLine("::: SUMMARY :::");
+                Console.WriteLine("===============");
+                foreach (var warning in Warnings)
+                {
+                    Console.WriteLine("Warnings:");
+                    LogInternal(LogLevel.Warning, warning);
+                }
+                foreach (var error in Errors)
+                {
+                    Console.WriteLine("Errors:");
+                    LogInternal(LogLevel.Error, error);
+                }
+            }
         }
     }
 }

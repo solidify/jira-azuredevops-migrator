@@ -28,23 +28,26 @@ namespace Migration.WIContract
         public static string Epic => "Epic";
         public static string Feature => "Feature";
 
-        public static List<string> GetWorkItemTypes(string notFor = "")
+        public static List<string> GetWorkItemTypes(string[] notForValues = null)
         {
             var list = new List<string>();
             var properties = typeof(WorkItemType).GetProperties();
             foreach (var prop in properties)
             {
-                var value = prop.GetValue(typeof(WorkItemType)).ToString();
-                if (!string.IsNullOrWhiteSpace(notFor))
+                var propertyValue = prop.GetValue(typeof(WorkItemType)).ToString();
+                if (notForValues != null)
                 {
-                    if (value != notFor)
+                    foreach (var value in notForValues)
                     {
-                        list.Add(value);
+                        if (propertyValue != value)
+                        {
+                            list.Add(propertyValue);
+                        }
                     }
                 }
                 else
                 {
-                    list.Add(value);
+                    list.Add(propertyValue);
                 }
             }
             return list;

@@ -2,8 +2,8 @@
 
 namespace Migration.Common.Config
 {
-    public class ConfigMap
+    public class Mapping
     {
-        public List<Field> Fields { get; set; }
+        public List<Value> Values { get; set; }
     }
 }

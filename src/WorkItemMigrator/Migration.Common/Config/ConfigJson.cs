@@ -45,9 +45,15 @@ namespace Common.Config
         public bool IgnoreFailedLinks { get; set; }
 
         [JsonProperty(PropertyName = "field-map", Required = Required.Always)]
-        public ConfigMap FieldMap { get; set; }
+        public FieldMap FieldMap { get; set; }
 
         [JsonProperty(PropertyName = "process-template", Required = Required.Always)]
         public string ProcessTemplate { get; set; }
+
+        [JsonProperty(PropertyName = "type-map", Required = Required.Always)]
+        public TypeMap TypeMap { get; set; }
+
+        [JsonProperty(PropertyName = "link-map", Required = Required.Always)]
+        public LinkMap LinkMap { get; set; }
     }
 }

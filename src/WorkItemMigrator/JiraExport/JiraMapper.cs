@@ -13,14 +13,15 @@ namespace JiraExport
 {
     internal class JiraMapper : BaseMapper<JiraRevision>
     {
-        private readonly JiraProvider jiraProvider;
+        private readonly JiraProvider _jiraProvider;
         private readonly Dictionary<string, FieldMapping<JiraRevision>> _fieldMappingsPerType;
+        private readonly ConfigJson _config;
 
         public JiraMapper(JiraProvider jiraProvider, ConfigJson config) : base(jiraProvider?.Settings?.UserMappingFile)
         {
-            this.jiraProvider = jiraProvider;
-
-            _fieldMappingsPerType = InitializeFieldMappings(config);
+            _jiraProvider = jiraProvider;
+            _config = config;
+            _fieldMappingsPerType = InitializeFieldMappings();
         }
 
         /// <summary>
@@ -36,7 +37,7 @@ namespace JiraExport
             if (r.Fields.TryGetValue(field, out object value))
             {
                 var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
-                var linkType = MapLinkType(type);
+                var linkType = (from t in _config.LinkMap.Links where t.Source == type select t.Target).FirstOrDefault();
 
                 // regardless if action is add or remove, as there can be only one, we remove previous epic link if it exists
                 if (r.Index != 0)
@@ -74,17 +75,26 @@ namespace JiraExport
             }
         }
 
-        private List<string> GetWorkItemTypes(string notFor = "")
+        private List<string> GetWorkItemTypes(params string[] notFor)
         {
-            return !string.IsNullOrWhiteSpace(notFor) ? WorkItemType.GetWorkItemTypes(notFor) : WorkItemType.GetWorkItemTypes();
+            List<string> list;
+            if (notFor != null && notFor.Any())
+            {
+                list = WorkItemType.GetWorkItemTypes(notFor);
+            }
+            else
+            {
+                list = WorkItemType.GetWorkItemTypes();
+            }
+            return list;
         }
 
         #region Mapping definitions
 
-        private WiRevision MapRevision(JiraRevision r, TemplateType template)
+        private WiRevision MapRevision(JiraRevision r)
         {
             List<WiAttachment> attachments = MapAttachments(r);
-            List<Migration.WIContract.WiField> fields = MapFields(r, template);
+            List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
 
             return new WiRevision()
@@ -104,22 +114,29 @@ namespace JiraExport
             if (string.IsNullOrWhiteSpace(sourceUser))
                 return null;
 
-            var email = jiraProvider.GetUserEmail(sourceUser);
+            var email = _jiraProvider.GetUserEmail(sourceUser);
             return base.MapUser(email);
         }
 
-        internal WiItem Map(JiraItem issue, TemplateType template)
+        internal WiItem Map(JiraItem issue)
         {
-            string type = MapType(issue.Type, template);
-            var revisions = issue.Revisions.Select(r => MapRevision(r, template)).ToList();
-            MapLastDescription(revisions, issue);
+            var wiItem = new WiItem();
 
-            return new WiItem()
+            if (_config.TypeMap.Types != null)
             {
-                OriginId = issue.Key,
-                Type = type,
-                Revisions = revisions
-            };
+                var type = (from t in _config.TypeMap.Types where t.Source == issue.Type select t.Target).FirstOrDefault();
+
+                if (type != null)
+                {
+                    var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
+                    MapLastDescription(revisions, issue);
+
+                    wiItem.OriginId = issue.Key;
+                    wiItem.Type = type;
+                    wiItem.Revisions = revisions;
+                }
+            }
+            return wiItem;
         }
 
         private List<WiLink> MapLinks(JiraRevision r)
@@ -132,24 +149,27 @@ namespace JiraExport
             foreach (var jiraLinkAction in r.LinkActions)
             {
                 var changeType = jiraLinkAction.ChangeType == RevisionChangeType.Added ? ReferenceChangeType.Added : ReferenceChangeType.Removed;
-                var linkType = MapLinkType(jiraLinkAction.Value.LinkType);
 
-                if (linkType != null)
+                var link = new WiLink();
+
+                if (_config.LinkMap.Links != null)
                 {
-                    var link = new WiLink()
-                    {
-                        Change = changeType,
-                        SourceOriginId = jiraLinkAction.Value.SourceItem,
-                        TargetOriginId = jiraLinkAction.Value.TargetItem,
-                        WiType = linkType
-                    };
+                    var linkType = (from t in _config.LinkMap.Links where t.Source == jiraLinkAction.Value.LinkType select t.Target).FirstOrDefault();
 
-                    links.Add(link);
+                    if (linkType != null)
+                    {
+                        link.Change = changeType;
+                        link.SourceOriginId = jiraLinkAction.Value.SourceItem;
+                        link.TargetOriginId = jiraLinkAction.Value.TargetItem;
+                        link.WiType = linkType;
+
+                        links.Add(link);
+                    }
                 }
             }
 
             // map epic link
-            AddRemoveSingleLink(r, links, jiraProvider.Settings.EpicLinkField, "Epic");
+            AddRemoveSingleLink(r, links, _jiraProvider.Settings.EpicLinkField, "Epic");
 
             // map parent
             AddRemoveSingleLink(r, links, "parent", "Parent");
@@ -163,7 +183,7 @@ namespace JiraExport
             if (rev.AttachmentActions == null)
                 return attachments;
 
-            jiraProvider.DownloadAttachments(rev).Wait();
+            _jiraProvider.DownloadAttachments(rev).Wait();
 
             foreach (var att in rev.AttachmentActions)
             {
@@ -195,32 +215,39 @@ namespace JiraExport
             return attachments;
         }
 
-        private List<Migration.WIContract.WiField> MapFields(JiraRevision r, TemplateType template)
+        private List<WiField> MapFields(JiraRevision r)
         {
-            List<Migration.WIContract.WiField> fields = new List<Migration.WIContract.WiField>();
-            string type = MapType(r.ParentItem.Type, template);
+            var fields = new List<WiField>();
 
-            if (_fieldMappingsPerType.TryGetValue(type, out var mapping))
+            if (_config.TypeMap.Types != null)
             {
-                foreach (var field in mapping)
-                {
-                    try
-                    {
-                        var fieldreference = field.Key;
-                        var (include, value) = field.Value(r);
+                var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
-                        if (include)
-                        {
-                            fields.Add(new Migration.WIContract.WiField()
-                            {
-                                ReferenceName = fieldreference,
-                                Value = value
-                            });
-                        }
-                    }
-                    catch (Exception ex)
+                if(type != null)
+                {
+                    if (_fieldMappingsPerType.TryGetValue(type, out var mapping))
                     {
-                        Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
+                        foreach (var field in mapping)
+                        {
+                            try
+                            {
+                                var fieldreference = field.Key;
+                                var (include, value) = field.Value(r);
+
+                                if (include)
+                                {
+                                    fields.Add(new WiField()
+                                    {
+                                        ReferenceName = fieldreference,
+                                        Value = value
+                                    });
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
+                            }
+                        }
                     }
                 }
             }
@@ -228,21 +255,8 @@ namespace JiraExport
             return fields;
         }
 
-        private string MapLinkType(string linkType)
+        private Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings()
         {
-            switch (linkType)
-            {
-                case "Epic": return "System.LinkTypes.Hierarchy-Reverse";
-                case "Parent": return "System.LinkTypes.Hierarchy-Reverse";
-                case "Relates": return "System.LinkTypes.Related";
-                case "Duplicate": return "System.LinkTypes.Duplicate-Forward";
-                default: return "System.LinkTypes.Related";
-            }
-        }
-
-        private Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings(ConfigJson config)
-        {
-            var mappingPerWiType = new Dictionary<string, FieldMapping<JiraRevision>>();
             var commonFields = new FieldMapping<JiraRevision>();
             var bugFields = new FieldMapping<JiraRevision>();
             var taskFields = new FieldMapping<JiraRevision>();
@@ -251,29 +265,18 @@ namespace JiraExport
             var featureFields = new FieldMapping<JiraRevision>();
             var requirementFields = new FieldMapping<JiraRevision>();
             var userStoryFields = new FieldMapping<JiraRevision>();
-            var processTemplate = config.ProcessTemplate.ToLower();
-            List<string> witList = null;
-            var processFields = (from f in config.FieldMap.Fields where f.Process == "Common" || f.Process == "All" || f.Process == config.ProcessTemplate select f).ToList();
-            foreach (var item in processFields)
+
+            foreach (var item in _config.FieldMap.Fields)
             {
                 if (item.Source != null)
                 {
-                    // If not-for AND for has not been set (both should never be set together) then get all work item types
-                    if (string.IsNullOrWhiteSpace(item.NotFor) && string.IsNullOrWhiteSpace(item.For))
-                    {
-                        if (witList == null)
-                        {
-                            witList = WorkItemType.GetWorkItemTypes();
-                        }
-                    }
-                    else
-                    {
-                        // Check if not-for has been set, if so get all work item types except that one, else for has been set and get those
-                        witList = !string.IsNullOrWhiteSpace(item.NotFor) ? GetWorkItemTypes(item.NotFor) : item.For.Split(',').ToList();
-                    }
-
                     Func<JiraRevision, (bool, object)> value;
-                    if (item.Type == "string")
+
+                    if (item.Mapping?.Values != null)
+                    {
+                        value = r => MapValue(r, item.Source);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(item.Mapper))
                     {
                         switch (item.Mapper)
                         {
@@ -283,91 +286,72 @@ namespace JiraExport
                             case "MapUser":
                                 value = IfChanged<string>(item.Source, MapUser);
                                 break;
-                            case "MapPriority":
-                                value = IfChanged<string>(item.Source, MapPriority);
-                                break;
                             case "MapSprint":
-                                value = IfChanged<string>(jiraProvider.Settings.SprintField, MapSprint);
+                                value = IfChanged<string>(_jiraProvider.Settings.SprintField, MapSprint);
                                 break;
                             case "MapTags":
                                 value = IfChanged<string>(item.Source, MapTags);
-                                break;
-                            case "MapStateTask":
-                                value = IfChanged<string>(item.Source); // Default value, should be overridden by value below
-                                if((!string.IsNullOrWhiteSpace(item.NotFor) && (!item.NotFor.Contains(WorkItemType.Bug) || !item.NotFor.Contains(WorkItemType.ProductBacklogItem)))
-                                    || !string.IsNullOrWhiteSpace(item.For) && item.For.Contains(WorkItemType.Task))
-                                {
-                                    if (processTemplate == TemplateType.Scrum.ToString().ToLower())
-                                        value = IfChanged<string>(item.Source, MapScrumStateTask);
-                                    else if (processTemplate == TemplateType.Agile.ToString().ToLower())
-                                        value = IfChanged<string>(item.Source, MapAgileStateTask);
-                                    else if (processTemplate == TemplateType.CMMI.ToString().ToLower())
-                                        value = IfChanged<string>(item.Source, MapCMMIStateTask);
-                                }
-                                break;
-                            case "MapStateBugAndPBI":
-                                value = IfChanged<string>(item.Source); // Default value, should be overridden by value below
-                                if((!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(WorkItemType.Task))
-                                    || !string.IsNullOrWhiteSpace(item.For) && (item.For.Split(',').Contains(WorkItemType.Bug) || item.For.Split(',').Contains(WorkItemType.ProductBacklogItem)))
-                                {
-                                    if (processTemplate == TemplateType.Scrum.ToString().ToLower())
-                                        value = IfChanged<string>(item.Source, MapScrumStateBugAndPBI);
-                                    else if (processTemplate == TemplateType.Agile.ToString().ToLower())
-                                        value = IfChanged<string>(item.Source, MapAgileStateBugAndPBI);
-                                    else if (processTemplate == TemplateType.CMMI.ToString().ToLower())
-                                        value = IfChanged<string>(item.Source, MapCMMIStateBugAndPBI);
-                                }
                                 break;
                             default:
                                 value = IfChanged<string>(item.Source);
                                 break;
                         }
                     }
-                    else if (item.Type == "int")
-                    {
-                        value = IfChanged<int>(item.Source);
-                    }
-                    else if (item.Type == "double")
-                    {
-                        value = IfChanged<double>(item.Source);
-                    }
                     else
                     {
-                        // Mainly a fallback if no data type is set or is misspelled
-                        value = IfChanged<string>(item.Source);
+                        var dataType = item.Type.ToLower();
+                        if (dataType == "double")
+                        {
+                            value = IfChanged<double>(item.Source);
+                        }
+                        else if (dataType == "int" || dataType == "integer")
+                        {
+                            value = IfChanged<int>(item.Source);
+                        }
+                        else if (dataType == "datetime" || dataType == "date")
+                        {
+                            value = IfChanged<DateTime>(item.Source);
+                        }
+                        else
+                        {
+                            value = IfChanged<string>(item.Source);
+                        }
                     }
 
-                    foreach (var wit in witList)
+                    // Check if not-for has been set, if so get all work item types except that one, else for has been set and get those
+                    var currentWorkItemTypes = !string.IsNullOrWhiteSpace(item.NotFor) ? GetWorkItemTypes(item.NotFor.Split(',')) : item.For.Split(',').ToList();
+
+                    foreach (var wit in currentWorkItemTypes)
                     {
                         if (wit == "All" || wit == "Common")
                         {
                             commonFields.Add(item.Target, value);
                         }
-                        if (wit == WorkItemType.Bug)
+                        else if (wit == WorkItemType.Bug)
                         {
                             bugFields.Add(item.Target, value);
                         }
-                        if (wit == WorkItemType.Epic)
+                        else if (wit == WorkItemType.Epic)
                         {
                             epicFields.Add(item.Target, value);
                         }
-                        if (wit == WorkItemType.Feature)
+                        else if (wit == WorkItemType.Feature)
                         {
                             featureFields.Add(item.Target, value);
                         }
-                        if (wit == WorkItemType.ProductBacklogItem)
+                        else if (wit == WorkItemType.ProductBacklogItem)
                         {
                             pbiFields.Add(item.Target, value);
                         }
-                        if (wit == WorkItemType.Requirement)
+                        else if (wit == WorkItemType.Requirement)
                         {
                             requirementFields.Add(item.Target, value);
                         }
-                        if (wit == WorkItemType.Task)
+                        else if (wit == WorkItemType.Task)
                         {
                             taskFields.Add(item.Target, value);
                         }
-                        if (wit == WorkItemType.UserStory)
+                        else if (wit == WorkItemType.UserStory)
                         {
                             userStoryFields.Add(item.Target, value);
                         }
@@ -375,13 +359,16 @@ namespace JiraExport
                 }
             }
 
-            mappingPerWiType.Add(WorkItemType.Bug, MergeMapping(commonFields, bugFields, taskFields));
-            mappingPerWiType.Add(WorkItemType.ProductBacklogItem, MergeMapping(commonFields, pbiFields));
-            mappingPerWiType.Add(WorkItemType.Task, MergeMapping(commonFields, bugFields, taskFields));
-            mappingPerWiType.Add(WorkItemType.Feature, MergeMapping(commonFields, featureFields));
-            mappingPerWiType.Add(WorkItemType.Epic, MergeMapping(commonFields, epicFields));
-            mappingPerWiType.Add(WorkItemType.Requirement, MergeMapping(commonFields, requirementFields));
-            mappingPerWiType.Add(WorkItemType.UserStory, MergeMapping(commonFields, userStoryFields));
+            var mappingPerWiType = new Dictionary<string, FieldMapping<JiraRevision>>
+            {
+                { WorkItemType.Bug, MergeMapping(commonFields, bugFields, taskFields) },
+                { WorkItemType.ProductBacklogItem, MergeMapping(commonFields, pbiFields) },
+                { WorkItemType.Task, MergeMapping(commonFields, bugFields, taskFields) },
+                { WorkItemType.Feature, MergeMapping(commonFields, featureFields) },
+                { WorkItemType.Epic, MergeMapping(commonFields, epicFields) },
+                { WorkItemType.Requirement, MergeMapping(commonFields, requirementFields) },
+                { WorkItemType.UserStory, MergeMapping(commonFields, userStoryFields) }
+            };
 
             return mappingPerWiType;
         }
@@ -416,78 +403,29 @@ namespace JiraExport
                 return (false, null);
         }
 
-        private string MapScrumStateTask(string jiraState)
+        private (bool, object) MapValue(JiraRevision r, string itemSource)
         {
-            jiraState = jiraState.ToLowerInvariant();
-            switch (jiraState)
-            {
-                case "to do": return "To Do";
-                case "done": return "Done";
-                case "in progress": return "In Progress";
-                case "ready for test": return "Ready for test";
-                default: return "To Do";
-            }
-        }
+            var targetWit = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
-        private string MapAgileStateTask(string jiraState)
-        {
-            jiraState = jiraState.ToLowerInvariant();
-            switch (jiraState)
+            if (r.Fields.TryGetValue(itemSource, out object value))
             {
-                case "to do": return "New";
-                case "done": return "Closed";
-                case "in progress": return "Active";
-                case "ready for test": return "Ready for test";
-                default: return "New";
+                foreach (var item in _config.FieldMap.Fields)
+                {
+                    if ((item.Source == itemSource && (item.For.Contains(targetWit) || item.For == "All")) ||
+                         item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit)))
+                    {
+                        if (item.Mapping?.Values != null)
+                        {
+                            var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
+                            return (true, mappedValue);
+                        }
+                    }
+                }
+                return (true, value);
             }
-        }
-
-        private string MapCMMIStateTask(string jiraState)
-        {
-            jiraState = jiraState.ToLowerInvariant();
-            switch (jiraState)
+            else
             {
-                case "to do": return "Proposed";
-                case "done": return "Closed";
-                case "in progress": return "Active";
-                case "ready for test": return "Ready for test";
-                default: return "Proposed";
-            }
-        }
-
-        private object MapScrumStateBugAndPBI(string jiraState)
-        {
-            jiraState = jiraState.ToLowerInvariant();
-            switch (jiraState)
-            {
-                case "to do": return "New";
-                case "done": return "Done";
-                case "in progress": return "Committed";
-                default: return "New";
-            }
-        }
-
-        private object MapAgileStateBugAndPBI(string jiraState)
-        {
-            jiraState = jiraState.ToLowerInvariant();
-            switch (jiraState)
-            {
-                case "to do": return "New";
-                case "done": return "Closed";
-                case "in progress": return "Active";
-                default: return "New";
-            }
-        }
-
-        private object MapCMMIStateBugAndPBI(string jiraState)
-        {
-            jiraState = jiraState.ToLowerInvariant();
-            switch (jiraState)
-            {
-                case "to do": return "Proposed";
-                case "done": return "Closed";
-                case "in progress": return "Active";
-                default: return "Proposed";
+                return (false, null);
             }
         }
 
@@ -514,72 +452,6 @@ namespace JiraExport
             var iterationPath = iterationPaths.Last();
 
             return iterationPath;
-        }
-
-        private object MapPriority(string jiraPriority)
-        {
-            switch (jiraPriority.ToLowerInvariant())
-            {
-                case "blocker":
-                case "critical":
-                case "highest": return 1;
-                case "major":
-                case "high": return 2;
-                case "medium":
-                case "low": return 3;
-                case "lowest":
-                case "minor":
-                case "trivial": return 4;
-                default: return null;
-            }
-        }
-
-        //private object MapSeverity(string jiraSeverity)
-        //{
-        //    switch (jiraSeverity.ToLowerInvariant())
-        //    {
-        //        case "blocker":
-        //        case "critical":
-        //        case "highest": return 1;
-        //        case "major":
-        //        case "high": return 2;
-        //        case "medium":
-        //        case "low": return 3;
-        //        case "lowest":
-        //        case "minor":
-        //        case "trivial": return 4;
-        //        default: return null;
-        //    }
-        //}
-
-        protected string MapType(string type, TemplateType template)
-        {
-            string backlogItem;
-            switch (template)
-            {
-                case TemplateType.Scrum:
-                    backlogItem = WorkItemType.ProductBacklogItem;
-                    break;
-                case TemplateType.Agile:
-                    backlogItem = WorkItemType.UserStory;
-                    break;
-                case TemplateType.CMMI:
-                    backlogItem = WorkItemType.Requirement;
-                    break;
-                default:
-                    backlogItem = WorkItemType.ProductBacklogItem;
-                    break;
-            }
-
-            switch (type)
-            {
-                case "Task": return backlogItem;
-                case "Sub-task": return WorkItemType.Task;
-                case "Story": return backlogItem;
-                case "Bug": return WorkItemType.Bug;
-                case "Epic": return WorkItemType.Feature;
-                default: return backlogItem;
-            }
         }
 
         private void MapLastDescription(List<WiRevision> revisions, JiraItem issue)
