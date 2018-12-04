@@ -11,8 +11,8 @@ queue:
 variables:
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
-  major: 1
-  minor: 1
+  major: 2
+  minor: 0
 
 name: $(major).$(minor)$(rev:.r)
 
