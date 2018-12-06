@@ -90,6 +90,7 @@ steps:
      Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll
      Microsoft.VisualStudio.Services.Common.dll
      Microsoft.VisualStudio.Services.WebApi.dll
+     Microsoft.WITDataStore32.dll
      System.Net.Http.Formatting.dll
      wi-import.exe
      wi-import.exe.config
