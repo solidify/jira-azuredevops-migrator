@@ -146,7 +146,7 @@ namespace JiraExport
             do
             {
                 var response = (JObject)Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET,
-                    $"rest/api/2/issue/{issueKey}/changelog?maxResults={batchSize}&startAt={currentStart}").Result;
+                    $"rest/api/2/issue/{issueKey}?expand=changelog&maxResults={batchSize}&startAt={currentStart}").Result;
 
                 currentStart += batchSize;
                 isLast = (bool)response.SelectToken("$.isLast");
