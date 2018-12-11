@@ -140,22 +140,8 @@ namespace JiraExport
 
         public IEnumerable<JObject> DownloadChangelog(string issueKey)
         {
-            bool isLast = true;
-            int batchSize = 100;
-            int currentStart = 0;
-            do
-            {
-                var response = (JObject)Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET,
-                    $"rest/api/2/issue/{issueKey}?expand=changelog&maxResults={batchSize}&startAt={currentStart}").Result;
-
-                currentStart += batchSize;
-                isLast = (bool)response.SelectToken("$.isLast");
-
-                var changes = response.SelectTokens("$.values[*]").Cast<JObject>();
-                foreach (var change in changes)
-                    yield return change;
-
-            } while (!isLast);
+            var response = (JObject)Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/issue/{issueKey}?expand=changelog&fields=created").Result;
+            return response.SelectTokens("$.histories[*]").Cast<JObject>();
         }
 
         public JObject DownloadIssue(string key)
