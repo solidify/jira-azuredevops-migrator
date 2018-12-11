@@ -89,13 +89,27 @@ namespace JiraExport
 
                 Logger.Init(migrationWorkspace, logLevel);
 
+                var storyPointField = string.Empty;
+                var sprintField = string.Empty;
+                foreach(var field in config.FieldMap.Fields)
+                {
+                    if (field.Source.ToLower().Contains("story point"))
+                    {
+                        storyPointField = field.Source;
+                    }
+                    else if (field.Source.ToLower().Equals("sprint"))
+                    {
+                        sprintField = field.Source;
+                    }
+                }
+
                 var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
                 {
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
-                    EpicLinkField = config.EpicLinkField != null ? config.EpicLinkField : string.Empty,
-                    SprintField = config.SprintField != null ? config.SprintField : string.Empty,
+                    SprintField = sprintField,
+                    StoryPointsField = storyPointField,
                     JQL = config.Query
                 };
 

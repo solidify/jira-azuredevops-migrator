@@ -3,6 +3,8 @@
   "target-project": "Scrum-Demo-From-Jira",
   "query": "project = SCRUM ORDER BY Rank ASC",
   "workspace": "C:\\Temp\\JiraExport\\",
+  "epic-link-field": "customfield_10008",
+  "sprint-field": "customfield_10007",
   "batch-size": 20,
   "log-level": "Debug",
   "attachment-folder": "Attachments",
@@ -201,9 +203,8 @@
         }
       },
       {
-        "source": "Story Points",
+        "source": "customfield_10004",
         "target": "Microsoft.VSTS.Scheduling.Effort",
-        "mapper": "MapStoryPoints",
         "for": "Epic,Feature,Product Backlog Item,Bug",
         "type": "double"
       },

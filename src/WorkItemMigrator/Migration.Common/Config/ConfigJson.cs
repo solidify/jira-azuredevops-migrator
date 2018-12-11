@@ -17,12 +17,6 @@ namespace Common.Config
         [JsonProperty(PropertyName ="workspace", Required = Required.Always)]
         public string Workspace { get; set; }
 
-        [JsonProperty(PropertyName = "epic-link-field", Required = Required.AllowNull)]
-        public string EpicLinkField { get; set; }
-
-        [JsonProperty(PropertyName = "sprint-field", Required = Required.AllowNull)]
-        public string SprintField { get; set; }
-
         [JsonProperty(PropertyName = "batch-size", Required = Required.Always)]
         public int BatchSize { get; set; }
 

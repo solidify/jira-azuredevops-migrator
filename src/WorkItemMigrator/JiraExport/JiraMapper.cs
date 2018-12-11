@@ -223,7 +223,7 @@ namespace JiraExport
             {
                 var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
-                if(type != null)
+                if (type != null)
                 {
                     if (_fieldMappingsPerType.TryGetValue(type, out var mapping))
                     {
@@ -291,6 +291,9 @@ namespace JiraExport
                                 break;
                             case "MapTags":
                                 value = IfChanged<string>(item.Source, MapTags);
+                                break;
+                            case "MapStoryPoints":
+                                value = IfChanged<double>(_jiraProvider.Settings.StoryPointsField);
                                 break;
                             default:
                                 value = IfChanged<string>(item.Source);
@@ -452,6 +455,27 @@ namespace JiraExport
             var iterationPath = iterationPaths.Last();
 
             return iterationPath;
+        }
+
+        //private Func<JiraRevision, (bool, object)> MapStoryPoints<T>(string sourceField, Func<T, object> mapperFunc)
+        //{
+        //    var j = _jiraProvider.Settings.StoryPointsField;
+        //    return (r) =>
+        //    {
+        //        if (r.Fields.TryGetValue(j, out object value))
+        //            return (true, mapperFunc((T)value));
+        //        else
+        //            return (false, null);
+        //    };
+        //}
+
+        private object MapStoryPoints(double storyPointField)
+        {
+            if (storyPointField == null)
+            {
+                return null;
+            }
+            return storyPointField;
         }
 
         private void MapLastDescription(List<WiRevision> revisions, JiraItem issue)
