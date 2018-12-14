@@ -194,7 +194,7 @@ namespace JiraExport
                     Change = change,
                     AttOriginId = att.Value.Id,
                     FilePath = att.Value.LocalPath,
-                    Comment = "Imported from Jira" // customization point
+                    Comment = "Imported from Jira"
                 };
                 attachments.Add(wiAtt);
 
@@ -293,6 +293,9 @@ namespace JiraExport
                             case "MapTags":
                                 value = IfChanged<string>(item.Source, isCustomField, MapTags);
                                 break;
+                            case "MapRemainingWork":
+                                value = IfChanged<string>(item.Source, isCustomField, MapRemainingWork);
+                                break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
                                 break;
@@ -372,6 +375,12 @@ namespace JiraExport
             };
 
             return mappingPerWiType;
+        }
+
+        private object MapRemainingWork(string seconds)
+        {
+            var secs = Convert.ToDouble(seconds);
+            return TimeSpan.FromSeconds(secs).TotalHours;
         }
 
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)

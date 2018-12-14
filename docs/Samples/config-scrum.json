@@ -210,8 +210,9 @@
         "not-for": "Task"
       },
       {
-        "source": "remainingEstimate",
+        "source": "timeestimate",
         "target": "Microsoft.VSTS.Scheduling.RemainingWork",
+        "mapper": "MapRemainingWork",
         "for": "Bug,Task"
       },
       {
