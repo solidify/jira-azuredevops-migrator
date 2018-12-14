@@ -17,17 +17,17 @@ namespace Common.Config
         [JsonProperty(PropertyName ="workspace", Required = Required.Always)]
         public string Workspace { get; set; }
 
-        [JsonProperty(PropertyName = "epic-link-field", Required = Required.Always)]
-        public string EpicLinkField { get; set; }
+        [JsonProperty(PropertyName = "epic-link-field")]
+        public string EpicLinkField { get; set; } = "Epic Link";
 
-        [JsonProperty(PropertyName = "sprint-field", Required = Required.Always)]
-        public string SprintField { get; set; }
+        [JsonProperty(PropertyName = "sprint-field")]
+        public string SprintField { get; set; } = "Sprint";
 
-        [JsonProperty(PropertyName = "batch-size", Required = Required.Always)]
-        public int BatchSize { get; set; }
+        [JsonProperty(PropertyName = "batch-size")]
+        public int BatchSize { get; set; } = 20;
 
-        [JsonProperty(PropertyName = "log-level", Required = Required.Always)]
-        public string LogLevel { get; set; }
+        [JsonProperty(PropertyName = "log-level")]
+        public string LogLevel { get; set; } = "Debug";
 
         [JsonProperty(PropertyName = "attachment-folder", Required = Required.Always)]
         public string AttachmentsFolder { get; set; }
@@ -35,20 +35,20 @@ namespace Common.Config
         [JsonProperty(PropertyName = "user-mapping-file", Required = Required.AllowNull)]
         public string UserMappingFile { get; set; }
 
-        [JsonProperty(PropertyName = "base-area-path", Required = Required.AllowNull)]
-        public string BaseAreaPath { get; set; }
+        [JsonProperty(PropertyName = "base-area-path")]
+        public string BaseAreaPath { get; set; } = "Migrated";
 
-        [JsonProperty(PropertyName = "base-iteration-path", Required = Required.AllowNull)]
-        public string BaseIterationPath { get; set; }
+        [JsonProperty(PropertyName = "base-iteration-path")]
+        public string BaseIterationPath { get; set; } = "Migrated";
 
-        [JsonProperty(PropertyName = "ignore-failed-links", Required = Required.Always)]
-        public bool IgnoreFailedLinks { get; set; }
+        [JsonProperty(PropertyName = "ignore-failed-links")]
+        public bool IgnoreFailedLinks { get; set; } = false;
 
         [JsonProperty(PropertyName = "field-map", Required = Required.Always)]
         public FieldMap FieldMap { get; set; }
 
-        [JsonProperty(PropertyName = "process-template", Required = Required.Always)]
-        public string ProcessTemplate { get; set; }
+        [JsonProperty(PropertyName = "process-template")]
+        public string ProcessTemplate { get; set; } = "Scrum";
 
         [JsonProperty(PropertyName = "type-map", Required = Required.Always)]
         public TypeMap TypeMap { get; set; }
