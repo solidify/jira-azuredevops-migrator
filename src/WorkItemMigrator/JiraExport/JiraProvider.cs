@@ -37,16 +37,7 @@ namespace JiraExport
         public static JiraProvider Initialize(JiraSettings settings)
         {
             var provider = new JiraProvider();
-
-            var sprintId = settings.SprintField;
-            var storyPointsId = settings.StoryPointsField;
-
             provider.Jira = ConnectToJira(settings);
-
-            settings.EpicLinkField = provider.GetCustomId("Epic Link");
-            settings.SprintField = provider.GetCustomId(sprintId);
-            settings.StoryPointsField = provider.GetCustomId(storyPointsId);
-
             provider.Settings = settings;
 
             Logger.Log(LogLevel.Info, "Gathering project info...");
@@ -305,7 +296,7 @@ namespace JiraExport
             foreach (var item in response)
             {
                 var nameField = (JValue)item.SelectToken("name");
-                if (nameField.Value.ToString() == propertyName)
+                if (nameField.Value.ToString().ToLower() == propertyName.ToLower())
                 {
                     var idField = (JValue)item.SelectToken("id");
                     customId = idField.Value.ToString();

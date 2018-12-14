@@ -3,6 +3,8 @@
   "target-project": "Scrum-Demo-From-Jira",
   "query": "project = SCRUM ORDER BY Rank ASC",
   "workspace": "C:\\Temp\\JiraExport\\",
+  "epic-link-field": "Epic Link",
+  "sprint-field": "Sprint",
   "batch-size": 20,
   "log-level": "Debug",
   "attachment-folder": "Attachments",
@@ -124,7 +126,8 @@
         }
       },
       {
-        "source": "customfield_10007",
+        "source": "Sprint",
+        "source-type": "name",
         "target": "System.IterationPath",
         "mapper": "MapSprint"
       },
@@ -202,16 +205,14 @@
       },
       {
         "source": "Story Points",
+        "source-type": "name",
         "target": "Microsoft.VSTS.Scheduling.Effort",
-        "mapper": "MapStoryPoints",
-        "for": "Epic,Feature,Product Backlog Item,Bug",
-        "type": "double"
+        "not-for": "Task"
       },
       {
         "source": "remainingEstimate",
         "target": "Microsoft.VSTS.Scheduling.RemainingWork",
-        "for": "Bug,Task",
-        "type": "double"
+        "for": "Bug,Task"
       },
       {
         "source": "description",

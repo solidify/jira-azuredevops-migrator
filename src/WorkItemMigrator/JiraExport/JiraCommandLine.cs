@@ -86,34 +86,22 @@ namespace JiraExport
                 }
 
                 var downloadOptions = JiraProvider.DownloadOptions.IncludeParentEpics | JiraProvider.DownloadOptions.IncludeSubItems | JiraProvider.DownloadOptions.IncludeParents;
-
                 Logger.Init(migrationWorkspace, logLevel);
-
-                var storyPointField = string.Empty;
-                var sprintField = string.Empty;
-                foreach(var field in config.FieldMap.Fields)
-                {
-                    if (field.Source.ToLower().Contains("story point"))
-                    {
-                        storyPointField = field.Source;
-                    }
-                    else if (field.Source.ToLower().Equals("sprint"))
-                    {
-                        sprintField = field.Source;
-                    }
-                }
 
                 var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
                 {
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
-                    SprintField = sprintField,
-                    StoryPointsField = storyPointField,
                     JQL = config.Query
                 };
 
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
+
+                // Get the custom field names for epic link field and sprint field
+                jiraSettings.EpicLinkField = jiraProvider.GetCustomId(config.EpicLinkField);
+                jiraSettings.SprintField = jiraProvider.GetCustomId(config.SprintField);
+
                 var mapper = new JiraMapper(jiraProvider, config);
                 var localProvider = new WiItemProvider(migrationWorkspace);
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));

@@ -270,6 +270,7 @@ namespace JiraExport
             {
                 if (item.Source != null)
                 {
+                    var isCustomField = item.SourceType == "name";
                     Func<JiraRevision, (bool, object)> value;
 
                     if (item.Mapping?.Values != null)
@@ -284,19 +285,16 @@ namespace JiraExport
                                 value = r => MapTitle(r);
                                 break;
                             case "MapUser":
-                                value = IfChanged<string>(item.Source, MapUser);
+                                value = IfChanged<string>(item.Source, isCustomField, MapUser);
                                 break;
                             case "MapSprint":
-                                value = IfChanged<string>(_jiraProvider.Settings.SprintField, MapSprint);
+                                value = IfChanged<string>(_jiraProvider.Settings.SprintField, isCustomField, MapSprint);
                                 break;
                             case "MapTags":
-                                value = IfChanged<string>(item.Source, MapTags);
-                                break;
-                            case "MapStoryPoints":
-                                value = IfChanged<double>(_jiraProvider.Settings.StoryPointsField);
+                                value = IfChanged<string>(item.Source, isCustomField, MapTags);
                                 break;
                             default:
-                                value = IfChanged<string>(item.Source);
+                                value = IfChanged<string>(item.Source, isCustomField);
                                 break;
                         }
                     }
@@ -305,19 +303,19 @@ namespace JiraExport
                         var dataType = item.Type.ToLower();
                         if (dataType == "double")
                         {
-                            value = IfChanged<double>(item.Source);
+                            value = IfChanged<double>(item.Source, isCustomField);
                         }
                         else if (dataType == "int" || dataType == "integer")
                         {
-                            value = IfChanged<int>(item.Source);
+                            value = IfChanged<int>(item.Source, isCustomField);
                         }
                         else if (dataType == "datetime" || dataType == "date")
                         {
-                            value = IfChanged<DateTime>(item.Source);
+                            value = IfChanged<DateTime>(item.Source, isCustomField);
                         }
                         else
                         {
-                            value = IfChanged<string>(item.Source);
+                            value = IfChanged<string>(item.Source, isCustomField);
                         }
                     }
 
@@ -376,25 +374,31 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
-        private static Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, Func<T, object> mapperFunc)
+        private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
-            return (r) =>
+            if (isCustomField)
             {
-                if (r.Fields.TryGetValue(sourceField, out object value))
-                    return (true, mapperFunc((T)value));
-                else
-                    return (false, null);
-            };
-        }
+                var customFieldName = _jiraProvider.GetCustomId(sourceField);
+                sourceField = customFieldName;
+            }
 
-        private static Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField)
-        {
             return (r) =>
             {
-                if (r.Fields.TryGetValue(sourceField, out object value))
-                    return (true, (T)value);
+                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
+                {
+                    if (mapperFunc != null)
+                    {
+                        return (true, mapperFunc((T)value));
+                    }
+                    else
+                    {
+                        return (true, (T)value);
+                    }
+                }
                 else
+                { 
                     return (false, null);
+                }
             };
         }
 
@@ -455,27 +459,6 @@ namespace JiraExport
             var iterationPath = iterationPaths.Last();
 
             return iterationPath;
-        }
-
-        //private Func<JiraRevision, (bool, object)> MapStoryPoints<T>(string sourceField, Func<T, object> mapperFunc)
-        //{
-        //    var j = _jiraProvider.Settings.StoryPointsField;
-        //    return (r) =>
-        //    {
-        //        if (r.Fields.TryGetValue(j, out object value))
-        //            return (true, mapperFunc((T)value));
-        //        else
-        //            return (false, null);
-        //    };
-        //}
-
-        private object MapStoryPoints(double storyPointField)
-        {
-            if (storyPointField == null)
-            {
-                return null;
-            }
-            return storyPointField;
         }
 
         private void MapLastDescription(List<WiRevision> revisions, JiraItem issue)

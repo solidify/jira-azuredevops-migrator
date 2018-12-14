@@ -10,6 +10,9 @@ namespace Migration.Common.Config
         [JsonProperty("source", Required = Required.Always)]
         public string Source { get; set; }
 
+        [JsonProperty("source-type")]
+        public string SourceType { get; set; } = "id";
+
         [JsonProperty("for")]
         public string For { get; set; } = "All";
 
