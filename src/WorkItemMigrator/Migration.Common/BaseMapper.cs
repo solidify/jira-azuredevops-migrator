@@ -35,7 +35,14 @@ namespace Migration.Common
                 return sourceUser;
 
             if (UserMapping.TryGetValue(sourceUser, out string wiUser))
+            {
                 return wiUser;
+            }
+            else if (UserMapping.TryGetValue("*", out string defaultUser))
+            {
+                Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Setting default identity.");
+                return defaultUser;
+            }
             else
             {
                 Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Using original identity.");

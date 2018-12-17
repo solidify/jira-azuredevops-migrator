@@ -26,7 +26,7 @@ The migration configuration file is defined in a json file with the properties d
 |**batch-size**|False|integer|Number of items to retrieve with one call. Default = 20.|
 |**log-level**|False|string|Debug, Info, Warning, Error or Critical. Default = "Debug".|
 |**attachment-folder**|True|string|Location to store attachments.|
-|**user-mapping-file**|False|string|Name of user mapping file.|
+|**user-mapping-file**|False|string|Name of user mapping file. If no specific path is set the program expects it to be located in the "workspace" folder.|
 |**base-area-path**|False|string|Area path. Default = "Migrated".|
 |**base-iteration-path**|False|string|Iteration path. Default = "Migrated".|
 |**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|

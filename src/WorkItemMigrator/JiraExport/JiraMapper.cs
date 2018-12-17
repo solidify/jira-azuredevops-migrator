@@ -288,7 +288,7 @@ namespace JiraExport
                                 value = IfChanged<string>(item.Source, isCustomField, MapUser);
                                 break;
                             case "MapSprint":
-                                value = IfChanged<string>(_jiraProvider.Settings.SprintField, isCustomField, MapSprint);
+                                value = IfChanged<string>(item.Source, isCustomField, MapSprint);
                                 break;
                             case "MapTags":
                                 value = IfChanged<string>(item.Source, isCustomField, MapTags);
