@@ -12,7 +12,7 @@ variables:
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
   major: 2
-  minor: 0
+  minor: 1
 
 name: $(major).$(minor)$(rev:.r)
 
