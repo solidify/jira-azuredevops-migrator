@@ -86,7 +86,6 @@ namespace JiraExport
                 }
 
                 var downloadOptions = JiraProvider.DownloadOptions.IncludeParentEpics | JiraProvider.DownloadOptions.IncludeSubItems | JiraProvider.DownloadOptions.IncludeParents;
-
                 Logger.Init(migrationWorkspace, logLevel);
 
                 var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
@@ -94,12 +93,15 @@ namespace JiraExport
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
-                    EpicLinkField = config.EpicLinkField != null ? config.EpicLinkField : string.Empty,
-                    SprintField = config.SprintField != null ? config.SprintField : string.Empty,
                     JQL = config.Query
                 };
 
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
+
+                // Get the custom field names for epic link field and sprint field
+                jiraSettings.EpicLinkField = jiraProvider.GetCustomId(config.EpicLinkField);
+                jiraSettings.SprintField = jiraProvider.GetCustomId(config.SprintField);
+
                 var mapper = new JiraMapper(jiraProvider, config);
                 var localProvider = new WiItemProvider(migrationWorkspace);
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));

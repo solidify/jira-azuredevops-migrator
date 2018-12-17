@@ -96,7 +96,7 @@ namespace JiraExport
             var linkActions = links.Select(l => new RevisionAction<JiraLink>() { ChangeType = RevisionChangeType.Added, Value = l }).ToList();
             var fieldActions = fields;
 
-            var reporter = (string)fields["reporter"]; // customization point
+            var reporter = (string)fields["reporter"];
             var createdOn = (DateTime)fields["created"];
 
             var firstRevision = new JiraRevision(jiraItem) { Time = createdOn, Author = reporter, AttachmentActions = attActions, Fields = fieldActions, LinkActions = linkActions };
@@ -116,14 +116,14 @@ namespace JiraExport
         private static List<JiraRevision> BuildCommentRevisions(JiraItem jiraItem, JiraProvider jiraProvider)
         {
             var comments = jiraProvider.Jira.Issues.GetCommentsAsync(jiraItem.Key).Result;
-            return comments.Select(c => new JiraRevision(jiraItem) {
-                                        Author = c.Author,
-                                        Time = c.CreatedDate.Value,
-                                        Fields = new Dictionary<string, object>() { { "comment", c.Body} },
-                                        AttachmentActions = new List<RevisionAction<JiraAttachment>>(), 
-                                        LinkActions = new List<RevisionAction<JiraLink>>()
-                                        })
-                           .ToList();
+            return comments.Select(c => new JiraRevision(jiraItem)
+            {
+                Author = c.Author,
+                Time = c.CreatedDate.Value,
+                Fields = new Dictionary<string, object>() { { "comment", c.Body } },
+                AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
+                LinkActions = new List<RevisionAction<JiraLink>>()
+            }).ToList();
         }
 
         private static void UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
@@ -291,7 +291,8 @@ namespace JiraExport
 
         private static List<JiraAttachment> ExtractAttachments(IEnumerable<JObject> attachmentObjs)
         {
-            return attachmentObjs.Select(attObj => {
+            return attachmentObjs.Select(attObj =>
+            {
                 return new JiraAttachment
                 {
                     Id = attObj.ExValue<string>("$.id"),
@@ -326,12 +327,14 @@ namespace JiraExport
 
             foreach (var prop in remoteFields.Properties())
             {
+                var type = prop.Value.Type;
                 object value = null;
+
                 if (_fieldExtractionMapping.TryGetValue(prop.Name, out Func<JToken, object> mapping))
+                {
                     value = mapping(prop.Value);
-                else if (prop.Value.Type == JTokenType.String
-                    || prop.Value.Type == JTokenType.Integer
-                    || prop.Value.Type == JTokenType.Float)
+                }
+                else if (type == JTokenType.String || type == JTokenType.Integer || type == JTokenType.Float)
                 {
                     value = prop.Value.Value<string>();
                 }
@@ -341,7 +344,9 @@ namespace JiraExport
                 }
 
                 if (value != null)
+                {
                     fields[prop.Name] = value;
+                }
             }
 
             return fields;
@@ -349,11 +354,11 @@ namespace JiraExport
 
         private static string[] ParseCustomField(string fieldName, JToken value, JiraProvider provider)
         {
-            if (provider.Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out var customField) && 
-                customField != null && 
+            if (provider.Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out var customField) &&
+                customField != null &&
                 provider.Jira.RestClient.Settings.CustomFieldSerializers.TryGetValue(customField.CustomType, out var serializer))
             {
-                    return serializer.FromJson(value);
+                return serializer.FromJson(value);
             }
 
             return null;

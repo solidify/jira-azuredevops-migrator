@@ -17,70 +17,70 @@ The migration configuration file is defined in a json file with the properties d
 
 |Name|Required|Type|Description|
 |---|---|---|---|
-|**source-project**|True|string|Short name of the project to migrate from|
-|**target-project**|True|string|Name of the project to migrate to|
-|**query**|True|string|Name of the JQL query to use for identifying work items to migrate|
-|**workspace**|True|string|Location where logs and export data are saved on disk|
-|**epic-link-field**|False|string|Jira id of epic link field. **Note:** requires customization per account and sometimes project|
-|**sprint-field**|False|string|Jira id of sprint field. **Note:** requires customization per account and sometimes project|
-|**batch-size**|False|integer|Number of items to retrieve with one call|
-|**log-level**|False|string|Debug, Info, Warning, Error or Critical|
-|**attachment-folder**|False|string|Location to store attachments|
-|**user-mapping-file**|False|string|Name of user mapping file|
-|**base-area-path**|False|string|Area path|
-|**base-iteration-path**|False|string|Iteration path|
-|**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored|
-|**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI|
-|**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types|
-|**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS|
-|**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item|
+|**source-project**|True|string|Short name of the project to migrate from.|
+|**target-project**|True|string|Name of the project to migrate to.|
+|**query**|True|string|Name of the JQL query to use for identifying work items to migrate.|
+|**workspace**|True|string|Location where logs and export data are saved on disk.|
+|**epic-link-field**|False|string|Jira name of epic link field. Default = "Epic Link". **Note:** requires customization per account and sometimes project|
+|**sprint-field**|False|string|Jira name of sprint field. Default = "Sprint". **Note:** requires customization per account and sometimes project|
+|**batch-size**|False|integer|Number of items to retrieve with one call. Default = 20.|
+|**log-level**|False|string|Debug, Info, Warning, Error or Critical. Default = "Debug".|
+|**attachment-folder**|True|string|Location to store attachments.|
+|**user-mapping-file**|False|string|Name of user mapping file.|
+|**base-area-path**|False|string|Area path. Default = "Migrated".|
+|**base-iteration-path**|False|string|Iteration path. Default = "Migrated".|
+|**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|
+|**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
+|**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
+|**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
+|**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
 
 ## Link properties
 Name-value pairs of work item link types to map in the migration.
 
 |Name|Required|Type|Description|
 |---|---|---|---|
-|source|True|string|Source Jira link type|
-|target|True|string|Target Azure DevOps/TFS link type|
+|source|True|string|Source Jira link type.|
+|target|True|string|Target Azure DevOps/TFS link type.|
 
 ## Type properties
 Name-value pairs of work item types to map in the migration.
 
 |Name|Required|Type|Description|
 |---|---|---|---|
-|source|True|string|Source Jira work item type|
-|target|True|string|Target Azure DevOps/TFS work item type|
+|source|True|string|Source Jira work item type.|
+|target|True|string|Target Azure DevOps/TFS work item type.|
 
 ## Field properties
 |Name|Required|Type|Description|
 |---|---|---|---|
-|**source**|True|string|Name of Jira source field|
-|**target**|True|string|Name of Azure DevOps/TFS target field (reference name)|
-|**for**|False|string|Types of work items this field should be migrated to, i.e. Bug, Task, Product backlog item in a comma-delimiter list. Default to All|
-|**not-for**|False|string|Negation of above, i.e this field is for a Bug only and nothing else. Defaults to none|
-|**type**|False|string|Data type, i.e string, int, double. Defaults to string|
-|**process-template**|False|string|Process template this field is available for, i.e Scrum, Agile or CMMI |
-|**mapper**|False|string|Mapper function user for value translation|
-|**mapping**|False|json|List of **values** to map to and from in the migration|
+|**source**|True|string|Name of Jira source field.|
+|**target**|True|string|Name of Azure DevOps/TFS target field (reference name).|
+|**source-type**|False|string|Name of Jira field to get custom field id from. Default = "id".|
+|**for**|False|string|Types of work items this field should be migrated to, i.e. Bug, Task, Product backlog item in a comma-delimiter list. Default = "All".|
+|**not-for**|False|string|Negation of above, i.e this field is for a Bug only and nothing else.|
+|**type**|False|string|Data type, i.e string, int, double. Default = string|
+|**mapper**|False|string|Mapper function used for value translation.|
+|**mapping**|False|json|List of **values** to map to and from in the migration.|
 
 ## Value properties
 Name-value pairs of field values to map in the migration.
 
 |Name|Required|Type|Description|
 |---|---|---|---|
-|source|True|string|Source value|
-|target|True|string|Target value|
+|source|False|string|Source value.|
+|target|False|string|Target value.|
 
 ## Example configuration
 
 ```json
 {
   "source-project": "SCRUM",
-  "target-project": "Jira-181127-p",
+  "target-project": "Scrum-Demo-From-Jira",
   "query": "project = SCRUM ORDER BY Rank ASC",
-  "workspace": "C:\\Solidify\\JiraExport\\",
-  "epic-link-field": "customfield_10008",
-  "sprint-field": "customfield_10007",
+  "workspace": "C:\\Temp\\JiraExport\\",
+  "epic-link-field": "Epic Link",
+  "sprint-field": "Sprint",
   "batch-size": 20,
   "log-level": "Debug",
   "attachment-folder": "Attachments",
@@ -202,7 +202,8 @@ Name-value pairs of field values to map in the migration.
         }
       },
       {
-        "source": "customfield_10007",
+        "source": "Sprint",
+        "source-type": "name",
         "target": "System.IterationPath",
         "mapper": "MapSprint"
       },
@@ -279,16 +280,15 @@ Name-value pairs of field values to map in the migration.
         }
       },
       {
-        "source": "customfield_10004",
+        "source": "Story Points",
+        "source-type": "name",
         "target": "Microsoft.VSTS.Scheduling.Effort",
-        "for": "Epic,Feature,Product Backlog Item,Bug",
-        "type": "double"
+        "not-for": "Task"
       },
       {
         "source": "remainingEstimate",
         "target": "Microsoft.VSTS.Scheduling.RemainingWork",
-        "for": "Bug,Task",
-        "type": "double"
+        "for": "Bug,Task"
       },
       {
         "source": "description",

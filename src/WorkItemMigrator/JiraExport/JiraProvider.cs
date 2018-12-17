@@ -22,11 +22,21 @@ namespace JiraExport
             IncludeLinkedItems
         }
 
-    public static JiraProvider Initialize(JiraSettings settings)
+        readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
+
+        public Jira Jira { get; private set; }
+
+        public JiraSettings Settings { get; private set; }
+
+        public IEnumerable<IssueLinkType> LinkTypes { get; private set; }
+
+        private JiraProvider()
         {
+        }
 
+        public static JiraProvider Initialize(JiraSettings settings)
+        {
             var provider = new JiraProvider();
-
             provider.Jira = ConnectToJira(settings);
             provider.Settings = settings;
 
@@ -61,21 +71,89 @@ namespace JiraExport
             return jira;
         }
 
-        private JiraProvider()
-        {
-        }
-
-        public Jira Jira { get; private set;}
-        public JiraSettings Settings { get; private set; }
-        public IEnumerable<IssueLinkType> LinkTypes { get; private set; }
-
-
         private JiraItem ProcessItem(string issueKey, HashSet<string> skipList, string successMessage)
         {
             var issue = JiraItem.CreateFromRest(issueKey, this);
             Logger.Log(LogLevel.Info, $"Downloaded {issueKey} - {successMessage}");
             skipList.Add(issue.Key);
             return issue;
+        }
+
+        private async Task<JiraAttachment> GetAttachmentInfo(string id)
+        {
+            Logger.Log(LogLevel.Debug, $"Downloading attachment info for attachment {id}");
+
+            try
+            {
+                var response = await Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/attachment/{id}");
+                var attObj = (JObject)response;
+
+                return new JiraAttachment()
+                {
+                    Id = id,
+                    Filename = attObj.ExValue<string>("$.filename"),
+                    Url = attObj.ExValue<string>("$.content"),
+                    ThumbUrl = attObj.ExValue<string>("$.thumbnail")
+                };
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Warning, $"Cannot find info for attachment {id}. Skipping.");
+                Logger.Log(ex);
+                return null;
+            }
+        }
+
+        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att, WebClientWrapper web)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(att.Url))
+                    att = await GetAttachmentInfo(att.Id);
+
+                if (att != null && !string.IsNullOrWhiteSpace(att.Url))
+                {
+                    string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
+                    EnsurePath(path);
+                    await web.DownloadWithAuthenticationAsync(att.Url, path);
+                    att.LocalPath = path;
+                    Logger.Log(LogLevel.Debug, $"Downloaded attachment {att.ToString()}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Warning, $"Attachment download failed. Message: {ex.Message}");
+            }
+
+            if (att != null && !string.IsNullOrWhiteSpace(att.ThumbUrl))
+            {
+                try
+                {
+                    string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
+                    var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
+                    EnsurePath(thumbPath);
+                    await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
+                    att.LocalThumbPath = thumbPath;
+                    Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail {att.ToString()}");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Warning, $"Attachment thumbnail ({att.ToString()}) download failed. Message: {ex.Message}");
+                }
+            }
+
+            return att;
+        }
+
+        private void EnsurePath(string path)
+        {
+            var dir = Path.GetDirectoryName(path);
+            if (!Directory.Exists(dir))
+            {
+                var parentDir = Path.GetDirectoryName(dir);
+                EnsurePath(parentDir);
+                Directory.CreateDirectory(dir);
+            }
         }
 
         public IEnumerable<JiraItem> EnumerateIssues(string jql, HashSet<string> skipList, DownloadOptions downloadOptions)
@@ -184,84 +262,6 @@ namespace JiraExport
             return Jira.Issues.GetCommentsAsync(key).Result.Count();
         }
 
-        private async Task<JiraAttachment> GetAttachmentInfo(string id)
-        {
-            Logger.Log(LogLevel.Debug, $"Downloading attachment info for attachment {id}");
-
-            try
-            {
-                var response = await Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/attachment/{id}");
-                var attObj = (JObject)response;
-
-                return new JiraAttachment()
-                {
-                    Id = id,
-                    Filename = attObj.ExValue<string>("$.filename"),
-                    Url = attObj.ExValue<string>("$.content"),
-                    ThumbUrl = attObj.ExValue<string>("$.thumbnail")
-                };
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(LogLevel.Warning, $"Cannot find info for attachment {id}. Skipping.");
-                Logger.Log(ex);
-                return null;
-            }
-        }
-
-        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att, WebClientWrapper web)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(att.Url))
-                    att = await GetAttachmentInfo(att.Id);
-
-                if (att != null && !string.IsNullOrWhiteSpace(att.Url))
-                {
-                    string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
-                    EnsurePath(path);
-                    await web.DownloadWithAuthenticationAsync(att.Url, path);
-                    att.LocalPath = path;
-                    Logger.Log(LogLevel.Debug, $"Downloaded attachment {att.ToString()}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(LogLevel.Warning, $"Attachment download failed. Message: {ex.Message}");
-            }
-
-            if (att != null && !string.IsNullOrWhiteSpace(att.ThumbUrl))
-            {
-                try
-                {
-                    string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
-                    var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
-                    EnsurePath(thumbPath);
-                    await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
-                    att.LocalThumbPath = thumbPath;
-                    Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail {att.ToString()}");
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(LogLevel.Warning, $"Attachment thumbnail ({att.ToString()}) download failed. Message: {ex.Message}");
-                }
-            }
-
-            return att;
-        }
-
-        private void EnsurePath(string path)
-        {
-            var dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir))
-            {
-                var parentDir = Path.GetDirectoryName(dir);
-                EnsurePath(parentDir);
-                Directory.CreateDirectory(dir);
-            }
-        }
-
-        readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
         public string GetUserEmail(string username)
         {
             if (_userEmailCache.TryGetValue(username, out string email))
@@ -273,6 +273,22 @@ namespace JiraExport
                 _userEmailCache.Add(username, email);
                 return email;
             }
+        }
+
+        public string GetCustomId(string propertyName)
+        {
+            var customId = string.Empty;
+            var response = (JArray)Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/field").Result;
+            foreach (var item in response)
+            {
+                var nameField = (JValue)item.SelectToken("name");
+                if (nameField.Value.ToString().ToLower() == propertyName.ToLower())
+                {
+                    var idField = (JValue)item.SelectToken("id");
+                    customId = idField.Value.ToString();
+                }
+            }
+            return customId;
         }
     }
 }
