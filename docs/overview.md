@@ -46,6 +46,12 @@ The process below describes the high-level steps requred to migrate data from Ji
 
         Jira.User@some.domain=AzureDevOps.User@some.domain
 
+    If no specific path to the user mapping file is provided in the configuration file, the program expects it in the location of "workspace" setting. If no file name or path including file name is provided, the import just skips mapping users.
+    
+    To add support for setting a default user when the Jira user of a task is not found in the user mapping file just add this in the user mapping file:
+    
+        *=default username
+    
 3. Define [configuration](config.md) for the migration process.
 
 4. Run the [export](jira-export.md) phase.
