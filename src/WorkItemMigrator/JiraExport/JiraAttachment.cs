@@ -2,7 +2,7 @@
 
 namespace JiraExport
 {
-    public class JiraAttachment : IEquatable<JiraAttachment>
+    public sealed class JiraAttachment : IEquatable<JiraAttachment>
     {
         public string Id { get; internal set; }
         public string Filename { get; internal set; }

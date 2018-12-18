@@ -223,30 +223,27 @@ namespace JiraExport
             {
                 var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
-                if (type != null)
+                if (type != null && _fieldMappingsPerType.TryGetValue(type, out var mapping))
                 {
-                    if (_fieldMappingsPerType.TryGetValue(type, out var mapping))
+                    foreach (var field in mapping)
                     {
-                        foreach (var field in mapping)
+                        try
                         {
-                            try
-                            {
-                                var fieldreference = field.Key;
-                                var (include, value) = field.Value(r);
+                            var fieldreference = field.Key;
+                            var (include, value) = field.Value(r);
 
-                                if (include)
-                                {
-                                    fields.Add(new WiField()
-                                    {
-                                        ReferenceName = fieldreference,
-                                        Value = value
-                                    });
-                                }
-                            }
-                            catch (Exception ex)
+                            if (include)
                             {
-                                Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
+                                fields.Add(new WiField()
+                                {
+                                    ReferenceName = fieldreference,
+                                    Value = value
+                                });
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
                         }
                     }
                 }
@@ -405,7 +402,7 @@ namespace JiraExport
                     }
                 }
                 else
-                { 
+                {
                     return (false, null);
                 }
             };
@@ -427,14 +424,12 @@ namespace JiraExport
             {
                 foreach (var item in _config.FieldMap.Fields)
                 {
-                    if ((item.Source == itemSource && (item.For.Contains(targetWit) || item.For == "All")) ||
-                         item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit)))
+                    if (((item.Source == itemSource && (item.For.Contains(targetWit) || item.For == "All")) ||
+                          item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
+                          item.Mapping?.Values != null)
                     {
-                        if (item.Mapping?.Values != null)
-                        {
-                            var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
-                            return (true, mappedValue);
-                        }
+                        var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
+                        return (true, mappedValue);
                     }
                 }
                 return (true, value);
@@ -474,28 +469,29 @@ namespace JiraExport
         {
             var descFieldName = issue.Type == "Bug" ? "Microsoft.VSTS.TCM.ReproSteps" : "System.Description";
 
-            var lastDescUpdateRev =
-                ((IEnumerable<WiRevision>)revisions)
-               .Reverse()
-               .FirstOrDefault(r => r.Fields.Any(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase)));
-            var lastDescUpdate = lastDescUpdateRev
-                                ?.Fields
-                                ?.FirstOrDefault(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase));
-            var renderedDescription = MapRenderedDescription(issue);
+            var lastDescUpdateRev = ((IEnumerable<WiRevision>)revisions)
+                                        .Reverse()
+                                        .FirstOrDefault(r => r.Fields.Any(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase)));
 
-            if (lastDescUpdate == null && !string.IsNullOrWhiteSpace(renderedDescription))
+            if (lastDescUpdateRev != null)
             {
-                lastDescUpdate = new Migration.WIContract.WiField() { ReferenceName = descFieldName, Value = renderedDescription };
-                lastDescUpdateRev = revisions.First();
-                lastDescUpdateRev.Fields.Add(lastDescUpdate);
-            }
+                var lastDescUpdate = lastDescUpdateRev?.Fields?.FirstOrDefault(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase));
+                var renderedDescription = MapRenderedDescription(issue);
 
-            if (lastDescUpdate != null)
-            {
-                lastDescUpdate.Value = renderedDescription;
-            }
+                if (lastDescUpdate == null && !string.IsNullOrWhiteSpace(renderedDescription))
+                {
+                    lastDescUpdate = new WiField() { ReferenceName = descFieldName, Value = renderedDescription };
+                    lastDescUpdateRev = revisions.First();
+                    lastDescUpdateRev.Fields.Add(lastDescUpdate);
+                }
 
-            lastDescUpdateRev.AttachmentReferences = true;
+                if (lastDescUpdate != null)
+                {
+                    lastDescUpdate.Value = renderedDescription;
+                }
+
+                lastDescUpdateRev.AttachmentReferences = true;
+            }
         }
 
         private string MapRenderedDescription(JiraItem issue)

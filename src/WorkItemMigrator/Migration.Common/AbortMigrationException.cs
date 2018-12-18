@@ -7,7 +7,7 @@ namespace Migration.Common
     [Serializable]
     public class AbortMigrationException : Exception 
     {
-        protected AbortMigrationException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+        protected AbortMigrationException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext)
         {
 
         }

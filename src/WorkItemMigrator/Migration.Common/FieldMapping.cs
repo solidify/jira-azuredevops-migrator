@@ -12,7 +12,7 @@ namespace Migration.Common
 
         }
 
-        protected FieldMapping(SerializationInfo serializationInfo, StreamingContext streamingContext)
+        protected FieldMapping(SerializationInfo serializationInfo, StreamingContext streamingContext) : base (serializationInfo, streamingContext)
         {
 
         }

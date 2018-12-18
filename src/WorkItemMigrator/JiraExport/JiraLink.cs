@@ -2,7 +2,7 @@
 
 namespace JiraExport
 {
-    public class JiraLink : IEquatable<JiraLink>
+    public sealed class JiraLink : IEquatable<JiraLink>
     {
         public string SourceItem { get; internal set; }
         public string TargetItem { get; internal set; }
