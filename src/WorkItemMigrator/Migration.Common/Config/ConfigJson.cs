@@ -36,10 +36,10 @@ namespace Common.Config
         public string UserMappingFile { get; set; }
 
         [JsonProperty(PropertyName = "base-area-path")]
-        public string BaseAreaPath { get; set; } = "Migrated";
+        public string BaseAreaPath { get; set; } = "";
 
         [JsonProperty(PropertyName = "base-iteration-path")]
-        public string BaseIterationPath { get; set; } = "Migrated";
+        public string BaseIterationPath { get; set; } = "";
 
         [JsonProperty(PropertyName = "ignore-failed-links")]
         public bool IgnoreFailedLinks { get; set; } = false;

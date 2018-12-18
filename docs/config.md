@@ -27,8 +27,8 @@ The migration configuration file is defined in a json file with the properties d
 |**log-level**|False|string|Debug, Info, Warning, Error or Critical. Default = "Debug".|
 |**attachment-folder**|True|string|Location to store attachments.|
 |**user-mapping-file**|False|string|Name of user mapping file. If no specific path is set the program expects it to be located in the "workspace" folder.|
-|**base-area-path**|False|string|Area path. Default = "Migrated".|
-|**base-iteration-path**|False|string|Iteration path. Default = "Migrated".|
+|**base-area-path**|False|string|Area path. Default is empty.|
+|**base-iteration-path**|False|string|Iteration path. Default is empty.|
 |**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|
 |**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
