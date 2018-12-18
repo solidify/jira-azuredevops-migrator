@@ -15,11 +15,12 @@ namespace JiraExport
         [Flags]
         public enum DownloadOptions
         {
-            IncludeParentEpics,
-            IncludeEpicChildren,
-            IncludeParents,
-            IncludeSubItems,
-            IncludeLinkedItems
+            None = 0,
+            IncludeParentEpics = 1,
+            IncludeEpicChildren = 2,
+            IncludeParents = 3,
+            IncludeSubItems = 4,
+            IncludeLinkedItems = 5
         }
 
         readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();

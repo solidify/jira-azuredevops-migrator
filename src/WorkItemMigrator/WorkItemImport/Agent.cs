@@ -271,7 +271,7 @@ namespace WorkItemImport
 
                     if (DateTime.Now > expiration)
                     {
-                        throw new Exception(String.Format("Operation did not complete in {0} seconds.", maxTimeInSeconds));
+                        Logger.Log(LogLevel.Error, string.Format("Operation did not complete in {0} seconds.", maxTimeInSeconds));
                     }
                 }
                 else
@@ -524,14 +524,14 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added)
+                    if (link.Change == ReferenceChangeType.Added && !AddLink(link, wi))
                     {
-                        if (!AddLink(link, wi))
+                        //if (!AddLink(link, wi))
                             success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed)
+                    else if (link.Change == ReferenceChangeType.Removed && !RemoveLink(link, wi))
                     {
-                        if (!RemoveLink(link, wi))
+                        //if (!RemoveLink(link, wi))
                             success = false;
                     }
                 }

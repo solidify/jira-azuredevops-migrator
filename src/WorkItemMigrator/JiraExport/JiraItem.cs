@@ -354,14 +354,16 @@ namespace JiraExport
 
         private static string[] ParseCustomField(string fieldName, JToken value, JiraProvider provider)
         {
+            var serializedValue = new string[] { };
+
             if (provider.Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out var customField) &&
                 customField != null &&
                 provider.Jira.RestClient.Settings.CustomFieldSerializers.TryGetValue(customField.CustomType, out var serializer))
             {
-                return serializer.FromJson(value);
+                serializedValue = serializer.FromJson(value);
             }
 
-            return null;
+            return serializedValue;
         }
 
         #endregion
