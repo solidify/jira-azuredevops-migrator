@@ -117,7 +117,7 @@ namespace JiraExport
                 var email = _jiraProvider.GetUserEmail(sourceUser);
                 user = base.MapUser(email);
             }
-            else if (sourceUser == null)
+            else
             {
                 user = base.MapUser(sourceUser);
             }
