@@ -428,8 +428,11 @@ namespace WorkItemImport
                         }
                     }
 
-                    var field = wi.Fields[fieldRef];
-                    field.Value = fieldValue;
+                    if (fieldValue != null)
+                    {
+                        var field = wi.Fields[fieldRef];
+                        field.Value = fieldValue;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -526,13 +529,11 @@ namespace WorkItemImport
 
                     if (link.Change == ReferenceChangeType.Added && !AddLink(link, wi))
                     {
-                        //if (!AddLink(link, wi))
-                            success = false;
+                        success = false;
                     }
                     else if (link.Change == ReferenceChangeType.Removed && !RemoveLink(link, wi))
                     {
-                        //if (!RemoveLink(link, wi))
-                            success = false;
+                        success = false;
                     }
                 }
                 catch (Exception ex)
@@ -546,7 +547,6 @@ namespace WorkItemImport
                 wi.Fields[CoreField.History].Value = $"Removed link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
             else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
                 wi.Fields[CoreField.History].Value = $"Added link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
-
 
             return success;
         }
