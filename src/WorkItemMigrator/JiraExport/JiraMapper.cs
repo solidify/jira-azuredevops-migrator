@@ -111,17 +111,11 @@ namespace JiraExport
 
         protected override string MapUser(string sourceUser)
         {
-            var user = string.Empty;
-            if (!string.IsNullOrWhiteSpace(sourceUser))
-            {
-                var email = _jiraProvider.GetUserEmail(sourceUser);
-                user = base.MapUser(email);
-            }
-            else
-            {
-                user = base.MapUser(sourceUser);
-            }
-            return user;
+            if (string.IsNullOrWhiteSpace(sourceUser))
+                return null;
+
+            var email = _jiraProvider.GetUserEmail(sourceUser);
+            return base.MapUser(email);
         }
 
         internal WiItem Map(JiraItem issue)
