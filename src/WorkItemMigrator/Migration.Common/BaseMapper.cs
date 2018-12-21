@@ -31,36 +31,23 @@ namespace Migration.Common
 
         protected virtual string MapUser(string sourceUser)
         {
-            if (sourceUser != null)
+            if (sourceUser == null)
+                return sourceUser;
+
+            if (UserMapping.TryGetValue(sourceUser, out string wiUser))
             {
-                if (UserMapping.TryGetValue(sourceUser, out string wiUser))
-                {
-                    return wiUser;
-                }
-                else if (UserMapping.TryGetValue("*", out string defaultUser))
-                {
-                    Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Setting default identity.");
-                    return defaultUser;
-                }
-                else
-                {
-                    Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Using original identity.");
-                    UserMapping.Add(sourceUser, sourceUser);
-                    return sourceUser;
-                }
+                return wiUser;
+            }
+            else if (UserMapping.TryGetValue("*", out string defaultUser))
+            {
+                Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Setting default identity.");
+                return defaultUser;
             }
             else
             {
-                // If a default user is set we´ll use that for unassigned items as well
-                if (UserMapping.TryGetValue("*", out string defaultUser))
-                {
-                    Logger.Log(LogLevel.Debug, $"Unassigned. Setting default identity.");
-                    return defaultUser;
-                }
-                else
-                {
-                    return sourceUser;
-                }
+                Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Using original identity.");
+                UserMapping.Add(sourceUser, sourceUser);
+                return sourceUser;
             }
         }
 
