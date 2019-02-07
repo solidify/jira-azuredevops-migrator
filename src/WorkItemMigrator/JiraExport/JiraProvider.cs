@@ -266,13 +266,28 @@ namespace JiraExport
         public string GetUserEmail(string username)
         {
             if (_userEmailCache.TryGetValue(username, out string email))
+            {
                 return email;
+            }
             else
             {
-                var user = Jira.Users.GetUserAsync(username).Result;
-                email = user.Email;
-                _userEmailCache.Add(username, email);
-                return email;
+                try
+                {
+                    var user = Jira.Users.GetUserAsync(username).Result;
+                    if(string.IsNullOrEmpty(user.Email))
+                    {
+                        Logger.Log(LogLevel.Warning, $"Email for user '{username}' not found in Jira, using '{username}' for mapping.");
+                        return username;
+                    }
+                    email = user.Email;
+                    _userEmailCache.Add(username, email);
+                    return email;
+                }
+                catch(Exception e)
+                {
+                    Logger.Log(LogLevel.Warning, $"User '{username}' not found in Jira, using '{username}' for mapping.");
+                    return username;
+                }
             }
         }
 

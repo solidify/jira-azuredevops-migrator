@@ -130,15 +130,21 @@ namespace Migration.Common
             {
                 Console.WriteLine("::: SUMMARY :::");
                 Console.WriteLine("===============");
-                foreach (var warning in Warnings)
+                if(Warnings.Count > 0)
                 {
                     Console.WriteLine("Warnings:");
-                    LogInternal(LogLevel.Warning, warning);
+                    foreach (var warning in Warnings)
+                    {
+                        LogInternal(LogLevel.Warning, warning);
+                    }
                 }
-                foreach (var error in Errors)
+                if (Errors.Count > 0)
                 {
                     Console.WriteLine("Errors:");
-                    LogInternal(LogLevel.Error, error);
+                    foreach (var error in Errors)
+                    {
+                        LogInternal(LogLevel.Error, error);
+                    }
                 }
             }
         }
