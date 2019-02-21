@@ -4,6 +4,8 @@ using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Migration.Common;
 using Migration.Common.Config;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace WorkItemImport
 {
@@ -55,6 +57,10 @@ namespace WorkItemImport
         private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh)
         {
             ConfigJson config = null;
+            var itemCount = 0;
+            var importedItems = 0;
+            var sw = new Stopwatch();
+            sw.Start();
             try
             {
                 string configFileName = configFile.Value();
@@ -101,6 +107,8 @@ namespace WorkItemImport
                 var executionBuilder = new ExecutionPlanBuilder(context);
                 var plan = executionBuilder.BuildExecutionPlan();
 
+                itemCount = plan.ReferenceQueue.Count;
+                Console.WriteLine($"Found {itemCount} items to import.");
                 while (plan.TryPop(out ExecutionPlan.ExecutionItem executionItem))
                 {
                     try
@@ -116,6 +124,8 @@ namespace WorkItemImport
                             wi = agent.CreateWI(executionItem.WiType);
 
                         agent.ImportRevision(executionItem.Revision, wi);
+
+                        importedItems++;
                     }
                     catch (AbortMigrationException)
                     {
@@ -142,6 +152,17 @@ namespace WorkItemImport
             catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, $"Unexpected error: {e}");
+            }
+            finally
+            {
+                sw.Stop();
+                var properties = new Dictionary<string, string>() {
+                    { "item-count", itemCount.ToString() },
+                    { "imported-item-count", importedItems.ToString() },
+                    { "error-count", Logger.Errors.ToString() },
+                    { "warning-count", Logger.Warnings.ToString() },
+                    { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) } };
+                Logger.LogEvent("import-completed", properties);
             }
         }
 

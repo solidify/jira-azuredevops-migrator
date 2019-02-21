@@ -522,7 +522,7 @@ namespace WorkItemImport
                     if (link.TargetWiId == -1)
                     {
                         var errorLevel = Settings.IgnoreFailedLinks ? LogLevel.Warning : LogLevel.Error;
-                        Logger.Log(errorLevel, $"{link.ToString()} - target work item is not yet created in Azure DevOps/TFS.");
+                        Logger.Log(errorLevel, $"{link.ToString()} - target work item for Jira {link.TargetOriginId} is not yet created in Azure DevOps/TFS.");
                         success = false;
                         continue;
                     }
@@ -599,7 +599,7 @@ namespace WorkItemImport
             var linkType = wi.Project.Store.WorkItemLinkTypes.SingleOrDefault(lt => lt.ReferenceName == props[0]);
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Error, $"{link.ToString()} - linkt type ({props[0]}) does not exist in project");
+                Logger.Log(LogLevel.Error, $"{link.ToString()} - link type ({props[0]}) does not exist in project");
                 return null;
             }
 

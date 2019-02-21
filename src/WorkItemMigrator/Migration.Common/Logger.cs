@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.Extensibility;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Configuration;
 
 namespace Migration.Common
 {
@@ -18,8 +22,14 @@ namespace Migration.Common
     {
         private static string _logFilePath;
         private static LogLevel _logLevel;
-        private static List<string> Errors = new List<string>();
-        private static List<string> Warnings = new List<string>();
+        private static List<string> _errors = new List<string>();
+        private static List<string> _warnings = new List<string>();
+        private static TelemetryClient _telemetryClient = null;
+
+        static Logger()
+        {
+            InitApplicationInsights();
+        }
 
         public static void Init(string dirPath, LogLevel level)
         {
@@ -31,6 +41,21 @@ namespace Migration.Common
             _logLevel = level;
         }
 
+        private static void InitApplicationInsights()
+        {
+            var key = ConfigurationManager.AppSettings["applicationInsightsKey"];
+
+            LogInternal(LogLevel.Info, string.Format("Application insights {0}.", !string.IsNullOrEmpty(key) ? "enabled" : "disabled"));
+
+            if (!string.IsNullOrEmpty(key))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = key;
+                _telemetryClient = new TelemetryClient();
+                _telemetryClient.Context.Component.Version = VersionInfo.GetVersionInfo();
+                _telemetryClient.Context.Session.Id = Guid.NewGuid().ToString();
+            }
+        }
+
         internal static void Init(MigrationContext instance)
         {
             Init(instance.MigrationWorkspace, instance.LogLevel);
@@ -40,14 +65,16 @@ namespace Migration.Common
         {
             LogInternal(level, message);
 
+            LogApplicationInsights(level, message);
+
             if (level == LogLevel.Critical)
             {
-                Errors.Add(message);
+                _errors.Add(message);
                 throw new AbortMigrationException(message);
             }
             else if (level == LogLevel.Error)
             {
-                Errors.Add(message);
+                _errors.Add(message);
                 Console.Write("Do you want to continue (y/n)? ");
                 var answer = Console.ReadKey();
                 if (answer.Key == ConsoleKey.N)
@@ -55,7 +82,7 @@ namespace Migration.Common
 
             }
             else if (level == LogLevel.Warning)
-                Warnings.Add(message);
+                _warnings.Add(message);
         }
 
         private static void LogInternal(LogLevel level, string message)
@@ -66,9 +93,55 @@ namespace Migration.Common
                 ToConsole(level, message);
         }
 
+        private static void LogApplicationInsights(LogLevel level, string message)
+        {
+            if (_telemetryClient != null)
+                _telemetryClient.TrackTrace(message, MapLogLevelToApplicationInsightsLevel(level));
+        }
+
+        private static SeverityLevel MapLogLevelToApplicationInsightsLevel(LogLevel level)
+        {
+            SeverityLevel severityLevel = SeverityLevel.Information;
+            switch (level)
+            {
+                case LogLevel.Critical:
+                    severityLevel = SeverityLevel.Critical;
+                    break;
+                case LogLevel.Debug:
+                    severityLevel = SeverityLevel.Verbose;
+                    break;
+                case LogLevel.Error:
+                    severityLevel = SeverityLevel.Error;
+                    break;
+                case LogLevel.Info:
+                    severityLevel = SeverityLevel.Information;
+                    break;
+                case LogLevel.Warning:
+                    severityLevel = SeverityLevel.Warning;
+                    break;
+            }
+            return severityLevel;
+        }
+
         public static void Log(Exception ex)
         {
+            LogExceptionToApplicationInsights(ex);
             Log(LogLevel.Error, $"[{ex.GetType().ToString()}] {ex.Message}: {Environment.NewLine + ex.StackTrace}");
+        }
+
+        public static void LogEvent(string message, Dictionary<string, string> properties)
+        {
+            var propertiesString = string.Join(";", properties.Select(x => x.Key + "=" + x.Value).ToArray());
+            Log(LogLevel.Info, $"{message} : {propertiesString}");
+
+            if(_telemetryClient != null)
+                _telemetryClient.TrackEvent(message, properties);
+        }
+
+        private static void LogExceptionToApplicationInsights(Exception ex)
+        {
+            if(_telemetryClient != null)
+                _telemetryClient.TrackException(ex);
         }
 
         private static void ToFile(LogLevel level, string message)
@@ -126,26 +199,42 @@ namespace Migration.Common
 
         public static void Summary()
         {
-            if ((Warnings != null && Warnings.Any()) || Errors != null && Errors.Any())
+            if ((_warnings != null && _warnings.Any()) || _errors != null && _errors.Any())
             {
                 Console.WriteLine("::: SUMMARY :::");
                 Console.WriteLine("===============");
-                if(Warnings.Count > 0)
+                if(_warnings.Count > 0)
                 {
                     Console.WriteLine("Warnings:");
-                    foreach (var warning in Warnings)
+                    foreach (var warning in _warnings)
                     {
                         LogInternal(LogLevel.Warning, warning);
                     }
                 }
-                if (Errors.Count > 0)
+                if (_errors.Count > 0)
                 {
                     Console.WriteLine("Errors:");
-                    foreach (var error in Errors)
+                    foreach (var error in _errors)
                     {
                         LogInternal(LogLevel.Error, error);
                     }
                 }
+            }
+        }
+
+        public static int Warnings
+        {
+            get
+            {
+                return _warnings.Count;
+            }
+        }
+
+        public static int Errors
+        {
+            get
+            {
+                return _errors.Count;
             }
         }
     }
