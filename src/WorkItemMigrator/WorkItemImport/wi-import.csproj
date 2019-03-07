@@ -215,7 +215,24 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.6" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.6" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
+    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="4.3.0" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="5.3.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Logging" Version="5.3.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.3.0" />
+    <PackageReference Include="Microsoft.TeamFoundation.DistributedTask.Common.Contracts" Version="15.131.1" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="15.131.1" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" Version="15.131.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="15.131.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="15.131.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.3.0" />
+    <PackageReference Include="WindowsAzure.ServiceBus" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Migration.Common\Migration.Common.csproj">
