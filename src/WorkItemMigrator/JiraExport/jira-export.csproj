@@ -7,6 +7,14 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Deterministic>false</Deterministic>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="jirastyles.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="jirastyles.css" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Atlassian.SDK" Version="10.4.0" />
