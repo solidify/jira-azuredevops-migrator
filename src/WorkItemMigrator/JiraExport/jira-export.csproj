@@ -124,7 +124,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Migration.Common\Migration.Common.csproj">
-      <Project>{3d3e0fd1-05fc-454b-828a-9004d3ddb296}</Project>
+      <Project>{2a0cd443-32ef-492b-a1b2-895823546b25}</Project>
       <Name>Migration.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\Migration.WIContract\Migration.WIContract.csproj">
