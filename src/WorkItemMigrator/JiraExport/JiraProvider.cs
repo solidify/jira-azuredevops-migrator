@@ -283,7 +283,7 @@ namespace JiraExport
                     _userEmailCache.Add(username, email);
                     return email;
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     Logger.Log(LogLevel.Warning, $"User '{username}' not found in Jira, using '{username}' for mapping.");
                     return username;

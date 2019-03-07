@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jira-export", "JiraExport\jira-export.csproj", "{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wi-import", "WorkItemImport\wi-import.csproj", "{FE3852EF-A2A8-45B7-8598-CA9400D7F60B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.WIContract", "Migration.WIContract\Migration.WIContract.csproj", "{568D9D59-1617-441B-95E3-9C2E93EFA1D2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common", "Migration.Common\Migration.Common.csproj", "{2A0CD443-32EF-492B-A1B2-895823546B25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jira-export", "JiraExport\jira-export.csproj", "{37C61846-D02F-44E3-8762-D9FD662AC279}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FE3852EF-A2A8-45B7-8598-CA9400D7F60B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FE3852EF-A2A8-45B7-8598-CA9400D7F60B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE3852EF-A2A8-45B7-8598-CA9400D7F60B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -33,6 +29,10 @@ Global
 		{2A0CD443-32EF-492B-A1B2-895823546B25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A0CD443-32EF-492B-A1B2-895823546B25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A0CD443-32EF-492B-A1B2-895823546B25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37C61846-D02F-44E3-8762-D9FD662AC279}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37C61846-D02F-44E3-8762-D9FD662AC279}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37C61846-D02F-44E3-8762-D9FD662AC279}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37C61846-D02F-44E3-8762-D9FD662AC279}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
