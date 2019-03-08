@@ -371,7 +371,7 @@ namespace JiraExport
         private readonly JiraProvider _provider;
 
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
-        public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name"); } }
+        public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
 
         public string EpicParent { get { return RemoteIssue.ExValue<string>($"$.fields.{_provider.Settings.EpicLinkField}"); } }
         public string Parent { get { return RemoteIssue.ExValue<string>("$.fields.parent.key"); } }
