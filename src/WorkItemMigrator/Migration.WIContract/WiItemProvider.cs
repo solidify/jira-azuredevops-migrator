@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -39,8 +40,20 @@ namespace Migration.WIContract
 
         public IEnumerable<WiItem> EnumerateAllItems()
         {
+            var result = new List<WiItem>();
+
             foreach (var filePath in Directory.EnumerateFiles(_itemsDir, "*.json"))
-                yield return LoadFile(filePath);
+            {
+                try
+                {
+                    result.Add(LoadFile(filePath));
+                }
+                catch
+                {
+                    Console.WriteLine($"Failed to load file '{Path.GetFileName(filePath)}'.");
+                }
+            }
+            return result;
         }
     }
 }

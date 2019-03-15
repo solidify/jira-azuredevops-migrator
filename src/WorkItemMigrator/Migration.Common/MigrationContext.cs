@@ -75,11 +75,15 @@ namespace Migration.Common
         }
         public IEnumerable<WiItem> EnumerateAllItems()
         {
+            var result = new List<WiItem>();
+
             foreach (WiItem item in this.Provider.EnumerateAllItems())
             {
                 item.WiId = Journal.GetMigratedId(item.OriginId);
-                yield return item;
-            } 
+                result.Add(item);
+            }
+
+            return result;
         }
     }
 }
