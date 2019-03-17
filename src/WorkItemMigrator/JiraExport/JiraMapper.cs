@@ -135,6 +135,11 @@ namespace JiraExport
                     wiItem.Type = type;
                     wiItem.Revisions = revisions;
                 }
+                else
+                {
+                    Logger.Log(LogLevel.Warning, $"Type mapping missing for {issue.Key} with Jira type {issue.Type}. Item not exported which may cause missing links in related issues.");
+                    return null;
+                }
             }
             return wiItem;
         }
