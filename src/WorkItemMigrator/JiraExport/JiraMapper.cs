@@ -367,9 +367,9 @@ namespace JiraExport
 
             var mappingPerWiType = new Dictionary<string, FieldMapping<JiraRevision>>
             {
-                { WorkItemType.Bug, MergeMapping(commonFields, bugFields, taskFields) },
+                { WorkItemType.Bug, MergeMapping(commonFields, bugFields) },
                 { WorkItemType.ProductBacklogItem, MergeMapping(commonFields, pbiFields) },
-                { WorkItemType.Task, MergeMapping(commonFields, bugFields, taskFields) },
+                { WorkItemType.Task, MergeMapping(commonFields, taskFields) },
                 { WorkItemType.Feature, MergeMapping(commonFields, featureFields) },
                 { WorkItemType.Epic, MergeMapping(commonFields, epicFields) },
                 { WorkItemType.Requirement, MergeMapping(commonFields, requirementFields) },
