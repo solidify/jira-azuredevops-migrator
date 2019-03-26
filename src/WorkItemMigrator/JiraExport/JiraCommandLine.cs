@@ -110,8 +110,11 @@ namespace JiraExport
                 foreach (var issue in jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions))
                 {
                     WiItem wiItem = mapper.Map(issue);
-                    localProvider.Save(wiItem);
-                    Logger.Log(LogLevel.Info, $"Exported {wiItem.ToString()}");
+                    if(wiItem != null)
+                    {
+                        localProvider.Save(wiItem);
+                        Logger.Log(LogLevel.Info, $"Exported {wiItem.ToString()}");
+                    }
                 }
             }
             catch (CommandParsingException e)
