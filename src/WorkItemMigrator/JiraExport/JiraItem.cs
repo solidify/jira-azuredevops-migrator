@@ -31,7 +31,7 @@ namespace JiraExport
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
-            Dictionary<string, object> fields = ExtractFields((JObject)remoteIssue.SelectToken("$.fields"), jiraProvider);
+            Dictionary<string, object> fields = ExtractFields(issueKey, (JObject)remoteIssue.SelectToken("$.fields"), jiraProvider);
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
 
@@ -304,7 +304,7 @@ namespace JiraExport
         }
 
         private static Dictionary<string, Func<JToken, object>> _fieldExtractionMapping = null;
-        private static Dictionary<string, object> ExtractFields(JObject remoteFields, JiraProvider jira)
+        private static Dictionary<string, object> ExtractFields(string key, JObject remoteFields, JiraProvider jira)
         {
             var fields = new Dictionary<string, object>();
 
@@ -348,6 +348,9 @@ namespace JiraExport
                     fields[prop.Name] = value;
                 }
             }
+
+            fields["key"] = key;
+            fields["issuekey"] = key;
 
             return fields;
         }
