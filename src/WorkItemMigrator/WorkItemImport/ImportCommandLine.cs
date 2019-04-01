@@ -6,6 +6,7 @@ using Migration.Common.Config;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Migration.Common.Log;
 
 namespace WorkItemImport
 {
@@ -67,24 +68,7 @@ namespace WorkItemImport
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 config = configReaderJson.Deserialize();
 
-                // Migration session level settings
-                // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
-                string migrationWorkspace = config.Workspace;
-
-                // level of log messages that will be let through to console
-                LogLevel logLevel;
-                switch (config.LogLevel)
-                {
-                    case "Info": logLevel = LogLevel.Info; break;
-                    case "Debug": logLevel = LogLevel.Debug; break;
-                    case "Warning": logLevel = LogLevel.Warning; break;
-                    case "Error": logLevel = LogLevel.Error; break;
-                    case "Critical": logLevel = LogLevel.Critical; break;
-                    default: logLevel = LogLevel.Debug; break;
-                }
-
-                // set up log, journal and run session settings
-                var context = MigrationContext.Init(migrationWorkspace, logLevel, forceFresh);
+                var context = MigrationContext.Init("wi-import", new Dictionary<string, string>(), config.Workspace, config.LogLevel, forceFresh);
 
                 // connection settings for Azure DevOps/TFS:
                 // full base url incl https, name of the project where the items will be migrated (if it doesn't exist on destination it will be created), personal access token
@@ -98,6 +82,11 @@ namespace WorkItemImport
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.
                 var agent = Agent.Initialize(context, settings);
+
+                var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
+                Logger.LogEvent("wi-import-started", new Dictionary<string, string>() {
+                    { "os-version", osVersion } });
+
                 if (agent == null)
                 {
                     Logger.Log(LogLevel.Error, "Azure DevOps/TFS initialization error. Exiting...");
@@ -162,7 +151,7 @@ namespace WorkItemImport
                     { "error-count", Logger.Errors.ToString() },
                     { "warning-count", Logger.Warnings.ToString() },
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) } };
-                Logger.LogEvent("import-completed", properties);
+                Logger.LogEvent("wi-import-completed", properties);
             }
         }
 

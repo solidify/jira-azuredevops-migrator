@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.VisualStudio.Services.Common;
 using System.Net;
 using Migration.WIContract;
+using Migration.Common.Log;
 
 namespace WorkItemImport
 {

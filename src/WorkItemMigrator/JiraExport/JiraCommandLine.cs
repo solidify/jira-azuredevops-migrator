@@ -11,6 +11,7 @@ using Migration.Common;
 using Migration.Common.Config;
 using Migration.WIContract;
 using Newtonsoft.Json;
+using Migration.Common.Log;
 
 namespace JiraExport
 {
@@ -62,31 +63,22 @@ namespace JiraExport
 
         private void ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh)
         {
-            ConfigJson config = null;
+            var itemsCount = 0;
+            var exportedItemsCount = 0;
+
             try
             {
                 string configFileName = configFile.Value();
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
-                config = configReaderJson.Deserialize();
+                var config = configReaderJson.Deserialize();
 
                 // Migration session level settings
                 // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
                 string migrationWorkspace = config.Workspace;
 
-                // level of log messages that will be let through to console
-                LogLevel logLevel;
-                switch (config.LogLevel)
-                {
-                    case "Info": logLevel = LogLevel.Info; break;
-                    case "Debug": logLevel = LogLevel.Debug; break;
-                    case "Warning": logLevel = LogLevel.Warning; break;
-                    case "Error": logLevel = LogLevel.Error; break;
-                    case "Critical": logLevel = LogLevel.Critical; break;
-                    default: logLevel = LogLevel.Debug; break;
-                }
-
                 var downloadOptions = JiraProvider.DownloadOptions.IncludeParentEpics | JiraProvider.DownloadOptions.IncludeSubItems | JiraProvider.DownloadOptions.IncludeParents;
-                Logger.Init(migrationWorkspace, logLevel);
+
+                InitSession(configFileName, migrationWorkspace, config, forceFresh);
 
                 var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
                 {
@@ -98,6 +90,10 @@ namespace JiraExport
 
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
 
+                itemsCount = jiraProvider.GetItemCount(jiraSettings.JQL);
+
+                BeginSession(jiraProvider, itemsCount);
+
                 // Get the custom field names for epic link field and sprint field
                 jiraSettings.EpicLinkField = jiraProvider.GetCustomId(config.EpicLinkField);
                 jiraSettings.SprintField = jiraProvider.GetCustomId(config.SprintField);
@@ -107,12 +103,15 @@ namespace JiraExport
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));
                 var skips = forceFresh ? new HashSet<string>(Enumerable.Empty<string>()) : exportedKeys;
 
-                foreach (var issue in jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions))
+                var issues = jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions);
+
+                foreach (var issue in issues)
                 {
                     WiItem wiItem = mapper.Map(issue);
-                    if(wiItem != null)
+                    if (wiItem != null)
                     {
                         localProvider.Save(wiItem);
+                        exportedItemsCount++;
                         Logger.Log(LogLevel.Info, $"Exported {wiItem.ToString()}");
                     }
                 }
@@ -125,6 +124,58 @@ namespace JiraExport
             {
                 Logger.Log(LogLevel.Error, $"Unexpected error: {e}");
             }
+            finally
+            {
+                EndSession(itemsCount, exportedItemsCount);
+            }
+        }
+
+        private static void InitSession(string configFile, string migrationWorkspace, ConfigJson config, bool force)
+        {
+            var toolVersion = VersionInfo.GetVersionInfo();
+            var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
+            var machine = System.Environment.MachineName;
+            var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
+
+            Logger.Init("jira-export",
+                new Dictionary<string, string>() {
+                    { "Tool version :", toolVersion },
+                    { "DateTime     :", DateTime.Now.ToString() },
+                    { "Telemetry    :", Logger.TelemetryStatus },
+                    { "Session Id   :", Logger.SessionId },
+                    { "Config       :", configFile },
+                    { "User         :", user },
+                    { "Machine      :", machine },
+                    { "System       :", osVersion },
+                    },
+                migrationWorkspace, config.LogLevel);
+        }
+
+        private static void BeginSession(JiraProvider jiraProvider, int itemsCount)
+        {
+            var jiraVersion = jiraProvider.GetJiraVersion();
+
+            Logger.StartSession("jira-export-started",
+                new Dictionary<string, string>() { 
+                    { "Jira url     :", jiraProvider.Settings.Url },
+                    { "Jira user    :", jiraProvider.Settings.UserID },
+                    { "Jira version :", jiraVersion.Version },
+                    { "Jira type    :", jiraVersion.DeploymentType }
+                    },
+                new Dictionary<string, string>() {
+                    { "item-count", itemsCount.ToString() },
+                    { "jira-version", jiraVersion.Version },
+                    { "jira-type", jiraVersion.DeploymentType } });
+        }
+
+        private static void EndSession(int itemsCount, int exportedItemsCount)
+        {
+            Logger.EndSession("jira-export-completed", 
+                new Dictionary<string, string>() {
+                    { "item-count", itemsCount.ToString() },
+                    { "exported-item-count", exportedItemsCount.ToString() },
+                    { "error-count", Logger.Errors.ToString() },
+                    { "warning-count", Logger.Warnings.ToString() } });
         }
 
         public void Run()

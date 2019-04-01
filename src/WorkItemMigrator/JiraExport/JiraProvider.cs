@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Migration.Common.Log;
 
 namespace JiraExport
 {
@@ -41,28 +42,19 @@ namespace JiraExport
             provider.Jira = ConnectToJira(settings);
             provider.Settings = settings;
 
-            Logger.Log(LogLevel.Info, "Gathering project info...");
-
-            // ensure that Custom fields cache is full
             provider.Jira.Fields.GetCustomFieldsAsync().Wait();
-            Logger.Log(LogLevel.Info, "Custom field cache set up.");
-            Logger.Log(LogLevel.Info, "Custom parsers set up.");
-
             provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
-            Logger.Log(LogLevel.Info, "Link types cache set up.");
 
             return provider;
         }
 
         private static Jira ConnectToJira(JiraSettings jiraSettings)
         {
-            Logger.Log(LogLevel.Debug, "Connecting to Jira...");
             Jira jira = null;
 
             try
             {
                 jira = Jira.CreateRestClient(jiraSettings.Url, jiraSettings.UserID, jiraSettings.Pass);
-                Logger.Log(LogLevel.Info, "Connected to Jira.");
             }
             catch (Exception ex)
             {
@@ -189,13 +181,16 @@ namespace JiraExport
                     yield return issue;
                     index++;
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) && issue.EpicParent != null && !skipList.Contains(issue.EpicParent))
-                    {
-                        var parentEpic = ProcessItem(issue.EpicParent, skipList, $"epic parent of {issueKey}");
-                        yield return parentEpic;
-                    }
+                    //if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics)) //& issue.EpicParent != null) // && !skipList.Contains(issue.EpicParent))
+                    //{
+                    //    if (issue.EpicParent != null) // && !skipList.Contains(issue.EpicParent))
+                    //    { 
+                    //        var parentEpic = ProcessItem(issue.EpicParent, skipList, $"epic parent of {issueKey}");
+                    //        yield return parentEpic;
+                    //    }
+                    //}
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && issue.Parent != null && !skipList.Contains(issue.EpicParent))
+                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && issue.Parent != null && !skipList.Contains(issue.Parent))
                     {
                         var parent = ProcessItem(issue.Parent, skipList, $"parent of {issueKey}");
                         yield return parent;
@@ -215,6 +210,31 @@ namespace JiraExport
                 }
             }
             while (remoteIssueBatch != null && remoteIssueBatch.Any());
+        }
+
+        public struct JiraVersion
+        {
+            public string Version;
+            public string DeploymentType;
+
+            public JiraVersion(string version, string deploymentType)
+            {
+                Version = version;
+                DeploymentType = deploymentType;
+            }
+        }
+
+        public int GetItemCount(string jql)
+        {
+            var response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&maxResults=0").Result;
+
+            return (int)response.SelectToken("$.total");
+        }
+
+        public JiraVersion GetJiraVersion()
+        {
+            var response = (JObject)Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/serverInfo").Result;
+            return new JiraVersion((string)response.SelectToken("$.version"), (string)response.SelectToken("$.deploymentType"));
         }
 
         public IEnumerable<JObject> DownloadChangelog(string issueKey)
@@ -276,7 +296,7 @@ namespace JiraExport
                     var user = Jira.Users.GetUserAsync(username).Result;
                     if(string.IsNullOrEmpty(user.Email))
                     {
-                        Logger.Log(LogLevel.Warning, $"Email for user '{username}' not found in Jira, using '{username}' for mapping.");
+                        Logger.Log(LogLevel.Warning, $"Email for user '{username}' not found in Jira, using username '{username}' for mapping.");
                         return username;
                     }
                     email = user.Email;
@@ -285,7 +305,7 @@ namespace JiraExport
                 }
                 catch(Exception e)
                 {
-                    Logger.Log(LogLevel.Warning, $"User '{username}' not found in Jira, using '{username}' for mapping.");
+                    Logger.Log(LogLevel.Warning, $"User '{username}' not found in Jira, using username '{username}' for mapping.");
                     return username;
                 }
             }

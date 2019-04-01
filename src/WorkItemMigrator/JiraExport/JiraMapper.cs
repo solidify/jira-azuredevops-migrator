@@ -8,6 +8,7 @@ using Migration.Common.Config;
 using System.Reflection;
 using Newtonsoft.Json;
 using Migration.WIContract;
+using Migration.Common.Log;
 
 namespace JiraExport
 {

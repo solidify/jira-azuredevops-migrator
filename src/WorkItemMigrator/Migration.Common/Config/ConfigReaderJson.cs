@@ -5,6 +5,7 @@ using System.Linq;
 using Common.Config;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Migration.Common.Log;
 
 namespace Migration.Common.Config
 {

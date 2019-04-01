@@ -26,37 +26,26 @@ namespace Migration.Common.Log
         private static List<string> _errors = new List<string>();
         private static List<string> _warnings = new List<string>();
         private static TelemetryClient _telemetryClient = null;
-        private static string _sessionId = Guid.NewGuid().ToString();
 
         static Logger()
         {
             InitApplicationInsights();
         }
 
-        public static void Init(string app, string configFile, string dirPath, string level, bool force)
-        {
-            Init(app, configFile, dirPath, GetLogLevelFromString(level), force);
-        }
-
-        internal static void Init(string app, string configFile, string dirPath, LogLevel level, bool force)
+        public static void Init(string app, Dictionary<string, string> arguments, string dirPath, string level)
         {
             if (!Directory.Exists(dirPath))
             {
                 Directory.CreateDirectory(dirPath);
             }
             _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now.ToString("yyMMdd-HHmmss")}.txt");
-            _logLevel = level;
+            _logLevel = GetLogLevelFromString(level);
 
-            InitSession(app, configFile, force);
+            InitSession(app, arguments);
         }
 
         internal static void InitSession(string app, Dictionary<string, string> arguments)
         {
-            var toolVersion = VersionInfo.GetVersionInfo();
-            var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
-            var machine = System.Environment.MachineName;
-            var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
-
             ToFile(SEPARATOR);
             ToFile($"{app} Log");
             ToFile(SEPARATOR);
@@ -82,50 +71,38 @@ namespace Migration.Common.Log
             LogEvent(message, properties);
 
             if (_telemetryClient != null)
-            {
                 _telemetryClient.Flush();
-            }
         }
 
         private static void InitApplicationInsights()
         {
             var key = ConfigurationManager.AppSettings["applicationInsightsKey"];
 
-            LogInternal(LogLevel.Info, $"Session Id {_sessionId}.");
-            LogInternal(LogLevel.Info, string.Format("Application insights {0}.", !string.IsNullOrEmpty(key) ? "enabled." : "disabled"));
-
             if (!string.IsNullOrEmpty(key))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = key;
                 _telemetryClient = new TelemetryClient();
-                _telemetryClient.Context.Component.Version = VersionInfo.GetVersionInfo();
-                _telemetryClient.Context.Session.Id = _sessionId;
+                //_telemetryClient.Context.Component.Version = VersionInfo.GetVersionInfo();
+                _telemetryClient.Context.Session.Id = SessionId;
             }
-        }
-
-        internal static void Init(MigrationContext instance)
-        {
-            Init(instance.App, instance.ConfigFile, instance.MigrationWorkspace, instance.LogLevel);
         }
 
         public static void Log(LogLevel level, string message)
         {
             LogInternal(level, message);
 
-            LogApplicationInsights(level, message);
-
             if (level == LogLevel.Critical)
             {
                 _errors.Add(message);
-                throw new AbortMigrationException(message);
+                //throw new AbortMigrationException(message);
             }
             else if (level == LogLevel.Error)
             {
                 _errors.Add(message);
                 Console.Write("Do you want to continue (y/n)? ");
                 var answer = Console.ReadKey();
-                if (answer.Key == ConsoleKey.N)
-                    throw new AbortMigrationException(message);
+                //if (answer.Key == ConsoleKey.N)
+                //    throw new AbortMigrationException(message);
 
             }
             else if (level == LogLevel.Warning)
@@ -138,38 +115,6 @@ namespace Migration.Common.Log
 
             if ((int)level >= (int)_logLevel)
                 ToConsole(level, message);
-        }
-
-        private static void LogApplicationInsights(LogLevel level, string message)
-        {
-            if (_telemetryClient != null)
-            {
-                _telemetryClient.TrackTrace(message, MapLogLevelToApplicationInsightsLevel(level));
-            }
-        }
-
-        private static SeverityLevel MapLogLevelToApplicationInsightsLevel(LogLevel level)
-        {
-            SeverityLevel severityLevel = SeverityLevel.Information;
-            switch (level)
-            {
-                case LogLevel.Critical:
-                    severityLevel = SeverityLevel.Critical;
-                    break;
-                case LogLevel.Debug:
-                    severityLevel = SeverityLevel.Verbose;
-                    break;
-                case LogLevel.Error:
-                    severityLevel = SeverityLevel.Error;
-                    break;
-                case LogLevel.Info:
-                    severityLevel = SeverityLevel.Information;
-                    break;
-                case LogLevel.Warning:
-                    severityLevel = SeverityLevel.Warning;
-                    break;
-            }
-            return severityLevel;
         }
 
         public static void Log(Exception ex)
@@ -218,7 +163,11 @@ namespace Migration.Common.Log
                 if ((int)level >= (int)_logLevel)
                 {
                     Console.ForegroundColor = GetColorFromLogLevel(level);
-                    Console.WriteLine(message);
+                    string levelPrefix = GetPrefixFromLogLevel(level);
+                    string dateTime = DateTime.Now.ToString("HH:mm:ss");
+
+                    string log = $"[{levelPrefix}][{dateTime}] {message}";
+                    Console.WriteLine(log);
                 }
             }
             finally
@@ -227,7 +176,7 @@ namespace Migration.Common.Log
             }
         }
 
-        private static LogLevel GetLogLevelFromString(string level)
+        public static LogLevel GetLogLevelFromString(string level)
         {
             LogLevel logLevel = LogLevel.Debug;
             switch (level)
@@ -299,20 +248,12 @@ namespace Migration.Common.Log
             }
         }
 
-        public static int Warnings
-        {
-            get
-            {
-                return _warnings.Count;
-            }
-        }
+        public static int Warnings => _warnings.Count;
 
-        public static int Errors
-        {
-            get
-            {
-                return _errors.Count;
-            }
-        }
+        public static int Errors => _errors.Count;
+
+        public static string SessionId { get; } = Guid.NewGuid().ToString();
+
+        public static string TelemetryStatus => _telemetryClient != null ? "Enabled" : "Disabled";
     }
 }
