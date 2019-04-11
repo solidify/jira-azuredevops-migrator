@@ -316,6 +316,9 @@ namespace JiraExport
                     {
                         { "priority", extractName },
                         { "labels", t => t.Values<string>().Any() ? string.Join(" ", t.Values<string>()) : null },
+                        { "fixversions", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
+                        { "versions", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
+                        { "components", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
                         { "assignee", extractName },
                         { "creator", extractName },
                         { "reporter", extractName},
@@ -328,9 +331,10 @@ namespace JiraExport
             foreach (var prop in remoteFields.Properties())
             {
                 var type = prop.Value.Type;
+                var name = prop.Name.ToLower();
                 object value = null;
 
-                if (_fieldExtractionMapping.TryGetValue(prop.Name, out Func<JToken, object> mapping))
+                if (_fieldExtractionMapping.TryGetValue(name, out Func<JToken, object> mapping))
                 {
                     value = mapping(prop.Value);
                 }
@@ -345,7 +349,7 @@ namespace JiraExport
 
                 if (value != null)
                 {
-                    fields[prop.Name] = value;
+                    fields[name] = value;
                 }
             }
 
