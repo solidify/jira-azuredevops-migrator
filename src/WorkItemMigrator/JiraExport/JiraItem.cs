@@ -246,7 +246,7 @@ namespace JiraExport
             var linkType = jira.LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Outward + " " + targetItemKey));
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Debug, $"Link with descrption \"{linkTypeString}\" is either not found or this issue ({sourceItemKey}) is not inward issue.");
+                Logger.Log(LogLevel.Debug, $"Link with description \"{linkTypeString}\" is either not found or this issue ({sourceItemKey}) is not inward issue.");
                 return null;
             }
             else
