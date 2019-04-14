@@ -41,13 +41,13 @@ namespace Migration.Common.Log
             _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now.ToString("yyMMdd-HHmmss")}.txt");
             _logLevel = GetLogLevelFromString(level);
 
-            InitSession(app, arguments);
+            //InitSession(app, arguments);
         }
 
         internal static void InitSession(string app, Dictionary<string, string> arguments)
         {
             ToFile(SEPARATOR);
-            ToFile($"{app} Log");
+            ToFile($"{app} log");
             ToFile(SEPARATOR);
             foreach (var a in arguments)
             {
@@ -55,13 +55,24 @@ namespace Migration.Common.Log
             }
         }
 
-        public static void StartSession(string message, Dictionary<string, string> context, Dictionary<string, string> properties)
+        public static void StartSession(string app, string message, Dictionary<string, string> context, Dictionary<string, string> properties)
         {
+            var currentContent = string.Empty;
+            if (Directory.Exists(_logFilePath))
+            {
+                currentContent = File.ReadAllText(_logFilePath);
+            }
+            File.Delete(_logFilePath);
+
+            ToFile(SEPARATOR);
+            ToFile($"{app} Log");
+            ToFile(SEPARATOR);
             foreach (var c in context)
             {
                 ToFile($"{c.Key} {c.Value}");
             }
             ToFile(SEPARATOR);
+            ToFile(currentContent.TrimEnd());
 
             LogEvent(message, properties);
         }

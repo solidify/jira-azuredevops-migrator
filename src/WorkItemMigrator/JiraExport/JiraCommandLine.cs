@@ -78,7 +78,7 @@ namespace JiraExport
 
                 var downloadOptions = JiraProvider.DownloadOptions.IncludeParentEpics | JiraProvider.DownloadOptions.IncludeSubItems | JiraProvider.DownloadOptions.IncludeParents;
 
-                InitSession(configFileName, migrationWorkspace, config, forceFresh);
+                InitSession(configFileName, config, forceFresh);
 
                 var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
                 {
@@ -130,7 +130,7 @@ namespace JiraExport
             }
         }
 
-        private static void InitSession(string configFile, string migrationWorkspace, ConfigJson config, bool force)
+        private static void InitSession(string configFile, ConfigJson config, bool force)
         {
             var toolVersion = VersionInfo.GetVersionInfo();
             var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
@@ -145,17 +145,18 @@ namespace JiraExport
                     { "Session Id   :", Logger.SessionId },
                     { "Config       :", configFile },
                     { "User         :", user },
+                    { "Force        :", force ? "yes" : "no" },
                     { "Machine      :", machine },
                     { "System       :", osVersion },
                     },
-                migrationWorkspace, config.LogLevel);
+                config.Workspace, config.LogLevel);
         }
 
         private static void BeginSession(JiraProvider jiraProvider, int itemsCount)
         {
             var jiraVersion = jiraProvider.GetJiraVersion();
 
-            Logger.StartSession("jira-export-started",
+            Logger.StartSession("Jira Export", "jira-export-started",
                 new Dictionary<string, string>() { 
                     { "Jira url     :", jiraProvider.Settings.Url },
                     { "Jira user    :", jiraProvider.Settings.UserID },
