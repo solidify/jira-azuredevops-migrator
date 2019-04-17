@@ -209,36 +209,6 @@ namespace Migration.Common.Log
             }
         }
 
-        public static void Summary()
-        {
-            if ((_warnings != null && _warnings.Any()) || _errors != null && _errors.Any())
-            {
-                Console.WriteLine(new String('=', 40));
-                Console.WriteLine("Summary");
-                Console.WriteLine(new String('=', 40));
-                if (_warnings.Count > 0)
-                {
-                    Console.WriteLine("Warnings:");
-                    Console.WriteLine(new String('=', 40));
-                    foreach (var warning in _warnings)
-                    {
-                        LogInternal(LogLevel.Warning, warning);
-                    }
-                    Console.WriteLine(new String('=', 40));
-                }
-                if (_errors.Count > 0)
-                {
-                    Console.WriteLine("Errors:");
-                    Console.WriteLine(new String('=', 40));
-                    foreach (var error in _errors)
-                    {
-                        LogInternal(LogLevel.Error, error);
-                    }
-                    Console.WriteLine(new String('=', 40));
-                }
-            }
-        }
-
         public static int Warnings => _warnings.Count;
 
         public static int Errors => _errors.Count;
