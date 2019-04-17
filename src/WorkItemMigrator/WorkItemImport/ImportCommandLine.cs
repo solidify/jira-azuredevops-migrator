@@ -161,6 +161,8 @@ namespace WorkItemImport
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
             var hostingType = GetHostingType(agent);
 
+            Logger.Log(LogLevel.Info, $"Import started. Importing {itemsCount} items.");
+
             Logger.StartSession("Azure DevOps Work Item Import", 
                 "wi-import-started",
                 new Dictionary<string, string>() {
@@ -198,13 +200,15 @@ namespace WorkItemImport
             }
         }
 
-        private static void EndSession(int itemCount, Stopwatch sw)
+        private static void EndSession(int itemsCount, Stopwatch sw)
         {
             sw.Stop();
 
+            Logger.Log(LogLevel.Info, $"Import completed. Imported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+
             Logger.EndSession("wi-import-completed",
                 new Dictionary<string, string>() {
-                    { "item-count", itemCount.ToString() },
+                    { "item-count", itemsCount.ToString() },
                     { "error-count", Logger.Errors.ToString() },
                     { "warning-count", Logger.Warnings.ToString() },
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) } });

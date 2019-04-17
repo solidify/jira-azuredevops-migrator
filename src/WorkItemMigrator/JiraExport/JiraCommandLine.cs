@@ -165,6 +165,8 @@ namespace JiraExport
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
             var jiraVersion = jiraProvider.GetJiraVersion();
 
+            Logger.Log(LogLevel.Info, $"Export started. Exporting {itemsCount} items.");
+
             Logger.StartSession("Jira Export", 
                 "jira-export-started",
                 new Dictionary<string, string>() {
@@ -192,6 +194,8 @@ namespace JiraExport
         private static void EndSession(int itemsCount, Stopwatch sw)
         {
             sw.Stop();
+
+            Logger.Log(LogLevel.Info, $"Export completed. Exported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
             Logger.EndSession("jira-export-completed", 
                 new Dictionary<string, string>() {

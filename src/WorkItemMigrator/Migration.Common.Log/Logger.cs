@@ -122,12 +122,6 @@ namespace Migration.Common.Log
 
         public static void LogEvent(string message, Dictionary<string, string> properties)
         {
-            Log(LogLevel.Info, message);
-            foreach (var p in properties)
-            {
-                Log(LogLevel.Info, $"   {p.Key}: {p.Value}");
-            }
-
             if (_telemetryClient != null)
                 _telemetryClient.TrackEvent(message, properties);
         }
