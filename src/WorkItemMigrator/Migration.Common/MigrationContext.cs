@@ -28,11 +28,11 @@ namespace Migration.Common
             ForceFresh = forceFresh;
         }
 
-        public static MigrationContext Init(string app, Dictionary<string, string> arguments, string workspacePath, string logLevel, bool forceFresh)
+        public static MigrationContext Init(string app, string workspacePath, string logLevel, bool forceFresh)
         {
             Instance = new MigrationContext(app, workspacePath, logLevel, forceFresh);
 
-            Logger.Init(app, arguments, workspacePath, logLevel);
+            Logger.Init(app, workspacePath, logLevel);
 
             Instance.Journal = Journal.Init(Instance);
             Instance.Provider = new WiItemProvider(Instance.MigrationWorkspace);

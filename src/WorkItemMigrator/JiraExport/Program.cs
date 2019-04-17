@@ -13,8 +13,8 @@ namespace JiraExport
     {
         static void Main(string[] args)
         {
-            Logger.Log(LogLevel.Info, $"Jira Exporter v{VersionInfo.GetVersionInfo()}");
-            Logger.Log(LogLevel.Info, VersionInfo.GetCopyrightInfo());
+            Console.WriteLine($"Jira Exporter v{VersionInfo.GetVersionInfo()}");
+            Console.WriteLine(VersionInfo.GetCopyrightInfo());
 
             try
             {

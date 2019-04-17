@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Migration.Common.Log;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,7 +51,7 @@ namespace Migration.WIContract
                 }
                 catch
                 {
-                    Console.WriteLine($"Failed to load file '{Path.GetFileName(filePath)}'.");
+                    Logger.Log(LogLevel.Error, $"Failed to load file '{Path.GetFileName(filePath)}'.");
                 }
             }
             return result;

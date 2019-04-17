@@ -12,6 +12,7 @@ using Migration.Common.Config;
 using Migration.WIContract;
 using Newtonsoft.Json;
 using Migration.Common.Log;
+using System.Diagnostics;
 
 namespace JiraExport
 {
@@ -65,6 +66,8 @@ namespace JiraExport
         {
             var itemsCount = 0;
             var exportedItemsCount = 0;
+            var sw = new Stopwatch();
+            sw.Start();
 
             try
             {
@@ -72,13 +75,13 @@ namespace JiraExport
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 var config = configReaderJson.Deserialize();
 
+                InitSession(configFileName, config, forceFresh);
+
                 // Migration session level settings
                 // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
                 string migrationWorkspace = config.Workspace;
 
                 var downloadOptions = JiraProvider.DownloadOptions.IncludeParentEpics | JiraProvider.DownloadOptions.IncludeSubItems | JiraProvider.DownloadOptions.IncludeParents;
-
-                InitSession(configFileName, config, forceFresh);
 
                 var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
                 {
@@ -92,7 +95,7 @@ namespace JiraExport
 
                 itemsCount = jiraProvider.GetItemCount(jiraSettings.JQL);
 
-                BeginSession(jiraProvider, itemsCount);
+                BeginSession(configFileName, config, forceFresh, jiraProvider, itemsCount);
 
                 // Get the custom field names for epic link field and sprint field
                 jiraSettings.EpicLinkField = jiraProvider.GetCustomId(config.EpicLinkField);
@@ -126,38 +129,55 @@ namespace JiraExport
             }
             finally
             {
-                EndSession(itemsCount, exportedItemsCount);
+                EndSession(itemsCount, sw);
             }
         }
 
         private static void InitSession(string configFile, ConfigJson config, bool force)
         {
+            Logger.Init("jira-export", config.Workspace, config.LogLevel);
+
+            //    var toolVersion = VersionInfo.GetVersionInfo();
+            //    var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
+            //    var machine = System.Environment.MachineName;
+            //    var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
+
+            //    Logger.Init("jira-export",
+            //        new Dictionary<string, string>() {
+            //            { "Tool version :", toolVersion },
+            //            { "DateTime     :", DateTime.Now.ToString() },
+            //            { "Telemetry    :", Logger.TelemetryStatus },
+            //            { "Session Id   :", Logger.SessionId },
+            //            { "Config       :", configFile },
+            //            { "User         :", user },
+            //            { "Force        :", force ? "yes" : "no" },
+            //            { "Machine      :", machine },
+            //            { "System       :", osVersion },
+            //            },
+            //        config.Workspace, config.LogLevel);
+        }
+
+        private static void BeginSession(string configFile, ConfigJson config, bool force, JiraProvider jiraProvider, int itemsCount)
+        {
             var toolVersion = VersionInfo.GetVersionInfo();
             var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
             var machine = System.Environment.MachineName;
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
-
-            Logger.Init("jira-export",
-                new Dictionary<string, string>() {
-                    { "Tool version :", toolVersion },
-                    { "DateTime     :", DateTime.Now.ToString() },
-                    { "Telemetry    :", Logger.TelemetryStatus },
-                    { "Session Id   :", Logger.SessionId },
-                    { "Config       :", configFile },
-                    { "User         :", user },
-                    { "Force        :", force ? "yes" : "no" },
-                    { "Machine      :", machine },
-                    { "System       :", osVersion },
-                    },
-                config.Workspace, config.LogLevel);
-        }
-
-        private static void BeginSession(JiraProvider jiraProvider, int itemsCount)
-        {
             var jiraVersion = jiraProvider.GetJiraVersion();
 
-            Logger.StartSession("Jira Export", "jira-export-started",
-                new Dictionary<string, string>() { 
+            Logger.StartSession("Jira Export", 
+                "jira-export-started",
+                new Dictionary<string, string>() {
+                    { "Tool version :", toolVersion },
+                    { "Start time   :", DateTime.Now.ToString() },
+                    { "Telemetry    :", Logger.TelemetryStatus },
+                    { "Session id   :", Logger.SessionId },
+                    { "Tool user    :", user },
+                    { "Config       :", configFile },
+                    { "Force        :", force ? "yes" : "no" },
+                    { "Log level    :", config.LogLevel },
+                    { "Machine      :", machine },
+                    { "System       :", osVersion },
                     { "Jira url     :", jiraProvider.Settings.Url },
                     { "Jira user    :", jiraProvider.Settings.UserID },
                     { "Jira version :", jiraVersion.Version },
@@ -165,21 +185,23 @@ namespace JiraExport
                     },
                 new Dictionary<string, string>() {
                     { "item-count", itemsCount.ToString() },
-                    { "jira-version", jiraVersion.Version },
-                    { "jira-type", jiraVersion.DeploymentType } });
+                    { "system-version", jiraVersion.Version },
+                    { "hosting-type", jiraVersion.DeploymentType } });
         }
 
-        private static void EndSession(int itemsCount, int exportedItemsCount)
+        private static void EndSession(int itemsCount, Stopwatch sw)
         {
+            sw.Stop();
+
             Logger.EndSession("jira-export-completed", 
                 new Dictionary<string, string>() {
                     { "item-count", itemsCount.ToString() },
-                    { "exported-item-count", exportedItemsCount.ToString() },
                     { "error-count", Logger.Errors.ToString() },
-                    { "warning-count", Logger.Warnings.ToString() } });
+                    { "warning-count", Logger.Warnings.ToString() },
+                    { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) }});
         }
 
-        public void Run()
+    public void Run()
         {
             commandLineApplication.Execute(args);
         }

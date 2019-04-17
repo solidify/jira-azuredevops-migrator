@@ -32,7 +32,7 @@ namespace Migration.Common.Log
             InitApplicationInsights();
         }
 
-        public static void Init(string app, Dictionary<string, string> arguments, string dirPath, string level)
+        public static void Init(string app, string dirPath, string level)
         {
             if (!Directory.Exists(dirPath))
             {
@@ -40,25 +40,12 @@ namespace Migration.Common.Log
             }
             _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now.ToString("yyMMdd-HHmmss")}.txt");
             _logLevel = GetLogLevelFromString(level);
-
-            //InitSession(app, arguments);
         }
-
-        internal static void InitSession(string app, Dictionary<string, string> arguments)
-        {
-            ToFile(SEPARATOR);
-            ToFile($"{app} log");
-            ToFile(SEPARATOR);
-            foreach (var a in arguments)
-            {
-                ToFile($"{a.Key} {a.Value}");
-            }
-        }
-
+        
         public static void StartSession(string app, string message, Dictionary<string, string> context, Dictionary<string, string> properties)
         {
             var currentContent = string.Empty;
-            if (Directory.Exists(_logFilePath))
+            if (File.Exists(_logFilePath))
             {
                 currentContent = File.ReadAllText(_logFilePath);
             }
@@ -72,7 +59,7 @@ namespace Migration.Common.Log
                 ToFile($"{c.Key} {c.Value}");
             }
             ToFile(SEPARATOR);
-            ToFile(currentContent.TrimEnd());
+            ToFile(currentContent.Trim());
 
             LogEvent(message, properties);
         }
@@ -105,16 +92,14 @@ namespace Migration.Common.Log
             if (level == LogLevel.Critical)
             {
                 _errors.Add(message);
+                Console.Write("Do you want to continue (y/n)? ");
+                var answer = Console.ReadKey();
+                //if (answer.Key == ConsoleKey.N)
                 //throw new AbortMigrationException(message);
             }
             else if (level == LogLevel.Error)
             {
                 _errors.Add(message);
-                Console.Write("Do you want to continue (y/n)? ");
-                var answer = Console.ReadKey();
-                //if (answer.Key == ConsoleKey.N)
-                //    throw new AbortMigrationException(message);
-
             }
             else if (level == LogLevel.Warning)
                 _warnings.Add(message);
@@ -122,10 +107,11 @@ namespace Migration.Common.Log
 
         private static void LogInternal(LogLevel level, string message)
         {
-            ToFile(level, message);
-
             if ((int)level >= (int)_logLevel)
+            {
+                ToFile(level, message);
                 ToConsole(level, message);
+            }
         }
 
         public static void Log(Exception ex)
@@ -136,7 +122,7 @@ namespace Migration.Common.Log
 
         public static void LogEvent(string message, Dictionary<string, string> properties)
         {
-            Log(LogLevel.Info, $"LogEvent: {message}");
+            Log(LogLevel.Info, message);
             foreach (var p in properties)
             {
                 Log(LogLevel.Info, $"   {p.Key}: {p.Value}");

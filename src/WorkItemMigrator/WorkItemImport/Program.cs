@@ -9,8 +9,8 @@ namespace WorkItemImport
         [STAThread]
         static void Main(string[] args)
         {
-            Logger.Log(LogLevel.Info, $"Work Item Importer v{VersionInfo.GetVersionInfo()}");
-            Logger.Log(LogLevel.Info, VersionInfo.GetCopyrightInfo());
+            Console.WriteLine($"Work Item Importer v{VersionInfo.GetVersionInfo()}");
+            Console.WriteLine(VersionInfo.GetCopyrightInfo());
 
             try
             {

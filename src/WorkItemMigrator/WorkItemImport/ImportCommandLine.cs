@@ -20,6 +20,11 @@ namespace WorkItemImport
             InitCommandLine(args);
         }
 
+        public void Run()
+        {
+            commandLineApplication.Execute(args);
+        }
+
         private void InitCommandLine(params string[] args)
         {
             commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: true);
@@ -62,15 +67,14 @@ namespace WorkItemImport
             var importedItems = 0;
             var sw = new Stopwatch();
             sw.Start();
+
             try
             {
                 string configFileName = configFile.Value();
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 config = configReaderJson.Deserialize();
 
-                var context = MigrationContext.Init("wi-import", new Dictionary<string, string>(), config.Workspace, config.LogLevel, forceFresh);
-
-                //InitSession(configFileName, config, forceFresh);
+                var context = MigrationContext.Init("wi-import", config.Workspace, config.LogLevel, forceFresh);
 
                 // connection settings for Azure DevOps/TFS:
                 // full base url incl https, name of the project where the items will be migrated (if it doesn't exist on destination it will be created), personal access token
@@ -87,7 +91,7 @@ namespace WorkItemImport
 
                 if (agent == null)
                 {
-                    Logger.Log(LogLevel.Error, "Azure DevOps/TFS initialization error. Exiting...");
+                    Logger.Log(LogLevel.Critical, "Azure DevOps/TFS initialization error.");
                     return;
                 }
 
@@ -145,32 +149,9 @@ namespace WorkItemImport
             }
             finally
             {
-                sw.Stop();
-                EndSession(itemCount, importedItems, sw);
+                EndSession(itemCount, sw);
             }
         }
-
-        //private static void InitSession(string configFile, ConfigJson config, bool force)
-        //{
-        //    var toolVersion = VersionInfo.GetVersionInfo();
-        //    var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
-        //    var machine = System.Environment.MachineName;
-        //    var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
-
-        //    Logger.Init("wi-import",
-        //        new Dictionary<string, string>() {
-        //            { "Tool version         :", toolVersion },
-        //            { "DateTime             :", DateTime.Now.ToString() },
-        //            { "Telemetry            :", Logger.TelemetryStatus },
-        //            { "Session Id           :", Logger.SessionId },
-        //            { "Config               :", configFile },
-        //            { "User                 :", user },
-        //            { "Force                :", force ? "yes" : "no" },
-        //            { "Machine              :", machine },
-        //            { "System               :", osVersion },
-        //            },
-        //        config.Workspace, config.LogLevel);
-        //}
 
         private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount)
         {
@@ -178,42 +159,55 @@ namespace WorkItemImport
             var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
             var machine = System.Environment.MachineName;
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
+            var hostingType = GetHostingType(agent);
 
-            Logger.StartSession("WorkItem Import", "wi-import-started",
-            new Dictionary<string, string>() {
-                { "Tool version         :", toolVersion },
-                { "DateTime             :", DateTime.Now.ToString() },
-                { "Telemetry            :", Logger.TelemetryStatus },
-                { "Session Id           :", Logger.SessionId },
-                { "Config               :", configFile },
-                { "User                 :", user },
-                { "Force                :", force ? "yes" : "no" },
-                { "Machine              :", machine },
-                { "System               :", osVersion },
-                { "Azure DevOps url     :", agent.Settings.Account },
-                { "Azure DevOps version :", "123" },
-                { "Azure DevOps type    :", "Cloud" }
-                },
-            new Dictionary<string, string>() {
-                { "item-count", itemsCount.ToString() },
-                { "az-devops-version", "123" },
-                { "az-devops-type", "Cloud" } });
+            Logger.StartSession("Azure DevOps Work Item Import", 
+                "wi-import-started",
+                new Dictionary<string, string>() {
+                    { "Tool version         :", toolVersion },
+                    { "Start time           :", DateTime.Now.ToString() },
+                    { "Telemetry            :", Logger.TelemetryStatus },
+                    { "Session id           :", Logger.SessionId },
+                    { "Tool user            :", user },
+                    { "Config               :", configFile },
+                    { "User                 :", user },
+                    { "Force                :", force ? "yes" : "no" },
+                    { "Log level            :", config.LogLevel },
+                    { "Machine              :", machine },
+                    { "System               :", osVersion },
+                    { "Azure DevOps url     :", agent.Settings.Account },
+                    { "Azure DevOps version :", "n/a" },
+                    { "Azure DevOps type    :", hostingType }
+                    },
+                new Dictionary<string, string>() {
+                    { "item-count", itemsCount.ToString() },
+                    { "system-version", "n/a" },
+                    { "hosting-type", hostingType } });
         }
 
-        private static void EndSession(int itemCount, int importedItemCount, Stopwatch sw)
+        private static string GetHostingType(Agent agent)
         {
+            var uri = new Uri(agent.Settings.Account);
+            switch(uri.Host.ToLower())
+            {
+                case "dev.azure.com":
+                case "visualstudio.com":
+                    return "Cloud";
+                default:
+                    return "Server";
+            }
+        }
+
+        private static void EndSession(int itemCount, Stopwatch sw)
+        {
+            sw.Stop();
+
             Logger.EndSession("wi-import-completed",
                 new Dictionary<string, string>() {
                     { "item-count", itemCount.ToString() },
-                    { "imported-item-count", importedItemCount.ToString() },
                     { "error-count", Logger.Errors.ToString() },
                     { "warning-count", Logger.Warnings.ToString() },
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) } });
-        }
-
-        public void Run()
-        {
-            commandLineApplication.Execute(args);
         }
     }
 }

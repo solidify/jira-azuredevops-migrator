@@ -55,5 +55,11 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Migration.Common.Log\Migration.Common.Log.csproj">
+      <Project>{87df777c-d3cb-4b0b-8552-159247b1f022}</Project>
+      <Name>Migration.Common.Log</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
