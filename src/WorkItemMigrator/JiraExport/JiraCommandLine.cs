@@ -136,25 +136,6 @@ namespace JiraExport
         private static void InitSession(string configFile, ConfigJson config, bool force)
         {
             Logger.Init("jira-export", config.Workspace, config.LogLevel);
-
-            //    var toolVersion = VersionInfo.GetVersionInfo();
-            //    var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
-            //    var machine = System.Environment.MachineName;
-            //    var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
-
-            //    Logger.Init("jira-export",
-            //        new Dictionary<string, string>() {
-            //            { "Tool version :", toolVersion },
-            //            { "DateTime     :", DateTime.Now.ToString() },
-            //            { "Telemetry    :", Logger.TelemetryStatus },
-            //            { "Session Id   :", Logger.SessionId },
-            //            { "Config       :", configFile },
-            //            { "User         :", user },
-            //            { "Force        :", force ? "yes" : "no" },
-            //            { "Machine      :", machine },
-            //            { "System       :", osVersion },
-            //            },
-            //        config.Workspace, config.LogLevel);
         }
 
         private static void BeginSession(string configFile, ConfigJson config, bool force, JiraProvider jiraProvider, int itemsCount)

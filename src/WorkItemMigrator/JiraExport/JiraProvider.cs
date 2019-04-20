@@ -181,14 +181,14 @@ namespace JiraExport
                     yield return issue;
                     index++;
 
-                    //if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics)) //& issue.EpicParent != null) // && !skipList.Contains(issue.EpicParent))
-                    //{
-                    //    if (issue.EpicParent != null) // && !skipList.Contains(issue.EpicParent))
-                    //    { 
-                    //        var parentEpic = ProcessItem(issue.EpicParent, skipList, $"epic parent of {issueKey}");
-                    //        yield return parentEpic;
-                    //    }
-                    //}
+                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) & issue.EpicParent != null && !skipList.Contains(issue.EpicParent))
+                    {
+                        if (issue.EpicParent != null && !skipList.Contains(issue.EpicParent))
+                        {
+                            var parentEpic = ProcessItem(issue.EpicParent, skipList, $"epic parent of {issueKey}");
+                            yield return parentEpic;
+                        }
+                    }
 
                     if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && issue.Parent != null && !skipList.Contains(issue.Parent))
                     {
