@@ -204,7 +204,7 @@ namespace WorkItemImport
         {
             sw.Stop();
 
-            Logger.Log(LogLevel.Info, $"Import completed. Imported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+            Logger.Log(LogLevel.Info, $"Import complete. Imported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
             Logger.EndSession("wi-import-completed",
                 new Dictionary<string, string>() {

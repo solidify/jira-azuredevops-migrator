@@ -25,12 +25,6 @@ namespace JiraExport
             {
                 Logger.Log(LogLevel.Error, "Closing application due to an unexpected exception: " + ex.Message);
             }
-
-#if DEBUG
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-#endif
-
         }
     }
 }
