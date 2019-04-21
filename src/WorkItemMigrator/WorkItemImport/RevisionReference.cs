@@ -30,6 +30,40 @@ namespace WorkItemImport
             return Equals(other);
         }
 
+        public static bool operator ==(RevisionReference left, RevisionReference right)
+        {
+            if (left is null)
+            {
+                return right is null;
+            }
+            return left.Equals(right);
+        }
+
+        public static bool operator >(RevisionReference left, RevisionReference right)
+        {
+            return left.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(RevisionReference left, RevisionReference right)
+        {
+            return left.CompareTo(right) >= 0;
+        }
+
+        public static bool operator <=(RevisionReference left, RevisionReference right)
+        {
+            return left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator <(RevisionReference left, RevisionReference right)
+        {
+            return left.CompareTo(right) < 0;
+        }
+
+        public static bool operator !=(RevisionReference left, RevisionReference right)
+        {
+            return !(left == right);
+        }
+
         public override int GetHashCode()
         {
             unchecked
