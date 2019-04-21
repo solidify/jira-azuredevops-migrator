@@ -76,7 +76,8 @@ namespace Migration.Common.Log
         {
             var key = ConfigurationManager.AppSettings["applicationInsightsKey"];
 
-            if (!string.IsNullOrEmpty(key))
+            Guid temp;
+            if (!string.IsNullOrEmpty(key) && Guid.TryParse(key, out temp))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = key;
                 _telemetryClient = new TelemetryClient();
