@@ -23,7 +23,7 @@ namespace JiraExport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, "Closing application due to an unexpected exception: " + ex.Message);
+                Logger.Log(ex, "Application stopped due to an unexpected exception", LogLevel.Critical);
             }
         }
     }

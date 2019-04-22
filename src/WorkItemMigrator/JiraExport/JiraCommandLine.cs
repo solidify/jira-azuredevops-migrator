@@ -115,7 +115,7 @@ namespace JiraExport
                     {
                         localProvider.Save(wiItem);
                         exportedItemsCount++;
-                        Logger.Log(LogLevel.Info, $"Exported {wiItem.ToString()}");
+                        Logger.Log(LogLevel.Debug, $"Exported as type '{wiItem.Type}'.");
                     }
                 }
             }
@@ -125,7 +125,7 @@ namespace JiraExport
             }
             catch (Exception e)
             {
-                Logger.Log(LogLevel.Error, $"Unexpected error: {e}");
+                Logger.Log(e, $"Unexpected migration error.");
             }
             finally
             {

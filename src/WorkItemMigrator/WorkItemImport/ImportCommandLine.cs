@@ -130,7 +130,7 @@ namespace WorkItemImport
                     {
                         try
                         {
-                            Logger.Log(ex);
+                            Logger.Log(ex, $"Failed to import '{executionItem.ToString()}'.");
                         }
                         catch (AbortMigrationException)
                         {
@@ -145,7 +145,7 @@ namespace WorkItemImport
             }
             catch (Exception e)
             {
-                Logger.Log(LogLevel.Error, $"Unexpected error: {e}");
+                Logger.Log(e, $"Unexpected migration error.");
             }
             finally
             {

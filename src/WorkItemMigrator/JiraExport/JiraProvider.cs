@@ -58,23 +58,22 @@ namespace JiraExport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Critical, $"Could not connect to Jira! Message: {ex.Message}");
+                Logger.Log(ex, $"Could not connect to Jira!", LogLevel.Critical);
             }
 
             return jira;
         }
 
-        private JiraItem ProcessItem(string issueKey, HashSet<string> skipList, string successMessage)
+        private JiraItem ProcessItem(string issueKey, HashSet<string> skipList)
         {
             var issue = JiraItem.CreateFromRest(issueKey, this);
-            Logger.Log(LogLevel.Info, $"Downloaded {issueKey} - {successMessage}");
             skipList.Add(issue.Key);
             return issue;
         }
 
         private async Task<JiraAttachment> GetAttachmentInfo(string id)
         {
-            Logger.Log(LogLevel.Debug, $"Downloading attachment info for attachment {id}");
+            Logger.Log(LogLevel.Debug, $"Downloading attachment info for attachment '{id}'.");
 
             try
             {
@@ -91,8 +90,7 @@ namespace JiraExport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Warning, $"Cannot find info for attachment {id}. Skipping.");
-                Logger.Log(ex);
+                Logger.Log(ex, $"Cannot find info for attachment '{id}'. Skipping.");
                 return null;
             }
         }
@@ -110,12 +108,12 @@ namespace JiraExport
                     EnsurePath(path);
                     await web.DownloadWithAuthenticationAsync(att.Url, path);
                     att.LocalPath = path;
-                    Logger.Log(LogLevel.Debug, $"Downloaded attachment {att.ToString()}");
+                    Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Warning, $"Attachment download failed. Message: {ex.Message}");
+                Logger.Log(ex, $"Attachment download failed for '{att.Id}'. ");
             }
 
             if (att != null && !string.IsNullOrWhiteSpace(att.ThumbUrl))
@@ -127,11 +125,11 @@ namespace JiraExport
                     EnsurePath(thumbPath);
                     await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
                     att.LocalThumbPath = thumbPath;
-                    Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail {att.ToString()}");
+                    Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogLevel.Warning, $"Attachment thumbnail ({att.ToString()}) download failed. Message: {ex.Message}");
+                    Logger.Log(ex, $"Attachment thumbnail '{att.ToString()}' download failed.");
                 }
             }
 
@@ -151,7 +149,6 @@ namespace JiraExport
 
         public IEnumerable<JiraItem> EnumerateIssues(string jql, HashSet<string> skipList, DownloadOptions downloadOptions)
         {
-            Logger.Log(LogLevel.Info, "Processing issues...");
             int currentStart = 0;
             IEnumerable<string> remoteIssueBatch = null;
             int index = 0;
@@ -171,13 +168,13 @@ namespace JiraExport
                 {
                     if (skipList.Contains(issueKey))
                     {
-                        Logger.Log(LogLevel.Info, $"Skipped {issueKey} - already downloaded [{index + 1}/{totalItems}]");
+                        Logger.Log(LogLevel.Info, $"Skipped Jira '{issueKey}' - already downloaded.");
                         index++;
                         continue;
                     }
 
-
-                    var issue = ProcessItem(issueKey, skipList, $"[{index + 1}/{totalItems}]");
+                    Logger.Log(LogLevel.Info, $"Processing {index + 1}/{totalItems} - '{issueKey}'.");
+                    var issue = ProcessItem(issueKey, skipList);
                     yield return issue;
                     index++;
 
@@ -185,14 +182,16 @@ namespace JiraExport
                     {
                         if (issue.EpicParent != null && !skipList.Contains(issue.EpicParent))
                         {
-                            var parentEpic = ProcessItem(issue.EpicParent, skipList, $"epic parent of {issueKey}");
+                            Logger.Log(LogLevel.Info, $"Processing epic parent '{issue.EpicParent}'.");
+                            var parentEpic = ProcessItem(issue.EpicParent, skipList);
                             yield return parentEpic;
                         }
                     }
 
                     if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && issue.Parent != null && !skipList.Contains(issue.Parent))
                     {
-                        var parent = ProcessItem(issue.Parent, skipList, $"parent of {issueKey}");
+                        Logger.Log(LogLevel.Info, $"Processing parent issue '{issue.Parent}'.");
+                        var parent = ProcessItem(issue.Parent, skipList);
                         yield return parent;
                     }
 
@@ -202,7 +201,8 @@ namespace JiraExport
                         {
                             if (!skipList.Contains(subitemKey))
                             {
-                                var subItem = ProcessItem(subitemKey, skipList, $"sub-item of {issueKey}");
+                                Logger.Log(LogLevel.Info, $"Processing sub-item '{subitemKey}'.");
+                                var subItem = ProcessItem(subitemKey, skipList);
                                 yield return subItem;
                             }
                         }
@@ -264,7 +264,7 @@ namespace JiraExport
                         var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value, web);
                         if (jiraAtt != null && !string.IsNullOrWhiteSpace(jiraAtt.LocalPath))
                         {
-                            Logger.Log(LogLevel.Info, $"Downloaded {jiraAtt.ToString()} to {jiraAtt.LocalPath}");
+                            Logger.Log(LogLevel.Info, $"Downloaded attachment '{jiraAtt.ToString()}' to '{jiraAtt.LocalPath}'");
                             downloadedAtts.Add(jiraAtt);
                         }
                     }

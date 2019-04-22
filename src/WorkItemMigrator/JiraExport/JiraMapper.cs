@@ -138,7 +138,7 @@ namespace JiraExport
                 }
                 else
                 {
-                    Logger.Log(LogLevel.Warning, $"Type mapping missing for {issue.Key} with Jira type {issue.Type}. Item not exported which may cause missing links in related issues.");
+                    Logger.Log(LogLevel.Warning, $"Type mapping missing for '{issue.Key}' with Jira type '{issue.Type}'. Item was not exported which may cause missing links in issues referencing this item.");
                     return null;
                 }
             }
@@ -249,7 +249,7 @@ namespace JiraExport
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
+                            Logger.Log(ex, $"Error mapping field '{field.Key}' on item '{r.OriginId}'.");
                         }
                     }
                 }

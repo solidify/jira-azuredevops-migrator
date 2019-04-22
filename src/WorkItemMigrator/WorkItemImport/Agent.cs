@@ -83,14 +83,14 @@ namespace WorkItemImport
             var project = agent.GetOrCreateProjectAsync().Result;
             if (project == null)
             {
-                Logger.Log(LogLevel.Error, "Could not establish connection to the remote Azure DevOps/TFS project.");
+                Logger.Log(LogLevel.Critical, "Could not establish connection to the remote Azure DevOps/TFS project.");
                 return null;
             }
 
             (var iterationCache, int rootIteration) = agent.CreateClasificationCacheAsync(settings.Project, WebModel.TreeStructureGroup.Iterations).Result;
             if (iterationCache == null)
             {
-                Logger.Log(LogLevel.Error, "Could not build iteration cache.");
+                Logger.Log(LogLevel.Critical, "Could not build iteration cache.");
                 return null;
             }
 
@@ -100,7 +100,7 @@ namespace WorkItemImport
             (var areaCache, int rootArea) = agent.CreateClasificationCacheAsync(settings.Project, WebModel.TreeStructureGroup.Areas).Result;
             if (areaCache == null)
             {
-                Logger.Log(LogLevel.Error, "Could not build area cache.");
+                Logger.Log(LogLevel.Critical, "Could not build area cache.");
                 return null;
             }
 
@@ -133,7 +133,7 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, $"Cannot establish connection to Azure DevOps/TFS. Operation failed with error: {ex.Message}");
+                Logger.Log(ex, $"Cannot establish connection to Azure DevOps/TFS.", LogLevel.Critical);
                 return null;
             }
         }
@@ -164,7 +164,7 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, "Exception during get project: " + ex.Message);
+                Logger.Log(ex, $"Failed to get Azure DevOps/TFS project '{Settings.Project}'.");
             }
 
             if (project == null)
@@ -175,13 +175,13 @@ namespace WorkItemImport
 
         internal async Task<TeamProject> CreateProject(string projectName, string projectDescription = "", string processName = "Scrum")
         {
-            Logger.Log(LogLevel.Warning, $"Project {projectName} does not exist.");
+            Logger.Log(LogLevel.Warning, $"Project '{projectName}' does not exist.");
             Console.WriteLine("Would you like to create one? (Y/N)");
             var answer = Console.ReadKey();
             if (answer.KeyChar != 'Y' && answer.KeyChar != 'y')
                 return null;
 
-            Logger.Log(LogLevel.Info, $"Creating project {projectName}.");
+            Logger.Log(LogLevel.Info, $"Creating project '{projectName}'.");
 
             // Setup version control properties
             Dictionary<string, string> versionControlProperties = new Dictionary<string, string>
@@ -246,7 +246,7 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, "Exception during create project: " + ex.Message);
+                Logger.Log(ex, "Exception during create project.", LogLevel.Critical);
             }
 
             return project;
@@ -260,19 +260,19 @@ namespace WorkItemImport
 
             while (true)
             {
-                Console.WriteLine(" Checking status ({0})... ", (checkCount++));
+                Logger.Log(LogLevel.Info, $" Checking status ({checkCount++})... ");
 
                 Operation operation = await operationsClient.GetOperation(operationId, cancellationToken);
 
                 if (!operation.Completed)
                 {
-                    Console.WriteLine("   Pausing {0} seconds", interavalInSec);
+                    Logger.Log(LogLevel.Info, $"   Pausing {interavalInSec} seconds...");
 
                     await Task.Delay(interavalInSec * 1000);
 
                     if (DateTime.Now > expiration)
                     {
-                        Logger.Log(LogLevel.Error, string.Format("Operation did not complete in {0} seconds.", maxTimeInSeconds));
+                        Logger.Log(LogLevel.Error, $"Operation did not complete in {maxTimeInSeconds} seconds.");
                     }
                 }
                 else
@@ -301,7 +301,7 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, $"Error while building {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} cache: {ex.Message}");
+                Logger.Log(ex, $"Error while building {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} cache.");
                 return (null, -1);
             }
         }
@@ -323,7 +323,7 @@ namespace WorkItemImport
         {
             if (string.IsNullOrWhiteSpace(fullName))
             {
-                Logger.Log(LogLevel.Error, "Invalid value provided for node name/path");
+                Logger.Log(LogLevel.Error, "Empty value provided for node name/path.");
                 throw new ArgumentException("fullName");
             }
 
@@ -350,12 +350,12 @@ namespace WorkItemImport
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogLevel.Error, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} {fullName} to Azure DevOps/TFS: {ex.Message}");
+                    Logger.Log(ex, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} {fullName} to Azure DevOps/TFS.", LogLevel.Critical);
                 }
 
                 if (node != null)
                 {
-                    Logger.Log(LogLevel.Info, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} {fullName} added to Azure DevOps/TFS");
+                    Logger.Log(LogLevel.Info, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} {fullName} added to Azure DevOps/TFS.");
                     cache.Add(fullName, node.Id);
                     Store.RefreshCache();
                     return node.Id;
@@ -437,7 +437,7 @@ namespace WorkItemImport
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex);
+                    Logger.Log(ex, $"Failed to update core fields for '{wi.Id}'.");
                     success = false;
                 }
             }
@@ -456,7 +456,7 @@ namespace WorkItemImport
             {
                 try
                 {
-                    Logger.Log(LogLevel.Debug, $"{att.ToString()}");
+                    Logger.Log(LogLevel.Debug, $"Adding attachment '{att.ToString()}'.");
                     if (att.Change == ReferenceChangeType.Added)
                     {
                         var newAttachment = new Attachment(att.FilePath, att.Comment);
@@ -474,7 +474,7 @@ namespace WorkItemImport
                         else
                         {
                             success = false;
-                            Logger.Log(LogLevel.Warning, $"{att.ToString()} - could not find migrated attachment.");
+                            Logger.Log(LogLevel.Error, $"Could not find migrated attachment '{att.ToString()}'.");
                         }
                     }
                 }
@@ -484,7 +484,7 @@ namespace WorkItemImport
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex);
+                    Logger.Log(ex, $"Failed to apply attachments for '{wi.Id}'.");
                     success = false;
                 }
             }
@@ -523,7 +523,7 @@ namespace WorkItemImport
                     if (link.TargetWiId == -1)
                     {
                         var errorLevel = Settings.IgnoreFailedLinks ? LogLevel.Warning : LogLevel.Error;
-                        Logger.Log(errorLevel, $"{link.ToString()} - target work item for Jira {link.TargetOriginId} is not yet created in Azure DevOps/TFS.");
+                        Logger.Log(errorLevel, $"'{link.ToString()}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
                         success = false;
                         continue;
                     }
@@ -539,7 +539,7 @@ namespace WorkItemImport
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex);
+                    Logger.Log(ex, $"Failed to apply links for '{wi.Id}'.");
                     success = false;
                 }
             }
@@ -600,7 +600,7 @@ namespace WorkItemImport
             var linkType = wi.Project.Store.WorkItemLinkTypes.SingleOrDefault(lt => lt.ReferenceName == props[0]);
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Error, $"{link.ToString()} - link type ({props[0]}) does not exist in project");
+                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({props[0]}) does not exist in project");
                 return null;
             }
 
@@ -611,7 +611,7 @@ namespace WorkItemImport
                 if (props.Length > 1)
                     linkEnd = props[1] == "Forward" ? linkType.ForwardEnd : linkType.ReverseEnd;
                 else
-                    Logger.Log(LogLevel.Error, $"{link.ToString()} - directional link info not provided.");
+                    Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link direction not provided for '{wi.Id}'.");
             }
             else
                 linkEnd = linkType.ForwardEnd;
@@ -624,7 +624,7 @@ namespace WorkItemImport
             var linkToRemove = wi.Links.OfType<RelatedLink>().SingleOrDefault(rl => rl.LinkTypeEnd.ImmutableName == link.WiType && rl.RelatedWorkItemId == link.TargetWiId);
             if (linkToRemove == null)
             {
-                Logger.Log(LogLevel.Warning, $"{link.ToString()} - Cannot identify link to remove");
+                Logger.Log(LogLevel.Warning, $"{link.ToString()} - cannot identify link to remove for '{wi.Id}'.");
                 return false;
             }
             wi.Links.Remove(linkToRemove);
@@ -635,11 +635,11 @@ namespace WorkItemImport
         {
             if (!newWorkItem.IsValid())
             {
-                Logger.Log(LogLevel.Warning, $"{rev.ToString()} - Invalid revision");
+                Logger.Log(LogLevel.Error, $"'{rev.ToString()}' - Invalid revision");
 
                 var reasons = newWorkItem.Validate();
                 foreach (Microsoft.TeamFoundation.WorkItemTracking.Client.Field reason in reasons)
-                    Logger.Log(LogLevel.Info, $"Field: {reason.Name}, Status: {reason.Status}, Value: {reason.Value}");
+                    Logger.Log(LogLevel.Info, $"Field: '{reason.Name}', Status: '{reason.Status}', Value: '{reason.Value}'");
             }
             try
             {
@@ -647,7 +647,7 @@ namespace WorkItemImport
             }
             catch (FileAttachmentException faex)
             {
-                Logger.Log(LogLevel.Error, $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped");
+                Logger.Log(faex, $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
                 newWorkItem.Attachments.Remove(faex.SourceAttachment);
                 SaveWorkItem(rev, newWorkItem);
             }
@@ -701,8 +701,7 @@ namespace WorkItemImport
                         descUpdated = true;
                     }
                     else
-                        Logger.Log(LogLevel.Warning, $"Attachment {att.ToString()} referenced in description but is missing from work item {wiItem.OriginId}/{wi.Id}");
-
+                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in description but is missing from work item {wiItem.OriginId}/{wi.Id}.");
                 }
             }
 
@@ -753,11 +752,11 @@ namespace WorkItemImport
                     incomplete = true;
 
                 if (incomplete)
-                    Logger.Log(LogLevel.Warning, $"{rev.ToString()} - not all changes were implemented");
+                    Logger.Log(LogLevel.Error, $"'{rev.ToString()}' - not all changes were saved.");
 
                 if (!rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Info, $"Correcting description on {rev.ToString()}");
+                    Logger.Log(LogLevel.Info, $"Correcting description on '{rev.ToString()}'.");
                     CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev);
                 }
 
@@ -765,7 +764,7 @@ namespace WorkItemImport
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Info, $"Correcting description on separate revision on {rev.ToString()}");
+                    Logger.Log(LogLevel.Info, $"Correcting description on separate revision on '{rev.ToString()}'.");
 
                     try
                     {
@@ -774,7 +773,7 @@ namespace WorkItemImport
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(ex);
+                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev.ToString()}'.");
                     }
                 }
 
@@ -786,7 +785,7 @@ namespace WorkItemImport
                 }
 
 
-                Logger.Log(LogLevel.Info, $"Imported {rev.ToString()}");
+                Logger.Log(LogLevel.Info, $"Imported '{rev.ToString()}'.");
 
                 wi.Close();
 
@@ -798,7 +797,7 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(ex);
+                Logger.Log(ex, $"Failed to import revisions for '{wi.Id}'.");
                 return false;
             }
         }

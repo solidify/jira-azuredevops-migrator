@@ -76,8 +76,7 @@ namespace Migration.Common.Log
         {
             var key = ConfigurationManager.AppSettings["applicationInsightsKey"];
 
-            Guid temp;
-            if (!string.IsNullOrEmpty(key) && Guid.TryParse(key, out temp))
+            if (!string.IsNullOrEmpty(key) && Guid.TryParse(key, out Guid temp))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = key;
                 _telemetryClient = new TelemetryClient();
@@ -110,15 +109,17 @@ namespace Migration.Common.Log
         {
             if ((int)level >= (int)_logLevel)
             {
+                if (level == LogLevel.Debug)
+                    message = $"   {message}";
                 ToFile(level, message);
                 ToConsole(level, message);
             }
         }
 
-        public static void Log(Exception ex)
+        public static void Log(Exception ex, string message, LogLevel logLevel = LogLevel.Error)
         {
             LogExceptionToApplicationInsights(ex);
-            Log(LogLevel.Error, $"[{ex.GetType().ToString()}] {ex.Message}: {Environment.NewLine + ex.StackTrace}");
+            Log(logLevel, $"{message + Environment.NewLine}[{ex.GetType().ToString()}] {ex.Message}: {Environment.NewLine + ex.StackTrace}");
         }
 
         public static void LogEvent(string message, Dictionary<string, string> properties)
@@ -137,7 +138,6 @@ namespace Migration.Common.Log
         {
             string levelPrefix = GetPrefixFromLogLevel(level);
             string dateTime = DateTime.Now.ToString("HH:mm:ss");
-
             string log = $"[{levelPrefix}][{dateTime}] {message}";
             ToFile(log);
         }
