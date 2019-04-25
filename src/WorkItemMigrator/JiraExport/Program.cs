@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Migration.Common.Log;
 
 namespace JiraExport
 {
@@ -12,8 +13,8 @@ namespace JiraExport
     {
         static void Main(string[] args)
         {
-            Logger.Log(LogLevel.Info, $"Jira Exporter v{VersionInfo.GetVersionInfo()}");
-            Logger.Log(LogLevel.Info, VersionInfo.GetCopyrightInfo());
+            Console.WriteLine($"Jira Exporter v{VersionInfo.GetVersionInfo()}");
+            Console.WriteLine(VersionInfo.GetCopyrightInfo());
 
             try
             {
@@ -22,18 +23,8 @@ namespace JiraExport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, "Closing application due to an unexpected exception: " + ex.Message);
+                Logger.Log(ex, "Application stopped due to an unexpected exception", LogLevel.Critical);
             }
-            finally
-            {
-                Logger.Summary();
-            }
-
-#if DEBUG
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-#endif
-
         }
     }
 }

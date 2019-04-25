@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Migration.Common.Log;
 
 namespace Migration.Common
 {
@@ -40,12 +41,12 @@ namespace Migration.Common
             }
             else if (UserMapping.TryGetValue("*", out string defaultUser))
             {
-                Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Setting default identity.");
+                Logger.Log(LogLevel.Warning, $"Could not find user '{sourceUser}' identity in user map. Using default identity '{defaultUser}'.");
                 return defaultUser;
             }
             else
             {
-                Logger.Log(LogLevel.Debug, $"Could not find user {sourceUser} identity. Using original identity.");
+                Logger.Log(LogLevel.Warning, $"Could not find user '{sourceUser}' identity in user map. Using original identity '{sourceUser}'.");
                 UserMapping.Add(sourceUser, sourceUser);
                 return sourceUser;
             }

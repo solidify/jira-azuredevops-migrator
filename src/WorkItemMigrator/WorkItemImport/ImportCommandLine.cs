@@ -4,6 +4,10 @@ using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Migration.Common;
 using Migration.Common.Config;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Migration.Common.Log;
+using System.Linq;
 
 namespace WorkItemImport
 {
@@ -15,6 +19,11 @@ namespace WorkItemImport
         public ImportCommandLine(params string[] args)
         {
             InitCommandLine(args);
+        }
+
+        public void Run()
+        {
+            commandLineApplication.Execute(args);
         }
 
         private void InitCommandLine(params string[] args)
@@ -55,30 +64,19 @@ namespace WorkItemImport
         private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh)
         {
             ConfigJson config = null;
+            var itemCount = 0;
+            var revisionCount = 0;
+            var importedItems = 0;
+            var sw = new Stopwatch();
+            sw.Start();
+
             try
             {
                 string configFileName = configFile.Value();
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 config = configReaderJson.Deserialize();
 
-                // Migration session level settings
-                // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
-                string migrationWorkspace = config.Workspace;
-
-                // level of log messages that will be let through to console
-                LogLevel logLevel;
-                switch (config.LogLevel)
-                {
-                    case "Info": logLevel = LogLevel.Info; break;
-                    case "Debug": logLevel = LogLevel.Debug; break;
-                    case "Warning": logLevel = LogLevel.Warning; break;
-                    case "Error": logLevel = LogLevel.Error; break;
-                    case "Critical": logLevel = LogLevel.Critical; break;
-                    default: logLevel = LogLevel.Debug; break;
-                }
-
-                // set up log, journal and run session settings
-                var context = MigrationContext.Init(migrationWorkspace, logLevel, forceFresh);
+                var context = MigrationContext.Init("wi-import", config.Workspace, config.LogLevel, forceFresh);
 
                 // connection settings for Azure DevOps/TFS:
                 // full base url incl https, name of the project where the items will be migrated (if it doesn't exist on destination it will be created), personal access token
@@ -92,14 +90,20 @@ namespace WorkItemImport
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.
                 var agent = Agent.Initialize(context, settings);
+
                 if (agent == null)
                 {
-                    Logger.Log(LogLevel.Error, "Azure DevOps/TFS initialization error. Exiting...");
+                    Logger.Log(LogLevel.Critical, "Azure DevOps/TFS initialization error.");
                     return;
                 }
 
                 var executionBuilder = new ExecutionPlanBuilder(context);
                 var plan = executionBuilder.BuildExecutionPlan();
+
+                itemCount = plan.ReferenceQueue.AsEnumerable().Select(x => x.OriginId).Distinct().Count();
+                revisionCount = plan.ReferenceQueue.Count;
+
+                BeginSession(configFileName, config, forceFresh, agent, itemCount, revisionCount);
 
                 while (plan.TryPop(out ExecutionPlan.ExecutionItem executionItem))
                 {
@@ -107,6 +111,8 @@ namespace WorkItemImport
                     {
                         if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
                             continue;
+
+                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
                         WorkItem wi = null;
 
@@ -116,6 +122,7 @@ namespace WorkItemImport
                             wi = agent.CreateWI(executionItem.WiType);
 
                         agent.ImportRevision(executionItem.Revision, wi);
+                        importedItems++;
                     }
                     catch (AbortMigrationException)
                     {
@@ -126,7 +133,7 @@ namespace WorkItemImport
                     {
                         try
                         {
-                            Logger.Log(ex);
+                            Logger.Log(ex, $"Failed to import '{executionItem.ToString()}'.");
                         }
                         catch (AbortMigrationException)
                         {
@@ -141,13 +148,75 @@ namespace WorkItemImport
             }
             catch (Exception e)
             {
-                Logger.Log(LogLevel.Error, $"Unexpected error: {e}");
+                Logger.Log(e, $"Unexpected migration error.");
+            }
+            finally
+            {
+                EndSession(itemCount, revisionCount, sw);
             }
         }
 
-        public void Run()
+        private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount, int revisionCount)
         {
-            commandLineApplication.Execute(args);
+            var toolVersion = VersionInfo.GetVersionInfo();
+            var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
+            var machine = System.Environment.MachineName;
+            var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
+            var hostingType = GetHostingType(agent);
+
+            Logger.Log(LogLevel.Info, $"Import started. Importing {itemsCount} items with {revisionCount} revisions.");
+
+            Logger.StartSession("Azure DevOps Work Item Import", 
+                "wi-import-started",
+                new Dictionary<string, string>() {
+                    { "Tool version         :", toolVersion },
+                    { "Start time           :", DateTime.Now.ToString() },
+                    { "Telemetry            :", Logger.TelemetryStatus },
+                    { "Session id           :", Logger.SessionId },
+                    { "Tool user            :", user },
+                    { "Config               :", configFile },
+                    { "User                 :", user },
+                    { "Force                :", force ? "yes" : "no" },
+                    { "Log level            :", config.LogLevel },
+                    { "Machine              :", machine },
+                    { "System               :", osVersion },
+                    { "Azure DevOps url     :", agent.Settings.Account },
+                    { "Azure DevOps version :", "n/a" },
+                    { "Azure DevOps type    :", hostingType }
+                    },
+                new Dictionary<string, string>() {
+                    { "item-count", itemsCount.ToString() },
+                    { "revision-count", revisionCount.ToString() },
+                    { "system-version", "n/a" },
+                    { "hosting-type", hostingType } });
+        }
+
+        private static string GetHostingType(Agent agent)
+        {
+            var uri = new Uri(agent.Settings.Account);
+            switch(uri.Host.ToLower())
+            {
+                case "dev.azure.com":
+                case "visualstudio.com":
+                    return "Cloud";
+                default:
+                    return "Server";
+            }
+        }
+
+        private static void EndSession(int itemsCount, int revisionCount, Stopwatch sw)
+        {
+            sw.Stop();
+
+            Logger.Log(LogLevel.Info, $"Import complete. Imported {itemsCount} items, {revisionCount} revisions ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+
+            Logger.EndSession("wi-import-completed",
+                new Dictionary<string, string>() {
+                    { "item-count", itemsCount.ToString() },
+                    { "revision-count", revisionCount.ToString() },
+                    { "error-count", Logger.Errors.ToString() },
+                    { "warning-count", Logger.Warnings.ToString() },
+                    { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) } });
         }
     }
 }

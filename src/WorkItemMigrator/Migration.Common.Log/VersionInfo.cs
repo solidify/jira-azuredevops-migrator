@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Migration.Common
+namespace Migration.Common.Log
 {
     public static class VersionInfo
     {

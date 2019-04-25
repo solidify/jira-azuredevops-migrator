@@ -6,7 +6,7 @@
   "epic-link-field": "Epic Link",
   "sprint-field": "Sprint",
   "batch-size": 20,
-  "log-level": "Debug",
+  "log-level": "Info",
   "attachment-folder": "Attachments",
   "user-mapping-file": "users.txt",
   "base-area-path": "Migrated",
