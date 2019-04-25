@@ -94,6 +94,8 @@ namespace JiraExport
 
         private WiRevision MapRevision(JiraRevision r)
         {
+            Logger.Log(LogLevel.Debug, $"Mapping revision {r.Index}.");
+
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
@@ -240,13 +242,12 @@ namespace JiraExport
 
                             if (include)
                             {
+                                Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {
                                     ReferenceName = fieldreference,
                                     Value = value
                                 });
-                                if(value == null)
-                                    Logger.Log(LogLevel.Warning, $"No mapping value for field '{field.Key}' on item '{r.OriginId}'.");
                             }
                         }
                         catch (Exception ex)
@@ -439,6 +440,10 @@ namespace JiraExport
                           item.Mapping?.Values != null)
                     {
                         var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
+                        if(string.IsNullOrEmpty(mappedValue))
+                        {
+                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}'.");
+                        }
                         return (true, mappedValue);
                     }
                 }
