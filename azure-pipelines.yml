@@ -64,14 +64,20 @@ steps:
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)'
     Contents: |
-     Atlassian.Jira.dll
-     jira-export.exe
-     jira-export.exe.config
-     Microsoft.Extensions.CommandLineUtils.dll
-     Migration.Common.dll
-     Migration.WIContract.dll
-     Newtonsoft.Json.dll
-     RestSharp.dll
+      ApplicationInsights.config     
+      Atlassian.Jira.dll
+      jira-export.exe
+      jira-export.exe.config
+      Microsoft.AI.Agent.Intercept.dll
+      Microsoft.AI.DependencyCollector.dll
+      Microsoft.ApplicationInsights.dll
+      Microsoft.Extensions.CommandLineUtils.dll
+      Migration.Common.dll
+      Migration.Common.Log.dll
+      Migration.WIContract.dll
+      Newtonsoft.Json.dll
+      RestSharp.dll
+      System.Diagnostics.DiagnosticSource.dll
     TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
     flattenFolders: true
 
@@ -80,20 +86,20 @@ steps:
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)'
     Contents: |
-     Microsoft.TeamFoundation.Client.dll
-     Microsoft.TeamFoundation.Common.dll
-     Microsoft.TeamFoundation.Core.WebApi.dll
-     Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader.dll
-     Microsoft.TeamFoundation.WorkItemTracking.Client.dll
-     Microsoft.TeamFoundation.WorkItemTracking.Common.dll
-     Microsoft.TeamFoundation.WorkItemTracking.Proxy.dll
-     Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll
-     Microsoft.VisualStudio.Services.Common.dll
-     Microsoft.VisualStudio.Services.WebApi.dll
-     Microsoft.WITDataStore32.dll
-     System.Net.Http.Formatting.dll
-     wi-import.exe
-     wi-import.exe.config
+      Microsoft.TeamFoundation.Client.dll
+      Microsoft.TeamFoundation.Common.dll
+      Microsoft.TeamFoundation.Core.WebApi.dll
+      Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader.dll
+      Microsoft.TeamFoundation.WorkItemTracking.Client.dll
+      Microsoft.TeamFoundation.WorkItemTracking.Common.dll
+      Microsoft.TeamFoundation.WorkItemTracking.Proxy.dll
+      Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll
+      Microsoft.VisualStudio.Services.Common.dll
+      Microsoft.VisualStudio.Services.WebApi.dll
+      Microsoft.WITDataStore32.dll
+      System.Net.Http.Formatting.dll
+      wi-import.exe
+      wi-import.exe.config
     TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
     flattenFolders: true
 
