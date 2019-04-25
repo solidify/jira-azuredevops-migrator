@@ -100,39 +100,42 @@ namespace JiraExport
 
         private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att, WebClientWrapper web)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(att.Url))
-                    att = await GetAttachmentInfo(att.Id);
-
-                if (att != null && !string.IsNullOrWhiteSpace(att.Url))
-                {
-                    string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
-                    EnsurePath(path);
-                    await web.DownloadWithAuthenticationAsync(att.Url, path);
-                    att.LocalPath = path;
-                    Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex, $"Attachment download failed for '{att.Id}'. ");
-            }
-
-            if (att != null && !string.IsNullOrWhiteSpace(att.ThumbUrl))
+            if (att != null)
             {
                 try
                 {
-                    string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
-                    var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
-                    EnsurePath(thumbPath);
-                    await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
-                    att.LocalThumbPath = thumbPath;
-                    Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
+                    if (string.IsNullOrWhiteSpace(att.Url))
+                        att = await GetAttachmentInfo(att.Id);
+
+                    if (!string.IsNullOrWhiteSpace(att.Url))
+                    {
+                        string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
+                        EnsurePath(path);
+                        await web.DownloadWithAuthenticationAsync(att.Url, path);
+                        att.LocalPath = path;
+                        Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex, $"Attachment thumbnail '{att.ToString()}' download failed.");
+                    Logger.Log(ex, $"Attachment download failed for '{att.Id}'. ");
+                }
+
+                if (!string.IsNullOrWhiteSpace(att.ThumbUrl))
+                {
+                    try
+                    {
+                        string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
+                        var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
+                        EnsurePath(thumbPath);
+                        await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
+                        att.LocalThumbPath = thumbPath;
+                        Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex, $"Attachment thumbnail '{att.ToString()}' download failed.");
+                    }
                 }
             }
 
@@ -181,24 +184,21 @@ namespace JiraExport
                     yield return issue;
                     index++;
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) & issue.EpicParent != null && !skipList.Contains(issue.EpicParent))
+                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) && (issue.EpicParent != null) && !skipList.Contains(issue.EpicParent))
                     {
-                        if (issue.EpicParent != null && !skipList.Contains(issue.EpicParent))
-                        {
-                            Logger.Log(LogLevel.Info, $"Processing epic parent '{issue.EpicParent}'.");
-                            var parentEpic = ProcessItem(issue.EpicParent, skipList);
-                            yield return parentEpic;
-                        }
+                        Logger.Log(LogLevel.Info, $"Processing epic parent '{issue.EpicParent}'.");
+                        var parentEpic = ProcessItem(issue.EpicParent, skipList);
+                        yield return parentEpic;
                     }
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && issue.Parent != null && !skipList.Contains(issue.Parent))
+                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && (issue.Parent != null) && !skipList.Contains(issue.Parent))
                     {
                         Logger.Log(LogLevel.Info, $"Processing parent issue '{issue.Parent}'.");
                         var parent = ProcessItem(issue.Parent, skipList);
                         yield return parent;
                     }
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeSubItems) && issue.SubItems != null && issue.SubItems.Any())
+                    if (downloadOptions.HasFlag(DownloadOptions.IncludeSubItems) && (issue.SubItems != null) && issue.SubItems.Any())
                     {
                         foreach (var subitemKey in issue.SubItems)
                         {
@@ -217,8 +217,8 @@ namespace JiraExport
 
         public struct JiraVersion
         {
-            public string Version;
-            public string DeploymentType;
+            public string Version { get; set; }
+            public string DeploymentType { get; set; }
 
             public JiraVersion(string version, string deploymentType)
             {
@@ -306,7 +306,7 @@ namespace JiraExport
                     _userEmailCache.Add(username, email);
                     return email;
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     Logger.Log(LogLevel.Warning, $"User '{username}' not found in Jira, using username '{username}' for mapping.");
                     return username;
