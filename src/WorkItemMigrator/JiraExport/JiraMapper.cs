@@ -245,6 +245,8 @@ namespace JiraExport
                                     ReferenceName = fieldreference,
                                     Value = value
                                 });
+                                if(value == null)
+                                    Logger.Log(LogLevel.Warning, $"No mapping value for field '{field.Key}' on item '{r.OriginId}'.");
                             }
                         }
                         catch (Exception ex)
@@ -268,6 +270,8 @@ namespace JiraExport
             var featureFields = new FieldMapping<JiraRevision>();
             var requirementFields = new FieldMapping<JiraRevision>();
             var userStoryFields = new FieldMapping<JiraRevision>();
+
+            Logger.Log(LogLevel.Info, "Initializing Jira field mapping...");
 
             foreach (var item in _config.FieldMap.Fields)
             {

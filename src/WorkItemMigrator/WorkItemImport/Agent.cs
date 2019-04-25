@@ -311,7 +311,7 @@ namespace WorkItemImport
             string fullName = !string.IsNullOrWhiteSpace(parentPath) ? parentPath + "/" + current.Name : current.Name;
 
             agg.Add(fullName, current.Id);
-            Logger.Log(LogLevel.Debug, $"{(current.StructureType == WebModel.TreeNodeStructureType.Iteration ? "Iteration" : "Area")} {fullName} added to cache");
+            Logger.Log(LogLevel.Debug, $"{(current.StructureType == WebModel.TreeNodeStructureType.Iteration ? "Iteration" : "Area")} '{fullName}' added to cache");
             if (current.Children != null)
             {
                 foreach (var node in current.Children)
@@ -350,12 +350,12 @@ namespace WorkItemImport
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} {fullName} to Azure DevOps/TFS.", LogLevel.Critical);
+                    Logger.Log(ex, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} '{fullName}' to Azure DevOps/TFS.", LogLevel.Critical);
                 }
 
                 if (node != null)
                 {
-                    Logger.Log(LogLevel.Info, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} {fullName} added to Azure DevOps/TFS.");
+                    Logger.Log(LogLevel.Info, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
                     cache.Add(fullName, node.Id);
                     Store.RefreshCache();
                     return node.Id;
@@ -437,7 +437,7 @@ namespace WorkItemImport
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex, $"Failed to update core fields for '{wi.Id}'.");
+                    Logger.Log(ex, $"Failed to update fields.");
                     success = false;
                 }
             }
@@ -756,7 +756,7 @@ namespace WorkItemImport
 
                 if (!rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Info, $"Correcting description on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
                     CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev);
                 }
 
@@ -764,7 +764,7 @@ namespace WorkItemImport
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Info, $"Correcting description on separate revision on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
 
                     try
                     {
@@ -784,8 +784,7 @@ namespace WorkItemImport
                         _context.Journal.MarkAttachmentAsProcessed(wiAtt.AttOriginId, tfsAtt.Id);
                 }
 
-
-                Logger.Log(LogLevel.Info, $"Imported '{rev.ToString()}'.");
+                Logger.Log(LogLevel.Debug, $"Imported revision.");
 
                 wi.Close();
 
@@ -793,7 +792,7 @@ namespace WorkItemImport
             }
             catch (AbortMigrationException ame)
             {
-                throw new AbortMigrationException(ame.Reason) { Revision = rev };
+                throw ame;
             }
             catch (Exception ex)
             {

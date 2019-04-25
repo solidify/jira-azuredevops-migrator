@@ -42,7 +42,9 @@ namespace JiraExport
             provider.Jira = ConnectToJira(settings);
             provider.Settings = settings;
 
+            Logger.Log(LogLevel.Info, "Retrieving Jira fields...");
             provider.Jira.Fields.GetCustomFieldsAsync().Wait();
+            Logger.Log(LogLevel.Info, "Retrieving Jira link types...");
             provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
 
             return provider;
@@ -54,6 +56,7 @@ namespace JiraExport
 
             try
             {
+                Logger.Log(LogLevel.Info, "Connecting to Jira...");
                 jira = Jira.CreateRestClient(jiraSettings.Url, jiraSettings.UserID, jiraSettings.Pass);
             }
             catch (Exception ex)

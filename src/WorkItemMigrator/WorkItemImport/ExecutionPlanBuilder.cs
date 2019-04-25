@@ -29,10 +29,11 @@ namespace WorkItemImport
 
         private IEnumerable<RevisionReference> BuildExecutionPlanFromDir()
         {
+            Logger.Log(LogLevel.Info, $"Building execution plan...");
             var actionPlan = new List<RevisionReference>();
             foreach (var wi in _context.EnumerateAllItems())
             {
-                Logger.Log(LogLevel.Debug, $"Processing item '{wi.OriginId}'.");
+                Logger.Log(LogLevel.Debug, $"Analyzing item '{wi.OriginId}'.");
                 foreach (var rev in wi.Revisions)
                 {
                     var revRef = new RevisionReference() { OriginId = wi.OriginId, RevIndex = rev.Index, Time = rev.Time };

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Migration.WIContract;
 
-namespace Migration.Common
+namespace Migration.Common.Log
 {
     [Serializable]
     public class AbortMigrationException : Exception 
@@ -18,6 +17,5 @@ namespace Migration.Common
         }
 
         public string Reason { get; private set; }
-        public WiRevision Revision { get; set; }
     }
 }

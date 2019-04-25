@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Migration.Common.Log;
+using System.Linq;
 
 namespace WorkItemImport
 {
@@ -64,6 +65,7 @@ namespace WorkItemImport
         {
             ConfigJson config = null;
             var itemCount = 0;
+            var revisionCount = 0;
             var importedItems = 0;
             var sw = new Stopwatch();
             sw.Start();
@@ -98,17 +100,19 @@ namespace WorkItemImport
                 var executionBuilder = new ExecutionPlanBuilder(context);
                 var plan = executionBuilder.BuildExecutionPlan();
 
-                itemCount = plan.ReferenceQueue.Count;
+                itemCount = plan.ReferenceQueue.AsEnumerable().Select(x => x.OriginId).Distinct().Count();
+                revisionCount = plan.ReferenceQueue.Count;
 
-                BeginSession(configFileName, config, forceFresh, agent, itemCount);
+                BeginSession(configFileName, config, forceFresh, agent, itemCount, revisionCount);
 
-                Console.WriteLine($"Found {itemCount} items to import.");
                 while (plan.TryPop(out ExecutionPlan.ExecutionItem executionItem))
                 {
                     try
                     {
                         if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
                             continue;
+
+                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
                         WorkItem wi = null;
 
@@ -118,7 +122,6 @@ namespace WorkItemImport
                             wi = agent.CreateWI(executionItem.WiType);
 
                         agent.ImportRevision(executionItem.Revision, wi);
-
                         importedItems++;
                     }
                     catch (AbortMigrationException)
@@ -149,11 +152,11 @@ namespace WorkItemImport
             }
             finally
             {
-                EndSession(itemCount, sw);
+                EndSession(itemCount, revisionCount, sw);
             }
         }
 
-        private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount)
+        private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount, int revisionCount)
         {
             var toolVersion = VersionInfo.GetVersionInfo();
             var osVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
@@ -161,7 +164,7 @@ namespace WorkItemImport
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
             var hostingType = GetHostingType(agent);
 
-            Logger.Log(LogLevel.Info, $"Import started. Importing {itemsCount} items.");
+            Logger.Log(LogLevel.Info, $"Import started. Importing {itemsCount} items with {revisionCount} revisions.");
 
             Logger.StartSession("Azure DevOps Work Item Import", 
                 "wi-import-started",
@@ -183,6 +186,7 @@ namespace WorkItemImport
                     },
                 new Dictionary<string, string>() {
                     { "item-count", itemsCount.ToString() },
+                    { "revision-count", revisionCount.ToString() },
                     { "system-version", "n/a" },
                     { "hosting-type", hostingType } });
         }
@@ -200,15 +204,16 @@ namespace WorkItemImport
             }
         }
 
-        private static void EndSession(int itemsCount, Stopwatch sw)
+        private static void EndSession(int itemsCount, int revisionCount, Stopwatch sw)
         {
             sw.Stop();
 
-            Logger.Log(LogLevel.Info, $"Import complete. Imported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+            Logger.Log(LogLevel.Info, $"Import complete. Imported {itemsCount} items, {revisionCount} revisions ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
             Logger.EndSession("wi-import-completed",
                 new Dictionary<string, string>() {
                     { "item-count", itemsCount.ToString() },
+                    { "revision-count", revisionCount.ToString() },
                     { "error-count", Logger.Errors.ToString() },
                     { "warning-count", Logger.Warnings.ToString() },
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) } });

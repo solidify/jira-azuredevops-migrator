@@ -80,7 +80,7 @@ namespace Migration.Common.Log
             {
                 TelemetryConfiguration.Active.InstrumentationKey = key;
                 _telemetryClient = new TelemetryClient();
-                //_telemetryClient.Context.Component.Version = VersionInfo.GetVersionInfo();
+                _telemetryClient.Context.Component.Version = VersionInfo.GetVersionInfo();
                 _telemetryClient.Context.Session.Id = SessionId;
             }
         }
@@ -94,8 +94,8 @@ namespace Migration.Common.Log
                 _errors.Add(message);
                 Console.Write("Do you want to continue (y/n)? ");
                 var answer = Console.ReadKey();
-                //if (answer.Key == ConsoleKey.N)
-                //throw new AbortMigrationException(message);
+                if (answer.Key == ConsoleKey.N)
+                    throw new AbortMigrationException(message);
             }
             else if (level == LogLevel.Error)
             {
