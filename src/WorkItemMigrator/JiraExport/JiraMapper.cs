@@ -8,6 +8,7 @@ using Migration.Common.Config;
 using System.Reflection;
 using Newtonsoft.Json;
 using Migration.WIContract;
+using Migration.Common.Log;
 
 namespace JiraExport
 {
@@ -93,6 +94,8 @@ namespace JiraExport
 
         private WiRevision MapRevision(JiraRevision r)
         {
+            Logger.Log(LogLevel.Debug, $"Mapping revision {r.Index}.");
+
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
@@ -137,7 +140,7 @@ namespace JiraExport
                 }
                 else
                 {
-                    Logger.Log(LogLevel.Warning, $"Type mapping missing for {issue.Key} with Jira type {issue.Type}. Item not exported which may cause missing links in related issues.");
+                    Logger.Log(LogLevel.Warning, $"Type mapping missing for '{issue.Key}' with Jira type '{issue.Type}'. Item was not exported which may cause missing links in issues referencing this item.");
                     return null;
                 }
             }
@@ -239,6 +242,7 @@ namespace JiraExport
 
                             if (include)
                             {
+                                Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {
                                     ReferenceName = fieldreference,
@@ -248,7 +252,7 @@ namespace JiraExport
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error, $"Error mapping field {field.Key} on item {r.OriginId}: {ex.Message}");
+                            Logger.Log(ex, $"Error mapping field '{field.Key}' on item '{r.OriginId}'.");
                         }
                     }
                 }
@@ -267,6 +271,8 @@ namespace JiraExport
             var featureFields = new FieldMapping<JiraRevision>();
             var requirementFields = new FieldMapping<JiraRevision>();
             var userStoryFields = new FieldMapping<JiraRevision>();
+
+            Logger.Log(LogLevel.Info, "Initializing Jira field mapping...");
 
             foreach (var item in _config.FieldMap.Fields)
             {
@@ -434,6 +440,10 @@ namespace JiraExport
                           item.Mapping?.Values != null)
                     {
                         var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
+                        if(string.IsNullOrEmpty(mappedValue))
+                        {
+                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}'.");
+                        }
                         return (true, mappedValue);
                     }
                 }

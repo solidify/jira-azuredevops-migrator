@@ -5,6 +5,7 @@ using System.Linq;
 using Common.Config;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Migration.Common.Log;
 
 namespace Migration.Common.Config
 {
@@ -32,22 +33,22 @@ namespace Migration.Common.Config
             }
             catch (FileNotFoundException)
             {
-                Logger.Log(LogLevel.Error, "Required JSON configuration file was not found. Please ensure that this file is in the correct location.");
+                Logger.Log(LogLevel.Error, $"Required JSON configuration file '{filePath}' was not found. Please ensure that this file is in the correct location.");
                 throw;
             }
             catch (PathTooLongException)
             {
-                Logger.Log(LogLevel.Error, "Required JSON configuration file could not be accessed because the file path is too long. Please store your files for this application in a folder location with a shorter path name.");
+                Logger.Log(LogLevel.Error, $"Required JSON configuration file '{filePath}' could not be accessed because the file path is too long. Please store your files for this application in a folder location with a shorter path name.");
                 throw;
             }
             catch (UnauthorizedAccessException)
             {
-                Logger.Log(LogLevel.Error, "Cannot read from the JSON configuration file because you are not authorized to access it. Please try running this application as administrator or moving it to a folder location that does not require special access.");
+                Logger.Log(LogLevel.Error, $"Cannot read from the JSON configuration file '{filePath}' because you are not authorized to access it. Please try running this application as administrator or moving it to a folder location that does not require special access.");
                 throw;
             }
             catch (Exception)
             {
-                Logger.Log(LogLevel.Error, "Cannot read from the JSON configuration file. Please ensure it is formatted properly.");
+                Logger.Log(LogLevel.Error, $"Cannot read from the JSON configuration file '{filePath}'. Please ensure it is formatted properly.");
                 throw;
             }
         }

@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Migration.Common.Log;
 
 namespace JiraExport
 {
@@ -17,12 +18,12 @@ namespace JiraExport
         public static JiraItem CreateFromRest(string issueKey, JiraProvider jiraProvider)
         {
             var remoteIssue = jiraProvider.DownloadIssue(issueKey);
-            Logger.Log(LogLevel.Debug, $"Downloaded {issueKey}");
+            Logger.Log(LogLevel.Debug, $"Downloaded item.");
 
             var jiraItem = new JiraItem(jiraProvider, remoteIssue);
             var revisions = BuildRevisions(jiraItem, jiraProvider);
             jiraItem.Revisions = revisions;
-            Logger.Log(LogLevel.Debug, $"Formed representation of jira item {issueKey}");
+            Logger.Log(LogLevel.Debug, $"Created {revisions.Count} history revisions.");
 
             return jiraItem;
         }
@@ -34,7 +35,6 @@ namespace JiraExport
             Dictionary<string, object> fields = ExtractFields(issueKey, (JObject)remoteIssue.SelectToken("$.fields"), jiraProvider);
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
-
 
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
             changelog.Reverse();
@@ -130,14 +130,14 @@ namespace JiraExport
         {
             if (attachmentChange.ChangeType == RevisionChangeType.Removed)
             {
-                Logger.Log(LogLevel.Debug, $"Skipping undo for: {attachmentChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
                 return;
             }
 
             if (attachments.Remove(attachmentChange.Value))
-                Logger.Log(LogLevel.Debug, $"Undone: {attachmentChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Undone attachment '{attachmentChange.ToString()}'.");
             else
-                Logger.Log(LogLevel.Debug, $"No attachment to undo: {attachmentChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"No attachment to undo for '{attachmentChange.ToString()}'.");
         }
 
         private static RevisionAction<JiraAttachment> TransformAttachmentChange(JiraChangeItem item)
@@ -209,14 +209,14 @@ namespace JiraExport
         {
             if (linkChange.ChangeType == RevisionChangeType.Removed)
             {
-                Logger.Log(LogLevel.Debug, $"Skipping undo for: {linkChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Skipping undo for link '{linkChange.ToString()}'.");
                 return;
             }
 
             if (links.Remove(linkChange.Value))
-                Logger.Log(LogLevel.Debug, $"Undone: {linkChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Undone link '{linkChange.ToString()}'.");
             else
-                Logger.Log(LogLevel.Debug, $"No link to undo: {linkChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"No link to undo for '{linkChange.ToString()}'");
         }
 
         private static RevisionAction<JiraLink> TransformLinkChange(JiraChangeItem item, string sourceItemKey, JiraProvider jira)
@@ -246,7 +246,7 @@ namespace JiraExport
             var linkType = jira.LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Outward + " " + targetItemKey));
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Debug, $"Link with descrption \"{linkTypeString}\" is either not found or this issue ({sourceItemKey}) is not inward issue.");
+                Logger.Log(LogLevel.Debug, $"Link with description '{linkTypeString}' is either not found or this issue ({sourceItemKey}) is not inward issue.");
                 return null;
             }
             else
