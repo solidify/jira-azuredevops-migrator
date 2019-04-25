@@ -49,7 +49,7 @@ namespace Migration.WIContract
                 {
                     result.Add(LoadFile(filePath));
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {
                     Logger.Log(LogLevel.Error, $"Failed to load '{Path.GetFileName(filePath)}' (perhaps not a migration file?).");
                 }
