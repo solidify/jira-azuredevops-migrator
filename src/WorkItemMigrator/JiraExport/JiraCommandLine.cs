@@ -75,7 +75,7 @@ namespace JiraExport
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 var config = configReaderJson.Deserialize();
 
-                InitSession(configFileName, config, forceFresh);
+                InitSession(config);
 
                 // Migration session level settings
                 // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
@@ -133,7 +133,7 @@ namespace JiraExport
             }
         }
 
-        private static void InitSession(string configFile, ConfigJson config, bool force)
+        private static void InitSession(ConfigJson config)
         {
             Logger.Init("jira-export", config.Workspace, config.LogLevel);
         }
