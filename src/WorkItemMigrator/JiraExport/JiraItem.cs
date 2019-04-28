@@ -316,9 +316,6 @@ namespace JiraExport
                     {
                         { "priority", extractName },
                         { "labels", t => t.Values<string>().Any() ? string.Join(" ", t.Values<string>()) : null },
-                        { "fixversions", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
-                        { "versions", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
-                        { "components", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
                         { "assignee", extractName },
                         { "creator", extractName },
                         { "reporter", extractName},
@@ -345,6 +342,15 @@ namespace JiraExport
                 else if (prop.Value.Type == JTokenType.Date)
                 {
                     value = prop.Value.Value<DateTime>();
+                }
+                else if (type == JTokenType.Array)
+                {
+                    if (prop.Value.Any())
+                    {
+                        value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
+                        if (value == ";")
+                            value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
+                    }
                 }
 
                 if (value != null)
