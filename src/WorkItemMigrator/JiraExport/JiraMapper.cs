@@ -301,6 +301,9 @@ namespace JiraExport
                             case "MapTags":
                                 value = IfChanged<string>(item.Source, isCustomField, MapTags);
                                 break;
+                            case "MapArray":
+                                value = IfChanged<string>(item.Source, isCustomField, MapArray);
+                                break;
                             case "MapRemainingWork":
                                 value = IfChanged<string>(item.Source, isCustomField, MapRemainingWork);
                                 break;
@@ -465,6 +468,18 @@ namespace JiraExport
                 return null;
             else
                 return string.Join(";", tags);
+        }
+
+        private object MapArray(string field)
+        {
+            if (string.IsNullOrWhiteSpace(field))
+                return null;
+
+            var values = field.Split(',');
+            if (!values.Any())
+                return null;
+            else
+                return string.Join(";", values);
         }
 
         private object MapSprint(string iterationPathsString)
