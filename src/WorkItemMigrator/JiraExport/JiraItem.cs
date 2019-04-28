@@ -328,9 +328,10 @@ namespace JiraExport
             foreach (var prop in remoteFields.Properties())
             {
                 var type = prop.Value.Type;
+                var name = prop.Name.ToLower();
                 object value = null;
 
-                if (_fieldExtractionMapping.TryGetValue(prop.Name, out Func<JToken, object> mapping))
+                if (_fieldExtractionMapping.TryGetValue(name, out Func<JToken, object> mapping))
                 {
                     value = mapping(prop.Value);
                 }
@@ -342,10 +343,19 @@ namespace JiraExport
                 {
                     value = prop.Value.Value<DateTime>();
                 }
+                else if (type == JTokenType.Array)
+                {
+                    if (prop.Value.Any())
+                    {
+                        value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
+                        if (value == ";")
+                            value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
+                    }
+                }
 
                 if (value != null)
                 {
-                    fields[prop.Name] = value;
+                    fields[name] = value;
                 }
             }
 
