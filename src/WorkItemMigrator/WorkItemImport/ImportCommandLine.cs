@@ -112,7 +112,7 @@ namespace WorkItemImport
                         if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
                             continue;
 
-                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
+                        //Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
                         WorkItem wi = null;
 
@@ -120,6 +120,8 @@ namespace WorkItemImport
                             wi = agent.GetWorkItem(executionItem.WiId);
                         else
                             wi = agent.CreateWI(executionItem.WiType);
+
+                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{wi.Id}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
                         agent.ImportRevision(executionItem.Revision, wi);
                         importedItems++;

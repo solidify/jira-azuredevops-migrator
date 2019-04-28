@@ -394,6 +394,20 @@ namespace WorkItemImport
                                 iterationPath = string.Join("/", iterationPath, (string)fieldValue);
                         }
 
+                        var field = wi.Fields[fieldRef];
+                        if (!((string)field.Value).EndsWith(iterationPath))
+                        {
+                            if (!string.IsNullOrWhiteSpace(iterationPath))
+                            {
+                                field.Value = @"\" + string.Join("/", Settings.Project, iterationPath).Replace("/", @"\");
+                            }
+                            else
+                            {
+                                field.Value = @"\" + Settings.Project;
+                            }
+                            Logger.Log(LogLevel.Debug, $"Assigned IterationPath '{field.Value}'.");
+                        }
+
                         fieldRef = "System.IterationId";
                         if (!string.IsNullOrWhiteSpace(iterationPath))
                         {
@@ -415,6 +429,20 @@ namespace WorkItemImport
                                 areaPath = (string)fieldValue;
                             else
                                 areaPath = string.Join("/", areaPath, (string)fieldValue);
+                        }
+
+                        var field = wi.Fields[fieldRef];
+                        if (!((string)field.Value).EndsWith(areaPath))
+                        {
+                            if (!string.IsNullOrWhiteSpace(areaPath))
+                            {
+                                field.Value = @"\" + string.Join("/", Settings.Project, areaPath).Replace("/", @"\");
+                            }
+                            else
+                            {
+                                field.Value = @"\" + Settings.Project;
+                            }
+                            Logger.Log(LogLevel.Debug, $"Assigned AreaPath '{field.Value}'.");
                         }
 
                         fieldRef = "System.AreaId";
@@ -635,8 +663,6 @@ namespace WorkItemImport
         {
             if (!newWorkItem.IsValid())
             {
-                Logger.Log(LogLevel.Error, $"'{rev.ToString()}' - Invalid revision");
-
                 var reasons = newWorkItem.Validate();
                 foreach (Microsoft.TeamFoundation.WorkItemTracking.Client.Field reason in reasons)
                     Logger.Log(LogLevel.Info, $"Field: '{reason.Name}', Status: '{reason.Status}', Value: '{reason.Value}'");
@@ -790,7 +816,7 @@ namespace WorkItemImport
 
                 return true;
             }
-            catch (AbortMigrationException ame)
+            catch (AbortMigrationException)
             {
                 throw;
             }
