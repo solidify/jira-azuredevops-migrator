@@ -112,8 +112,6 @@ namespace WorkItemImport
                         if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
                             continue;
 
-                        //Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
-
                         WorkItem wi = null;
 
                         if (executionItem.WiId > 0)
