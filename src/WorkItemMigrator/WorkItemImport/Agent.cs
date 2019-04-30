@@ -355,7 +355,7 @@ namespace WorkItemImport
 
                 if (node != null)
                 {
-                    Logger.Log(LogLevel.Info, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
+                    Logger.Log(LogLevel.Debug, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
                     cache.Add(fullName, node.Id);
                     Store.RefreshCache();
                     return node.Id;
@@ -394,30 +394,17 @@ namespace WorkItemImport
                                 iterationPath = string.Join("/", iterationPath, (string)fieldValue);
                         }
 
-                        var field = wi.Fields[fieldRef];
-                        if (!((string)field.Value).EndsWith(iterationPath))
-                        {
-                            if (!string.IsNullOrWhiteSpace(iterationPath))
-                            {
-                                field.Value = @"\" + string.Join("/", Settings.Project, iterationPath).Replace("/", @"\");
-                            }
-                            else
-                            {
-                                field.Value = @"\" + Settings.Project;
-                            }
-                            Logger.Log(LogLevel.Debug, $"Assigned IterationPath '{field.Value}'.");
-                        }
-
-                        fieldRef = "System.IterationId";
                         if (!string.IsNullOrWhiteSpace(iterationPath))
                         {
-                            int? iterationId = EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
-                            fieldValue = iterationId;
+                            EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
+                            wi.IterationPath = $@"{Settings.Project}\{iterationPath}";
                         }
                         else
                         {
-                            fieldValue = RootIteration;
+                            wi.IterationPath = Settings.Project;
                         }
+
+                        Logger.Log(LogLevel.Debug, $"Assigned IterationPath '{wi.IterationPath}'.");
                     }
                     else if (fieldRef.Equals("System.AreaPath", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -431,36 +418,27 @@ namespace WorkItemImport
                                 areaPath = string.Join("/", areaPath, (string)fieldValue);
                         }
 
-                        var field = wi.Fields[fieldRef];
-                        if (!((string)field.Value).EndsWith(areaPath))
-                        {
-                            if (!string.IsNullOrWhiteSpace(areaPath))
-                            {
-                                field.Value = @"\" + string.Join("/", Settings.Project, areaPath).Replace("/", @"\");
-                            }
-                            else
-                            {
-                                field.Value = @"\" + Settings.Project;
-                            }
-                            Logger.Log(LogLevel.Debug, $"Assigned AreaPath '{field.Value}'.");
-                        }
-
-                        fieldRef = "System.AreaId";
                         if (!string.IsNullOrWhiteSpace(areaPath))
                         {
-                            int? areaId = EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
-                            fieldValue = areaId;
+                            EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
+                            wi.AreaPath = $@"{Settings.Project}\{areaPath}";
                         }
                         else
                         {
-                            fieldValue = RootArea;
+                            wi.AreaPath = Settings.Project;
                         }
-                    }
 
-                    if (fieldValue != null)
+                        Logger.Log(LogLevel.Debug, $"Assigned AreaPath '{wi.AreaPath}'.");
+                    }
+                    else
                     {
-                        var field = wi.Fields[fieldRef];
-                        field.Value = fieldValue;
+                        if (fieldValue != null)
+                        {
+                            var field = wi.Fields[fieldRef];
+                            field.Value = fieldValue;
+
+                            Logger.Log(LogLevel.Debug, $"Assigned '{fieldRef}' '{fieldValue}'.");
+                        }
                     }
                 }
                 catch (Exception ex)
