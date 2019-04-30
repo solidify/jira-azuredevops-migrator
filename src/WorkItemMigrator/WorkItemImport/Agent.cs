@@ -397,14 +397,14 @@ namespace WorkItemImport
                         if (!string.IsNullOrWhiteSpace(iterationPath))
                         {
                             EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
-                            wi.IterationPath = $@"{Settings.Project}\{iterationPath}";
+                            wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
                         }
                         else
                         {
                             wi.IterationPath = Settings.Project;
                         }
 
-                        Logger.Log(LogLevel.Debug, $"Assigned IterationPath '{wi.IterationPath}'.");
+                        Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.IterationPath}'.");
                     }
                     else if (fieldRef.Equals("System.AreaPath", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -421,14 +421,14 @@ namespace WorkItemImport
                         if (!string.IsNullOrWhiteSpace(areaPath))
                         {
                             EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
-                            wi.AreaPath = $@"{Settings.Project}\{areaPath}";
+                            wi.AreaPath = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
                         }
                         else
                         {
                             wi.AreaPath = Settings.Project;
                         }
 
-                        Logger.Log(LogLevel.Debug, $"Assigned AreaPath '{wi.AreaPath}'.");
+                        Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
                     }
                     else
                     {
@@ -437,7 +437,7 @@ namespace WorkItemImport
                             var field = wi.Fields[fieldRef];
                             field.Value = fieldValue;
 
-                            Logger.Log(LogLevel.Debug, $"Assigned '{fieldRef}' '{fieldValue}'.");
+                            Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
                         }
                     }
                 }
