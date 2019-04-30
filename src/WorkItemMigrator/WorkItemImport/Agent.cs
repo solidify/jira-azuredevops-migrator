@@ -355,7 +355,7 @@ namespace WorkItemImport
 
                 if (node != null)
                 {
-                    Logger.Log(LogLevel.Info, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
+                    Logger.Log(LogLevel.Debug, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
                     cache.Add(fullName, node.Id);
                     Store.RefreshCache();
                     return node.Id;
@@ -394,16 +394,17 @@ namespace WorkItemImport
                                 iterationPath = string.Join("/", iterationPath, (string)fieldValue);
                         }
 
-                        fieldRef = "System.IterationId";
                         if (!string.IsNullOrWhiteSpace(iterationPath))
                         {
-                            int? iterationId = EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
-                            fieldValue = iterationId;
+                            EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
+                            wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
                         }
                         else
                         {
-                            fieldValue = RootIteration;
+                            wi.IterationPath = Settings.Project;
                         }
+
+                        Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.IterationPath}'.");
                     }
                     else if (fieldRef.Equals("System.AreaPath", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -417,22 +418,27 @@ namespace WorkItemImport
                                 areaPath = string.Join("/", areaPath, (string)fieldValue);
                         }
 
-                        fieldRef = "System.AreaId";
                         if (!string.IsNullOrWhiteSpace(areaPath))
                         {
-                            int? areaId = EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
-                            fieldValue = areaId;
+                            EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
+                            wi.AreaPath = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
                         }
                         else
                         {
-                            fieldValue = RootArea;
+                            wi.AreaPath = Settings.Project;
                         }
-                    }
 
-                    if (fieldValue != null)
+                        Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
+                    }
+                    else
                     {
-                        var field = wi.Fields[fieldRef];
-                        field.Value = fieldValue;
+                        if (fieldValue != null)
+                        {
+                            var field = wi.Fields[fieldRef];
+                            field.Value = fieldValue;
+
+                            Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -635,8 +641,6 @@ namespace WorkItemImport
         {
             if (!newWorkItem.IsValid())
             {
-                Logger.Log(LogLevel.Error, $"'{rev.ToString()}' - Invalid revision");
-
                 var reasons = newWorkItem.Validate();
                 foreach (Microsoft.TeamFoundation.WorkItemTracking.Client.Field reason in reasons)
                     Logger.Log(LogLevel.Info, $"Field: '{reason.Name}', Status: '{reason.Status}', Value: '{reason.Value}'");
@@ -790,7 +794,7 @@ namespace WorkItemImport
 
                 return true;
             }
-            catch (AbortMigrationException ame)
+            catch (AbortMigrationException)
             {
                 throw;
             }

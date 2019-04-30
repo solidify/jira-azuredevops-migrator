@@ -343,14 +343,11 @@ namespace JiraExport
                 {
                     value = prop.Value.Value<DateTime>();
                 }
-                else if (type == JTokenType.Array)
+                else if (type == JTokenType.Array && prop.Value.Any())
                 {
-                    if (prop.Value.Any())
-                    {
-                        value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
-                        if (value == ";")
-                            value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
-                    }
+                    value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
+                    if ((string)value == ";")
+                        value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
                 }
 
                 if (value != null)
