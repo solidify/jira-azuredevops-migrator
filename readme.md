@@ -28,7 +28,7 @@ The tools are provided as-is and will require detailed understanding of how to m
 
 * See the [migration process](docs/overview.md) overview for information on how to get started.
 * Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/jira-to-vsts-migration-work-items/) for more context of the process.
-* Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://dev.azure.com/solidify/OSS/_build?definitionId=50) for a complete step-by-step walkthrough on a migration.
+* Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/jira-azure-devops-migration/) for a complete step-by-step walkthrough on a migration.
 
 # Telemetry
 
