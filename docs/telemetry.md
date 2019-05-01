@@ -2,7 +2,7 @@
 
 ## Usage Tracking
 
-We use [Application Insights]() to collect usage and error information in order to improve the quality of the tools.
+We use [Application Insights](https://azure.microsoft.com/en-us/services/monitor/) to collect usage and error information in order to improve the quality of the tools.
 
 Currently we collect the following anonymous data:
 
