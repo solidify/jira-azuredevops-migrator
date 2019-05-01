@@ -51,7 +51,7 @@ namespace Migration.WIContract
                 }
                 catch(Exception)
                 {
-                    Logger.Log(LogLevel.Error, $"Failed to load '{Path.GetFileName(filePath)}' (perhaps not a migration file?).");
+                    Logger.Log(LogLevel.Warning, $"Failed to load '{Path.GetFileName(filePath)}' (perhaps not a migration file?).");
                 }
             }
             return result;
