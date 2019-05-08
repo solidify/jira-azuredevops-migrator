@@ -23,8 +23,8 @@ namespace Migration.Common.Log
         private const string SEPARATOR = "====================================================================";
         private static string _logFilePath;
         private static LogLevel _logLevel;
-        private static List<string> _errors = new List<string>();
-        private static List<string> _warnings = new List<string>();
+        private static int _errorCount = 0;
+        private static int _warningCount = 0;
         private static TelemetryClient _telemetryClient = null;
 
         static Logger()
@@ -85,13 +85,15 @@ namespace Migration.Common.Log
             }
         }
 
-        public static void Log(LogLevel level, string message)
+        public static void Log(LogLevel level, string message, bool skipCount = false)
         {
             LogInternal(level, message);
 
             if (level == LogLevel.Critical)
             {
-                _errors.Add(message);
+                if(!skipCount)
+                    _errorCount++;
+
                 Console.Write("Do you want to continue (y/n)? ");
                 var answer = Console.ReadKey();
                 if (answer.Key == ConsoleKey.N)
@@ -99,10 +101,15 @@ namespace Migration.Common.Log
             }
             else if (level == LogLevel.Error)
             {
-                _errors.Add(message);
+                if (!skipCount)
+                    _errorCount++;
             }
             else if (level == LogLevel.Warning)
-                _warnings.Add(message);
+            {
+                if (!skipCount)
+                    _warningCount++;
+
+            }
         }
 
         private static void LogInternal(LogLevel level, string message)
@@ -210,9 +217,9 @@ namespace Migration.Common.Log
             }
         }
 
-        public static int Warnings => _warnings.Count;
+        public static int Warnings => _warningCount;
 
-        public static int Errors => _errors.Count;
+        public static int Errors => _errorCount;
 
         public static string SessionId { get; } = Guid.NewGuid().ToString();
 

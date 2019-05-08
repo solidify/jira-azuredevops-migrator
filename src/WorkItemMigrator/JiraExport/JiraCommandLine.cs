@@ -13,6 +13,7 @@ using Migration.WIContract;
 using Newtonsoft.Json;
 using Migration.Common.Log;
 using System.Diagnostics;
+using static JiraExport.JiraProvider;
 
 namespace JiraExport
 {
@@ -81,7 +82,7 @@ namespace JiraExport
                 // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
                 string migrationWorkspace = config.Workspace;
 
-                var downloadOptions = JiraProvider.DownloadOptions.IncludeParentEpics | JiraProvider.DownloadOptions.IncludeSubItems | JiraProvider.DownloadOptions.IncludeParents;
+                var downloadOptions = (DownloadOptions)config.DownloadOptions;
 
                 var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
                 {
@@ -97,9 +98,16 @@ namespace JiraExport
 
                 BeginSession(configFileName, config, forceFresh, jiraProvider, itemsCount);
 
-                // Get the custom field names for epic link field and sprint field
                 jiraSettings.EpicLinkField = jiraProvider.GetCustomId(config.EpicLinkField);
+                if(string.IsNullOrEmpty(jiraSettings.EpicLinkField))
+                {
+                    Logger.Log(LogLevel.Warning, $"Epic link field missing for config field '{config.EpicLinkField}'.");
+                }
                 jiraSettings.SprintField = jiraProvider.GetCustomId(config.SprintField);
+                if (string.IsNullOrEmpty(jiraSettings.SprintField))
+                {
+                    Logger.Log(LogLevel.Warning, $"Sprint link field missing for config field '{config.SprintField}'.");
+                }
 
                 var mapper = new JiraMapper(jiraProvider, config);
                 var localProvider = new WiItemProvider(migrationWorkspace);

@@ -383,7 +383,12 @@ namespace JiraExport
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
         public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
 
-        public string EpicParent { get { return RemoteIssue.ExValue<string>($"$.fields.{_provider.Settings.EpicLinkField}"); } }
+        public string EpicParent { get {
+                if (!string.IsNullOrEmpty(_provider.Settings.EpicLinkField))
+                    return RemoteIssue.ExValue<string>($"$.fields.{_provider.Settings.EpicLinkField}");
+                else
+                    return null;
+            } }
         public string Parent { get { return RemoteIssue.ExValue<string>("$.fields.parent.key"); } }
         public List<string> SubItems { get { return RemoteIssue.SelectTokens("$.fields.subtasks.[*]", false).Select(st => st.ExValue<string>("$.key")).ToList(); } }
 
