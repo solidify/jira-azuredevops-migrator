@@ -56,7 +56,7 @@ namespace JiraExport
             {
                 Logger.Log(LogLevel.Info, "Connecting to Jira...");
 
-                jira = Jira.CreateRestClient(jiraSettings.Url, jiraSettings.UserID, jiraSettings.Pass, settings);
+                jira = Jira.CreateRestClient(jiraSettings.Url, jiraSettings.UserID, jiraSettings.Pass);
             }
             catch (Exception ex)
             {

@@ -11,11 +11,11 @@ namespace Migration.Common.Log
 {
     public enum LogLevel
     {
-        Debug,
-        Info,
-        Warning,
-        Error,
-        Critical
+        Debug = 0,
+        Info = 1,
+        Warning = 2,
+        Error = 3,
+        Critical = 4
     }
 
     public static class Logger
@@ -23,8 +23,8 @@ namespace Migration.Common.Log
         private const string SEPARATOR = "====================================================================";
         private static string _logFilePath;
         private static LogLevel _logLevel;
-        private static int _errorCount = 0;
-        private static int _warningCount = 0;
+        private static List<string> _errors = new List<string>();
+        private static List<string> _warnings = new List<string>();
         private static TelemetryClient _telemetryClient = null;
 
         static Logger()
@@ -85,14 +85,14 @@ namespace Migration.Common.Log
             }
         }
 
-        public static void Log(LogLevel level, string message, bool skipCount = false)
+        public static void Log(LogLevel level, string message)
         {
             LogInternal(level, message);
 
             if (level == LogLevel.Critical)
             {
-                if(!skipCount)
-                    _errorCount++;
+                if(!_errors.Contains(message))
+                    _errors.Add(message);
 
                 Console.Write("Do you want to continue (y/n)? ");
                 var answer = Console.ReadKey();
@@ -101,14 +101,13 @@ namespace Migration.Common.Log
             }
             else if (level == LogLevel.Error)
             {
-                if (!skipCount)
-                    _errorCount++;
+                if (!_errors.Contains(message))
+                    _errors.Add(message);
             }
-            else if (level == LogLevel.Warning)
+            else if (level == LogLevel.Warning && !_warnings.Contains(message))
             {
-                if (!skipCount)
-                    _warningCount++;
-
+                _warnings.Add(message);
+                LogTrace(message, level);
             }
         }
 
@@ -129,7 +128,13 @@ namespace Migration.Common.Log
             Log(logLevel, $"{message + Environment.NewLine}[{ex.GetType().ToString()}] {ex.ToString()}: {Environment.NewLine + ex.StackTrace}");
         }
 
-        public static void LogEvent(string message, Dictionary<string, string> properties)
+        private static void LogTrace(string message, LogLevel level)
+        {
+            if (_telemetryClient != null)
+                _telemetryClient.TrackTrace(message, (SeverityLevel)level);
+        }
+
+        private static void LogEvent(string message, Dictionary<string, string> properties)
         {
             if (_telemetryClient != null)
                 _telemetryClient.TrackEvent(message, properties);
@@ -217,9 +222,9 @@ namespace Migration.Common.Log
             }
         }
 
-        public static int Warnings => _warningCount;
+        public static int Warnings => _warnings.Count;
 
-        public static int Errors => _errorCount;
+        public static int Errors => _errors.Count;
 
         public static string SessionId { get; } = Guid.NewGuid().ToString();
 
