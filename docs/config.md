@@ -24,6 +24,7 @@ The migration configuration file is defined in a json file with the properties d
 |**epic-link-field**|False|string|Jira name of epic link field. Default = "Epic Link". **Note:** requires customization per account and sometimes project|
 |**sprint-field**|False|string|Jira name of sprint field. Default = "Sprint". **Note:** requires customization per account and sometimes project|
 |**batch-size**|False|integer|Number of items to retrieve with one call. Default = 20.|
+|**download-options**|False|integer|Type of related issues to migrate, see **Download options** below|
 |**log-level**|False|string|Debug, Info, Warning, Error or Critical. Default = "Debug".|
 |**attachment-folder**|True|string|Location to store attachments.|
 |**user-mapping-file**|False|string|Name of user mapping file. If no specific path is set the program expects it to be located in the "workspace" folder.|
@@ -34,6 +35,18 @@ The migration configuration file is defined in a json file with the properties d
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
 |**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
+
+## Download options
+This option allows the tool to download related issues to cover cases where these are not included in the section query (like a parent issue).
+
+Default value: 7 (=all)
+
+|Option|Value|
+|---|---|
+|None|0|
+|IncludeParentEpics|1|
+|IncludeParents|2|
+|IncludeSubItems|4|
 
 ## Link properties
 Name-value pairs of work item link types to map in the migration.
@@ -81,6 +94,7 @@ Name-value pairs of field values to map in the migration.
   "workspace": "C:\\Temp\\JiraExport\\",
   "epic-link-field": "Epic Link",
   "sprint-field": "Sprint",
+  "download-options": 7,
   "batch-size": 20,
   "log-level": "Debug",
   "attachment-folder": "Attachments",
