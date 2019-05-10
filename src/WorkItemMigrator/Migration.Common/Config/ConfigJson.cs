@@ -23,6 +23,9 @@ namespace Common.Config
         [JsonProperty(PropertyName = "sprint-field")]
         public string SprintField { get; set; } = "Sprint";
 
+        [JsonProperty(PropertyName = "download-options")]
+        public int DownloadOptions { get; set; } = 7;   // = All, see DownloadOptions
+
         [JsonProperty(PropertyName = "batch-size")]
         public int BatchSize { get; set; } = 20;
 

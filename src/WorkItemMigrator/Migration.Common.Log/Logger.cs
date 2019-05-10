@@ -11,11 +11,11 @@ namespace Migration.Common.Log
 {
     public enum LogLevel
     {
-        Debug,
-        Info,
-        Warning,
-        Error,
-        Critical
+        Debug = 0,
+        Info = 1,
+        Warning = 2,
+        Error = 3,
+        Critical = 4
     }
 
     public static class Logger
@@ -91,7 +91,9 @@ namespace Migration.Common.Log
 
             if (level == LogLevel.Critical)
             {
-                _errors.Add(message);
+                if(!_errors.Contains(message))
+                    _errors.Add(message);
+
                 Console.Write("Do you want to continue (y/n)? ");
                 var answer = Console.ReadKey();
                 if (answer.Key == ConsoleKey.N)
@@ -99,10 +101,14 @@ namespace Migration.Common.Log
             }
             else if (level == LogLevel.Error)
             {
-                _errors.Add(message);
+                if (!_errors.Contains(message))
+                    _errors.Add(message);
             }
-            else if (level == LogLevel.Warning)
+            else if (level == LogLevel.Warning && !_warnings.Contains(message))
+            {
                 _warnings.Add(message);
+                LogTrace(message, level);
+            }
         }
 
         private static void LogInternal(LogLevel level, string message)
@@ -122,7 +128,13 @@ namespace Migration.Common.Log
             Log(logLevel, $"{message + Environment.NewLine}[{ex.GetType().ToString()}] {ex.ToString()}: {Environment.NewLine + ex.StackTrace}");
         }
 
-        public static void LogEvent(string message, Dictionary<string, string> properties)
+        private static void LogTrace(string message, LogLevel level)
+        {
+            if (_telemetryClient != null)
+                _telemetryClient.TrackTrace(message, (SeverityLevel)level);
+        }
+
+        private static void LogEvent(string message, Dictionary<string, string> properties)
         {
             if (_telemetryClient != null)
                 _telemetryClient.TrackEvent(message, properties);

@@ -18,10 +18,8 @@ namespace JiraExport
         {
             None = 0,
             IncludeParentEpics = 1,
-            IncludeEpicChildren = 2,
-            IncludeParents = 3,
-            IncludeSubItems = 4,
-            IncludeLinkedItems = 5
+            IncludeParents = 2,
+            IncludeSubItems = 4
         }
 
         readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
@@ -57,6 +55,7 @@ namespace JiraExport
             try
             {
                 Logger.Log(LogLevel.Info, "Connecting to Jira...");
+
                 jira = Jira.CreateRestClient(jiraSettings.Url, jiraSettings.UserID, jiraSettings.Pass);
             }
             catch (Exception ex)
