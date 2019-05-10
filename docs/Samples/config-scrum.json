@@ -5,6 +5,7 @@
   "workspace": "C:\\Temp\\JiraExport\\",
   "epic-link-field": "Epic Link",
   "sprint-field": "Sprint",
+  "download-options": 7,
   "batch-size": 20,
   "log-level": "Info",
   "attachment-folder": "Attachments",
