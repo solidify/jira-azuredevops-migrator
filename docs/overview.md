@@ -21,7 +21,7 @@ The key capabilities of the tool includes:
 ## Jira requirements 
 
 1. Identify the migration account (username and password) to access Jira   
-   **Note:** make sure to use the Jira username and not email if you get an authentication exception (401).
+   **Note:** make sure to use the Jira username and not email if you get an authentication exception (401).  If you are using the username and still getting the 401 error, generate a token in the security details of your JIRA profile and use the token instead of the password in the -p parameter of the jira-export request.
    
 2. Get the url to Jira and the name of the source project
 
