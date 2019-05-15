@@ -101,39 +101,42 @@ namespace JiraExport
         {
             if (att != null)
             {
-                try
-                {
-                    if (string.IsNullOrWhiteSpace(att.Url))
-                        att = await GetAttachmentInfo(att.Id);
+                if (string.IsNullOrWhiteSpace(att.Url))
+                    att = await GetAttachmentInfo(att.Id);
 
+                if (att != null)
+                {
                     if (!string.IsNullOrWhiteSpace(att.Url))
                     {
-                        string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
-                        EnsurePath(path);
-                        await web.DownloadWithAuthenticationAsync(att.Url, path);
-                        att.LocalPath = path;
-                        Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
+                        try
+                        {
+                            string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
+                            EnsurePath(path);
+                            await web.DownloadWithAuthenticationAsync(att.Url, path);
+                            att.LocalPath = path;
+                            Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex, $"Attachment download failed for '{att.Id}'. ");
-                }
 
-                if (!string.IsNullOrWhiteSpace(att.ThumbUrl))
-                {
-                    try
+                    if (!string.IsNullOrWhiteSpace(att.ThumbUrl))
                     {
-                        string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
-                        var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
-                        EnsurePath(thumbPath);
-                        await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
-                        att.LocalThumbPath = thumbPath;
-                        Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex, $"Attachment thumbnail '{att.ToString()}' download failed.");
+                        try
+                        {
+                            string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
+                            var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
+                            EnsurePath(thumbPath);
+                            await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
+                            att.LocalThumbPath = thumbPath;
+                            Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(LogLevel.Warning, $"Attachment thumbnail '{att.ToString()}' download failed.");
+                        }
                     }
                 }
             }
@@ -266,7 +269,6 @@ namespace JiraExport
                         var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value, web);
                         if (jiraAtt != null && !string.IsNullOrWhiteSpace(jiraAtt.LocalPath))
                         {
-                            Logger.Log(LogLevel.Info, $"Downloaded attachment '{jiraAtt.ToString()}' to '{jiraAtt.LocalPath}'");
                             downloadedAtts.Add(jiraAtt);
                         }
                     }
@@ -296,7 +298,7 @@ namespace JiraExport
                 try
                 {
                     var user = Jira.Users.GetUserAsync(username).Result;
-                    if(string.IsNullOrEmpty(user.Email))
+                    if (string.IsNullOrEmpty(user.Email))
                     {
                         Logger.Log(LogLevel.Warning, $"Email for user '{username}' not found in Jira, using username '{username}' for mapping.");
                         return username;
@@ -305,7 +307,7 @@ namespace JiraExport
                     _userEmailCache.Add(username, email);
                     return email;
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     Logger.Log(LogLevel.Warning, $"User '{username}' not found in Jira, using username '{username}' for mapping.");
                     return username;
