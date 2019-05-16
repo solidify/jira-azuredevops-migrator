@@ -92,7 +92,7 @@ namespace JiraExport
             }
             catch (Exception ex)
             {
-                Logger.Log(ex, $"Cannot find info for attachment '{id}'. Skipping.");
+                Logger.Log(LogLevel.Warning, $"Cannot find info for attachment '{id}', skipping. Reason '{ex.Message}'.");
                 return null;
             }
         }
