@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Migration.Common.Log;
 
 namespace JiraExport
 {
@@ -17,12 +18,12 @@ namespace JiraExport
         public static JiraItem CreateFromRest(string issueKey, JiraProvider jiraProvider)
         {
             var remoteIssue = jiraProvider.DownloadIssue(issueKey);
-            Logger.Log(LogLevel.Debug, $"Downloaded {issueKey}");
+            Logger.Log(LogLevel.Debug, $"Downloaded item.");
 
             var jiraItem = new JiraItem(jiraProvider, remoteIssue);
             var revisions = BuildRevisions(jiraItem, jiraProvider);
             jiraItem.Revisions = revisions;
-            Logger.Log(LogLevel.Debug, $"Formed representation of jira item {issueKey}");
+            Logger.Log(LogLevel.Debug, $"Created {revisions.Count} history revisions.");
 
             return jiraItem;
         }
@@ -34,7 +35,6 @@ namespace JiraExport
             Dictionary<string, object> fields = ExtractFields(issueKey, (JObject)remoteIssue.SelectToken("$.fields"), jiraProvider);
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
-
 
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
             changelog.Reverse();
@@ -130,14 +130,14 @@ namespace JiraExport
         {
             if (attachmentChange.ChangeType == RevisionChangeType.Removed)
             {
-                Logger.Log(LogLevel.Debug, $"Skipping undo for: {attachmentChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
                 return;
             }
 
             if (attachments.Remove(attachmentChange.Value))
-                Logger.Log(LogLevel.Debug, $"Undone: {attachmentChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Undone attachment '{attachmentChange.ToString()}'.");
             else
-                Logger.Log(LogLevel.Debug, $"No attachment to undo: {attachmentChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"No attachment to undo for '{attachmentChange.ToString()}'.");
         }
 
         private static RevisionAction<JiraAttachment> TransformAttachmentChange(JiraChangeItem item)
@@ -209,14 +209,14 @@ namespace JiraExport
         {
             if (linkChange.ChangeType == RevisionChangeType.Removed)
             {
-                Logger.Log(LogLevel.Debug, $"Skipping undo for: {linkChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Skipping undo for link '{linkChange.ToString()}'.");
                 return;
             }
 
             if (links.Remove(linkChange.Value))
-                Logger.Log(LogLevel.Debug, $"Undone: {linkChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"Undone link '{linkChange.ToString()}'.");
             else
-                Logger.Log(LogLevel.Debug, $"No link to undo: {linkChange.ToString()}");
+                Logger.Log(LogLevel.Debug, $"No link to undo for '{linkChange.ToString()}'");
         }
 
         private static RevisionAction<JiraLink> TransformLinkChange(JiraChangeItem item, string sourceItemKey, JiraProvider jira)
@@ -246,7 +246,7 @@ namespace JiraExport
             var linkType = jira.LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Outward + " " + targetItemKey));
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Debug, $"Link with description \"{linkTypeString}\" is either not found or this issue ({sourceItemKey}) is not inward issue.");
+                Logger.Log(LogLevel.Debug, $"Link with description '{linkTypeString}' is either not found or this issue ({sourceItemKey}) is not inward issue.");
                 return null;
             }
             else
@@ -316,9 +316,6 @@ namespace JiraExport
                     {
                         { "priority", extractName },
                         { "labels", t => t.Values<string>().Any() ? string.Join(" ", t.Values<string>()) : null },
-                        { "fixversions", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
-                        { "versions", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
-                        { "components", t=> t.Values<JObject>().Any() ? string.Join(", ", t.Select(st => st.ExValue<string>("$.name")).ToList()) : null },
                         { "assignee", extractName },
                         { "creator", extractName },
                         { "reporter", extractName},
@@ -345,6 +342,12 @@ namespace JiraExport
                 else if (prop.Value.Type == JTokenType.Date)
                 {
                     value = prop.Value.Value<DateTime>();
+                }
+                else if (type == JTokenType.Array && prop.Value.Any())
+                {
+                    value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
+                    if ((string)value == ";")
+                        value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
                 }
 
                 if (value != null)
@@ -380,7 +383,12 @@ namespace JiraExport
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
         public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
 
-        public string EpicParent { get { return RemoteIssue.ExValue<string>($"$.fields.{_provider.Settings.EpicLinkField}"); } }
+        public string EpicParent { get {
+                if (!string.IsNullOrEmpty(_provider.Settings.EpicLinkField))
+                    return RemoteIssue.ExValue<string>($"$.fields.{_provider.Settings.EpicLinkField}");
+                else
+                    return null;
+            } }
         public string Parent { get { return RemoteIssue.ExValue<string>("$.fields.parent.key"); } }
         public List<string> SubItems { get { return RemoteIssue.SelectTokens("$.fields.subtasks.[*]", false).Select(st => st.ExValue<string>("$.key")).ToList(); } }
 

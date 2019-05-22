@@ -77,7 +77,7 @@ namespace Migration.WIContract
 
         public override string ToString()
         {
-            return $"({ParentOriginId}, {Index})";
+            return $"'{ParentOriginId}', rev {Index}";
         }
     }
 }

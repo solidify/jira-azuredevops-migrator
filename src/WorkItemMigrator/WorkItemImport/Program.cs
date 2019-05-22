@@ -1,5 +1,6 @@
 ﻿using Migration.Common;
 using System;
+using Migration.Common.Log;
 
 namespace WorkItemImport
 {
@@ -8,8 +9,7 @@ namespace WorkItemImport
         [STAThread]
         static void Main(string[] args)
         {
-            Logger.Log(LogLevel.Info, $"Work Item Importer v{VersionInfo.GetVersionInfo()}");
-            Logger.Log(LogLevel.Info, VersionInfo.GetCopyrightInfo());
+            VersionInfo.PrintInfoMessage("Work Item Importer");
 
             try
             {
@@ -18,19 +18,8 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, "Closing application due to an unexpected exception: " + ex.Message);
+                Logger.Log(ex, "Application stopped due to an unexpected exception", LogLevel.Critical);
             }
-            finally
-            {
-                Logger.Summary();
-            }
-
-#if DEBUG
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-#endif
         }
-
-
     }
 }
