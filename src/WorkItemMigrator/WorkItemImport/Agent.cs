@@ -671,6 +671,16 @@ namespace WorkItemImport
             }
         }
 
+        private void EnsureAssigneeField(WiRevision rev, WorkItem wi)
+        {
+            string assignedToRef = "System.AssignedTo";
+            
+            if (!rev.Fields.Any(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                rev.Fields.Add(new WiField() { ReferenceName = assignedToRef, Value = wi.Fields[assignedToRef].Value.ToString() });
+            }
+        }
+        
         private void EnsureDateFields(WiRevision rev)
         {
             string changedDateRef = "System.ChangedDate";
@@ -744,6 +754,7 @@ namespace WorkItemImport
 
                 EnsureDateFields(rev);
                 EnsureAuthorFields(rev);
+                EnsureAssigneeField(rev,wi);
 
                 var attachmentMap = new Dictionary<string, Attachment>();
                 if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap))
