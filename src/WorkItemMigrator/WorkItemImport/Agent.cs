@@ -674,11 +674,15 @@ namespace WorkItemImport
         private void EnsureAssigneeField(WiRevision rev, WorkItem wi)
         {
             string assignedToRef = "System.AssignedTo";
+            string assignedTo = wi.Fields[assignedToRef].Value.ToString();
             
-            if (!rev.Fields.Any(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Fields.Any(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)))
             {
-                rev.Fields.Add(new WiField() { ReferenceName = assignedToRef, Value = wi.Fields[assignedToRef].Value.ToString() });
+                var field =  rev.Fields.Where(f=>f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)).First();
+                assignedTo =field.Value.ToString();
+                rev.Fields.RemoveAll(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
             }
+            rev.Fields.Add(new WiField() { ReferenceName = assignedToRef, Value = assignedTo });
         }
         
         private void EnsureDateFields(WiRevision rev)
