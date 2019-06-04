@@ -21,7 +21,13 @@ The key capabilities of the tool includes:
 ## Jira requirements 
 
 1. Identify the migration account (username and password) to access Jira   
-   **Note:** make sure to use the Jira username and not email if you get an authentication exception (401).  If you are using the username and still getting the 401 error, generate a token in the security details of your JIRA profile and use the token instead of the password in the -p parameter of the jira-export request.
+   **Note:** 
+   
+   401 exceptions can occur when you use your email address rather than username. To resolve this use -u USERNAME.
+   
+   If you continue to receive 401 exceptions your password may be causing the issue, go to https://id.atlassian.com/manage/api-tokens and generate an API token. Use this token the same way you would your password -p API_TOKEN
+   
+   If you receive a 400 error after the "Retrieving Jira link types" process starts you need to use your email address as your username -u EMAIL_ADDRESS
    
 2. Get the url to Jira and the name of the source project
 
