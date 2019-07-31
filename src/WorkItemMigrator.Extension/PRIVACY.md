@@ -14,7 +14,7 @@ Currently we collect the following anonymous data:
 * Dependencies: REST calls to Jira and Azure DevOps to help us understand performance issues.
 
 ## Opting out ## 
-See [Telemetry](telemetry.md) for details on how to disable telemetry collection.
+See [Telemetry](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/telemetry.md) for details on how to disable telemetry collection.
 
 ## Collection and Use of Your Personal Information ##
 We don't collect any information that identifies you as an individual, except the information Microsoft provides to us for commercial purposes from the Azure DevOps Marketplace. 
