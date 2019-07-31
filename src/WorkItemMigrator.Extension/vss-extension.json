@@ -4,7 +4,7 @@
     "name": "Jira to Azure DevOps/TFS work item migration tool",
     "version": "0.0.1",
     "public": false,
-    "publisher": "solidify-labs",
+    "publisher": "solidify",
     "targets": [
       {
         "id": "Microsoft.VisualStudio.Services.Integration"
@@ -54,6 +54,9 @@
       },
       "license": {
         "path": "LICENSE.md"
+      },
+      "privacypolicy": {
+        "path": "PRIVACY.md"
       }
     }
   }

@@ -7,7 +7,10 @@ We use [Application Insights](https://azure.microsoft.com/en-us/services/monitor
 Currently we collect the following anonymous data:
 
 * Event data: application version, client city/country, hosting type, item count, error count, warning count, elapsed time.
+* Exceptions: application errors and warnings.
 * Dependencies: REST calls to Jira and Azure DevOps to help us understand performance issues.
+
+Note: Exception data cannot be 100% guaranteed to not leak production data
 
 All logging logic can be review in the 'src/WorkItemMigrator/Migration.Common.Log/Logger.cs' source file.
 
