@@ -50,7 +50,7 @@ namespace JiraExport
             {
                 bool forceFresh = forceOption.HasValue();
 
-                if (configOption.HasValue())
+                if (true || configOption.HasValue())
                 {
                     ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh);
                 }
@@ -72,7 +72,8 @@ namespace JiraExport
 
             try
             {
-                string configFileName = configFile.Value();
+                //string configFileName = configFile.Value();
+                string configFileName = "c:\\file\\path\\to\\config-scrum.json";
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 var config = configReaderJson.Deserialize();
 
@@ -84,7 +85,19 @@ namespace JiraExport
 
                 var downloadOptions = (DownloadOptions)config.DownloadOptions;
 
-                var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
+                //var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
+                //{
+                //    BatchSize = config.BatchSize,
+                //    UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
+                //    AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
+                //    JQL = config.Query
+                //};
+
+                var useremail = "";
+                var userpass = "";
+                var jiraurl = "";
+
+                var jiraSettings = new JiraSettings("", "", "", config.SourceProject)
                 {
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,

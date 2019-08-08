@@ -307,6 +307,9 @@ namespace JiraExport
                             case "MapRemainingWork":
                                 value = IfChanged<string>(item.Source, isCustomField, MapRemainingWork);
                                 break;
+                            case "MapRank":
+                                value = IfChanged<string>(item.Source, isCustomField, MapRank);
+                                break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
                                 break;
@@ -493,6 +496,11 @@ namespace JiraExport
             var iterationPath = iterationPaths.Last();
 
             return iterationPath;
+        }
+
+        private object MapRank(string rank)
+        {
+            return 1;
         }
 
         private void MapLastDescription(List<WiRevision> revisions, JiraItem issue)
