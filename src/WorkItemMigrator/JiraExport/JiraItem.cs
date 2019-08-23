@@ -346,7 +346,7 @@ namespace JiraExport
                 else if (type == JTokenType.Array && prop.Value.Any())
                 {
                     value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
-                    if ((string)value == ";")
+                    if ((string)value == ";" || (string)value == "")
                         value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
                 }
 
