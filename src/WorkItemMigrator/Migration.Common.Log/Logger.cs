@@ -41,7 +41,7 @@ namespace Migration.Common.Log
             }
             _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now.ToString("yyMMdd-HHmmss")}.txt");
             _logLevel = GetLogLevelFromString(level);
-            _continueOnCritical = string.IsNullOrEmpty(continueOnCritical) ? default(bool?) : bool.Parse(continueOnCritical);
+            _continueOnCritical = ParseContinueOnCritical(continueOnCritical);
         }
         
         public static void StartSession(string app, string message, Dictionary<string, string> context, Dictionary<string, string> properties)
@@ -231,6 +231,23 @@ namespace Migration.Common.Log
                 case LogLevel.Critical: return "C";
                 default: return "I";
             }
+        }
+
+        private static bool? ParseContinueOnCritical(string continueOnCritical)
+        {
+            if (string.IsNullOrEmpty(continueOnCritical))
+            {
+                return null;
+            }
+
+            var success = bool.TryParse(continueOnCritical, out var result);
+
+            if (!success)
+            {
+                return null;
+            }
+
+            return result;
         }
 
         public static int Warnings => _warnings.Count;
