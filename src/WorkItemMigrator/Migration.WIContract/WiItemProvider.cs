@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Migration.WIContract
 {
@@ -24,6 +25,13 @@ namespace Migration.WIContract
         private WiItem LoadFile(string path)
         {
             var serialized = File.ReadAllText(path);
+
+            if (Regex.Matches(serialized, @"\\u.{4}").Count > 0)
+            {
+                Logger.Log(LogLevel.Warning, "Detected unicode characters, removed.");
+                serialized = Regex.Replace(serialized, @"\\u.{4}", "");
+            }
+
             var deserialized = JsonConvert.DeserializeObject<WiItem>(serialized, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore});
 
             foreach (var rev in deserialized.Revisions)
