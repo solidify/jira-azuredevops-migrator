@@ -18,15 +18,22 @@ namespace Migration.Common
         protected void ParseUserMappings(string userMappingPath)
         {
             if (!File.Exists(userMappingPath))
+            {
+                Logger.Log(LogLevel.Warning, $"User mapping file '{userMappingPath}' not found, ignoring mapping user identities.");
                 return;
+            }
 
             string[] userMappings = File.ReadAllLines(userMappingPath);
-            foreach (var userMapping in userMappings.Select(um => um.Split('=')))
+            foreach (var userMapping in userMappings)
             {
-                string jiraUser = userMapping[0].Trim();
-                string wiUser = userMapping[1].Trim();
+                var userMappingParts = userMapping.Split('=');
+                if (userMappingParts.Length == 2)
+                {
+                    string jiraUser = userMappingParts[0].Trim();
+                    string wiUser = userMappingParts[1].Trim();
 
-                UserMapping.Add(jiraUser, wiUser);
+                    UserMapping.Add(jiraUser, wiUser);
+                }
             }
         }
 
