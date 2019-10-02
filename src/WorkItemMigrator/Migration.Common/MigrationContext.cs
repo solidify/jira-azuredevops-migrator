@@ -23,7 +23,7 @@ namespace Migration.Common
         {
             App = app;
             MigrationWorkspace = workspacePath;
-            ParseUserMappings(UserMappingPath);
+            UserMapping = UserMapper.ParseUserMappings(UserMappingPath);
             LogLevel = Logger.GetLogLevelFromString(logLevel);
             ForceFresh = forceFresh;
         }
@@ -41,28 +41,6 @@ namespace Migration.Common
                 Directory.CreateDirectory(Instance.AttachmentsPath);
 
             return Instance;
-        }
-
-        private void ParseUserMappings(string userMappingPath)
-        {
-            if (!File.Exists(userMappingPath))
-            {
-                Logger.Log(LogLevel.Warning, $"User mapping file '{userMappingPath}' not found, ignoring mapping user identities.");
-                return;
-            }
-
-            string[] userMappings = File.ReadAllLines(userMappingPath);
-            foreach (var userMapping in userMappings)
-            {
-                var userMappingParts = userMapping.Split('=');
-                if (userMappingParts.Length == 2)
-                {
-                    string jiraUser = userMappingParts[0].Trim();
-                    string wiUser = userMappingParts[1].Trim();
-
-                    UserMapping.Add(jiraUser, wiUser);
-                }
-            }
         }
 
         public WiItem GetItem(string originId)

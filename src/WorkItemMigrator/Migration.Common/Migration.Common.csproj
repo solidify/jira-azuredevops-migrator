@@ -74,6 +74,7 @@
     <Compile Include="MigrationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevisionUtility.cs" />
+    <Compile Include="UserMapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
