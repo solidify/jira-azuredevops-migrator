@@ -349,6 +349,13 @@ namespace JiraExport
                     if ((string)value == ";")
                         value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
                 }
+                else if (type == Newtonsoft.Json.Linq.JTokenType.Object)
+                {
+                    if (prop.Value["value"] != null)
+                    {
+                        value = prop.Value["value"].ToString();
+                    }
+                }                
 
                 if (value != null)
                 {
