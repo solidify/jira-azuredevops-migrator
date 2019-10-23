@@ -37,7 +37,7 @@ namespace JiraExport
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
 
             // save these field since these might be removed in the loop
-            var reporter = (string)fields["reporter"];
+            var reporter = fields.TryGetValue("reporter", out object rep) ? (string) rep : null;
             var createdOn = (DateTime)fields["created"];
             
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
