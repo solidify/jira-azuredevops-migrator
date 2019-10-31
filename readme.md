@@ -27,8 +27,8 @@ Some of the capabilities include:
 The tools are provided as-is and will require detailed understanding of how to migrate work items between different systems in order to do a successful migration. If you need support or help with migrations feel free to [contact the team at Solidify](mailto:info@solidify.se) for expert consulting services.
 
 * See the [migration process](docs/overview.md) overview for information on how to get started.
-* Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/jira-to-vsts-migration-work-items/) for more context of the process.
-* Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/jira-azure-devops-migration/) for a complete step-by-step walkthrough on a migration.
+* Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/blog/jira-to-vsts-migration-work-items) for more context of the process.
+* Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/blog/jira-azure-devops-migration) for a complete step-by-step walkthrough on a migration.
 
 # Telemetry
 
