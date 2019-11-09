@@ -84,7 +84,7 @@ Sample configuration files are provided with documentation of typical migration 
 
 |Sample|Description|
 |---|---|
-|[config-scrum.json](samples/config-scrum.json)|Configuration to migrate to a Scrum project|
+|[config-scrum.json](Samples/config-scrum.json)|Configuration to migrate to a Scrum project|
 
 ## Known limitations
 - Artifact links (other than git) are not migrated
