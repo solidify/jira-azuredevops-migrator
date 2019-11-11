@@ -43,7 +43,7 @@ Here is how you can contribute to this project:
 - Discuss existing issues/proposals   
 - Test and share migration configurations
 
-Please refer to [Contribution guidelines](docs/CONTRIBUTING.md) and the [Code of Conduct](docs/CODE_OF_CONDUCT.md) for more details.
+Please refer to [Contribution guidelines](docs/CONTRIBUTING.md) and the [Code of Conduct](docs/CODE_OF_CONDUCT.md) for more details, including how to build and debug the tools locally.
 
 # Tested with
 
