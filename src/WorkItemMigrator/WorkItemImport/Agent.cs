@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Services.Common;
 using System.Net;
 using Migration.WIContract;
 using Migration.Common.Log;
+using System.Text.RegularExpressions;
 
 namespace WorkItemImport
 {
@@ -708,14 +709,16 @@ namespace WorkItemImport
             bool descUpdated = false;
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
-                if (currentDescription.Contains(att.FilePath))
+                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                if (currentDescription.Contains(fileName))
                 {
                     var tfsAtt = IdentifyAttachment(att, wi);
                     descUpdated = true;
 
                     if (tfsAtt != null)
                     {
-                        currentDescription = currentDescription.Replace(att.FilePath, tfsAtt.Uri.AbsoluteUri);
+                        string imageSrcPattern = "src.*?=.*?\"([^\"]).*?\"";
+                        currentDescription = Regex.Replace(currentDescription, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
                         descUpdated = true;
                     }
                     else
@@ -745,6 +748,41 @@ namespace WorkItemImport
             }
 
             return descUpdated;
+        }
+
+        private void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev)
+        {
+            var currentComment = wi.History;
+            var commentUpdated = false;
+            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added))) 
+            {
+                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                if (currentComment.Contains(fileName))
+                {
+                    var tfsAtt = IdentifyAttachment(att, wi);
+
+                    if (tfsAtt != null)
+                    {
+                        string imageSrcPattern = "src.*?=.*?\"([^\"]).*?\"";
+                        currentComment = Regex.Replace(currentComment, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
+                        commentUpdated = true;
+                    }
+                    else
+                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in description but is missing from work item {wiItem.OriginId}/{wi.Id}.");
+                }
+            }
+            if (commentUpdated)
+            {
+                DateTime changedDate;
+                if (wiItem.Revisions.Count > rev.Index + 1)
+                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time, wiItem.Revisions[rev.Index + 1].Time);
+                else
+                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
+
+                wi.Fields["System.ChangedDate"].Value = changedDate;
+                wi.Fields["System.ChangedBy"].Value = rev.Author;
+                wi.Fields[CoreField.History].Value = currentComment;
+            }
         }
 
         public bool ImportRevision(WiRevision rev, WorkItem wi)
@@ -777,6 +815,11 @@ namespace WorkItemImport
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
                     CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev);
+                }
+                if (!string.IsNullOrEmpty(wi.History))
+                {
+                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
+                    CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev);
                 }
 
                 SaveWorkItem(rev, wi);

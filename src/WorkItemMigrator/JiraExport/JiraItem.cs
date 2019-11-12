@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Migration.Common.Log;
+using System.Text.RegularExpressions;
 
 namespace JiraExport
 {
@@ -115,15 +116,29 @@ namespace JiraExport
 
         private static List<JiraRevision> BuildCommentRevisions(JiraItem jiraItem, JiraProvider jiraProvider)
         {
+            var renderedFields = jiraItem.RemoteIssue.SelectToken("$.renderedFields.comment.comments");
             var comments = jiraProvider.Jira.Issues.GetCommentsAsync(jiraItem.Key).Result;
-            return comments.Select(c => new JiraRevision(jiraItem)
-            {
-                Author = c.Author,
-                Time = c.CreatedDate.Value,
-                Fields = new Dictionary<string, object>() { { "comment", c.Body } },
-                AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
-                LinkActions = new List<RevisionAction<JiraLink>>()
+            return comments.Select((c, i) => {
+                var rf = renderedFields.SelectToken($"$.[{i}].body");
+                return new JiraRevision(jiraItem)
+                {
+                    Author = c.Author,
+                    Time = c.CreatedDate.Value,
+                    Fields = new Dictionary<string, object>() { { "comment", RenderedComment(rf.Value<string>()) } },
+                    AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
+                    LinkActions = new List<RevisionAction<JiraLink>>()
+                };
             }).ToList();
+        }
+
+        private static string RenderedComment(string comment)
+        {
+            if (!string.IsNullOrEmpty(comment)) 
+            { 
+                string imageWrapPattern = "<span class=\"image-wrap\".*?>.*?(<img .*? />).*?</span>";
+                comment = Regex.Replace(comment, imageWrapPattern, m => m.Groups[1]?.Value);
+            }
+            return comment;
         }
 
         private static void UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
