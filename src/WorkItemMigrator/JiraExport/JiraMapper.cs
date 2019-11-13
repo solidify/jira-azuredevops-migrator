@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Migration.Common;
-using System.Text.RegularExpressions;
 using Common.Config;
 using Migration.Common.Config;
 using System.Reflection;
@@ -538,11 +537,7 @@ namespace JiraExport
                     wiHtml = wiHtml.Replace(att.Url, att.Url);
             }
 
-            string imageWrapPattern = "<span class=\"image-wrap\".*?>.*?(<img .*? />).*?</span>";
-            wiHtml = Regex.Replace(wiHtml, imageWrapPattern, m => m.Groups[1]?.Value);
-
-            string userLinkPattern = "<a href=.*? class=\"user-hover\" .*?>(.*?)</a>";
-            wiHtml = Regex.Replace(wiHtml, userLinkPattern, m => m.Groups[1]?.Value);
+            wiHtml = RevisionUtility.ReplaceHtmlElements(wiHtml);
 
             string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
             if (string.IsNullOrWhiteSpace(css))
