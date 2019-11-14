@@ -91,8 +91,7 @@ namespace Migration.Common
         {
             if (!ProcessedRevisions.TryGetValue(originId, out (int, int) migrationResult))
                 return false;
-
-            (int targetId, int migratedRev) = migrationResult;
+            (_, int migratedRev) = migrationResult;
             return rev <= migratedRev;
         }
 
@@ -100,8 +99,7 @@ namespace Migration.Common
         {
             if (!ProcessedRevisions.TryGetValue(originId, out (int, int) migrationResult))
                 return -1;
-
-            (int wiId, int rev) = migrationResult;
+            (int wiId, _) = migrationResult;
 
             return wiId;
         }

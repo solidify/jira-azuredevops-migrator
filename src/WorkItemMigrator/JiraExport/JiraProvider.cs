@@ -167,6 +167,12 @@ namespace JiraExport
                 remoteIssueBatch = response.SelectTokens("$.issues[*]").OfType<JObject>()
                                            .Select(i => i.SelectToken("$.key").Value<string>());
 
+                if (remoteIssueBatch == null)
+                {
+                    Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                    break;
+                }
+
                 currentStart += Settings.BatchSize;
 
                 int totalItems = (int)response.SelectToken("$.total");
