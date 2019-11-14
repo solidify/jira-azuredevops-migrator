@@ -1,8 +1,8 @@
-﻿using Migration.WIContract;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Migration.Common.Log;
+using Migration.WIContract;
 
 namespace Migration.Common
 {
@@ -11,7 +11,7 @@ namespace Migration.Common
         public static MigrationContext Instance { get; private set; }
         public string AttachmentsPath { get { return Path.Combine(MigrationWorkspace, "Attachments"); } }
         public string UserMappingPath { get { return Path.Combine(MigrationWorkspace, "users.txt"); } }
-        public Dictionary<string, string> UserMapping { get; private set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> UserMapping { get; private set; }
         public string App { get; internal set; }
         public string MigrationWorkspace { get; internal set; }
         public LogLevel LogLevel { get; internal set; }
@@ -45,7 +45,7 @@ namespace Migration.Common
 
         public WiItem GetItem(string originId)
         {
-            var item =  this.Provider.Load(originId);
+            var item = this.Provider.Load(originId);
             item.WiId = Journal.GetMigratedId(originId);
             foreach (var link in item.Revisions.SelectMany(r => r.Links))
             {

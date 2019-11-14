@@ -1,14 +1,12 @@
-﻿using Atlassian.Jira;
-using Migration.Common;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Migration.Common.Log;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Atlassian.Jira;
+using Migration.Common;
+using Migration.Common.Log;
+using Newtonsoft.Json.Linq;
 
 namespace JiraExport
 {
@@ -118,7 +116,8 @@ namespace JiraExport
         {
             var renderedFields = jiraItem.RemoteIssue.SelectToken("$.renderedFields.comment.comments");
             var comments = jiraProvider.Jira.Issues.GetCommentsAsync(jiraItem.Key).Result;
-            return comments.Select((c, i) => {
+            return comments.Select((c, i) =>
+            {
                 var rf = renderedFields.SelectToken($"$.[{i}].body");
                 return new JiraRevision(jiraItem)
                 {
@@ -133,8 +132,8 @@ namespace JiraExport
 
         private static string RenderedComment(string comment)
         {
-            if (!string.IsNullOrEmpty(comment)) 
-            { 
+            if (!string.IsNullOrEmpty(comment))
+            {
                 string imageWrapPattern = "<span class=\"image-wrap\".*?>.*?(<img .*? />).*?</span>";
                 comment = Regex.Replace(comment, imageWrapPattern, m => m.Groups[1]?.Value);
             }
@@ -364,13 +363,10 @@ namespace JiraExport
                     if ((string)value == ";")
                         value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
                 }
-                else if (type == Newtonsoft.Json.Linq.JTokenType.Object)
+                else if (type == Newtonsoft.Json.Linq.JTokenType.Object && prop.Value["value"] != null)
                 {
-                    if (prop.Value["value"] != null)
-                    {
-                        value = prop.Value["value"].ToString();
-                    }
-                }                
+                    value = prop.Value["value"].ToString();
+                }
 
                 if (value != null)
                 {
@@ -405,14 +401,20 @@ namespace JiraExport
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
         public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
 
-        public string EpicParent { get {
+        public string EpicParent
+        {
+            get
+            {
                 if (!string.IsNullOrEmpty(_provider.Settings.EpicLinkField))
                     return RemoteIssue.ExValue<string>($"$.fields.{_provider.Settings.EpicLinkField}");
                 else
                     return null;
-            } }
+            }
+        }
         public string Parent { get { return RemoteIssue.ExValue<string>("$.fields.parent.key"); } }
-        public List<string> SubItems { get { return RemoteIssue.SelectTokens("$.fields.subtasks.[*]", false).Select(st => st.ExValue<string>("$.key")).ToList(); } }
+        public List<string> SubItems { get { return GetSubTasksKey(); } }
+
+
 
         public JObject RemoteIssue { get; private set; }
 
@@ -427,6 +429,10 @@ namespace JiraExport
         internal string GetUserEmail(string author)
         {
             return _provider.GetUserEmail(author);
+        }
+        internal List<string> GetSubTasksKey()
+        {
+            return RemoteIssue.SelectTokens("$.fields.subtasks.[*]", false).Select(st => st.ExValue<string>("$.key")).ToList();
         }
     }
 }

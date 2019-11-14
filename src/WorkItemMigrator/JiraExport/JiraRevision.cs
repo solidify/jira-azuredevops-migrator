@@ -1,8 +1,7 @@
-﻿using Migration.Common;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Migration.Common;
 
 namespace JiraExport
 {
