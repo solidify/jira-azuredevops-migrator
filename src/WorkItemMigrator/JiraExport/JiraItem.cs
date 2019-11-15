@@ -35,6 +35,10 @@ namespace JiraExport
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
 
+            // save these field since these might be removed in the loop
+            var reporter = fields.TryGetValue("reporter", out object rep) ? (string)rep : null;
+            var createdOn = (DateTime)fields["created"];
+
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
             changelog.Reverse();
 
@@ -95,9 +99,6 @@ namespace JiraExport
             var linkActions = links.Select(l => new RevisionAction<JiraLink>() { ChangeType = RevisionChangeType.Added, Value = l }).ToList();
             var fieldActions = fields;
 
-            var reporter = (string)fields["reporter"];
-            var createdOn = (DateTime)fields["created"];
-
             var firstRevision = new JiraRevision(jiraItem) { Time = createdOn, Author = reporter, AttachmentActions = attActions, Fields = fieldActions, LinkActions = linkActions };
             revisions.Push(firstRevision);
             var listOfRevisions = revisions.ToList();
@@ -134,8 +135,7 @@ namespace JiraExport
         {
             if (!string.IsNullOrEmpty(comment))
             {
-                string imageWrapPattern = "<span class=\"image-wrap\".*?>.*?(<img .*? />).*?</span>";
-                comment = Regex.Replace(comment, imageWrapPattern, m => m.Groups[1]?.Value);
+                comment = RevisionUtility.ReplaceHtmlElements(comment);
             }
             return comment;
         }
