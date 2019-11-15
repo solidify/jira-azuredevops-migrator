@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Migration.Common.Log;
-using System.Text.RegularExpressions;
 
 namespace JiraExport
 {
@@ -135,9 +134,8 @@ namespace JiraExport
         private static string RenderedComment(string comment)
         {
             if (!string.IsNullOrEmpty(comment)) 
-            { 
-                string imageWrapPattern = "<span class=\"image-wrap\".*?>.*?(<img .*? />).*?</span>";
-                comment = Regex.Replace(comment, imageWrapPattern, m => m.Groups[1]?.Value);
+            {
+                comment = RevisionUtility.ReplaceHtmlElements(comment);
             }
             return comment;
         }
