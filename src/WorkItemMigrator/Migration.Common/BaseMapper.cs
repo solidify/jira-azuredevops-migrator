@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Migration.Common.Log;
 
@@ -9,7 +8,7 @@ namespace Migration.Common
 {
     public class BaseMapper<TRevision> where TRevision : ISourceRevision
     {
-        protected Dictionary<string, string> UserMapping { get; private set; } = new Dictionary<string, string>();
+        protected Dictionary<string, string> UserMapping { get; private set; }
 
         public BaseMapper(string userMappingPath)
         {

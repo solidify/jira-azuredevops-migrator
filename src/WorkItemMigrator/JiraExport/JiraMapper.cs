@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Migration.Common;
 using Common.Config;
+using Migration.Common;
 using Migration.Common.Config;
-using System.Reflection;
-using Newtonsoft.Json;
-using Migration.WIContract;
 using Migration.Common.Log;
+using Migration.WIContract;
 
 namespace JiraExport
 {
@@ -442,7 +440,7 @@ namespace JiraExport
                           item.Mapping?.Values != null)
                     {
                         var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
-                        if(string.IsNullOrEmpty(mappedValue))
+                        if (string.IsNullOrEmpty(mappedValue))
                         {
                             Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}'.");
                         }

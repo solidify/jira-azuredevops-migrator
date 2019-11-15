@@ -1,11 +1,10 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Collections.Generic;
 using Migration.Common.Log;
 
 namespace Migration.Common
 {
-    internal class UserMapper
+    internal static class UserMapper
     {
         public static Dictionary<string, string> ParseUserMappings(string userMappingPath)
         {

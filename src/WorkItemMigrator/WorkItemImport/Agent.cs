@@ -1,21 +1,21 @@
-﻿using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.Core.WebApi;
-using Microsoft.TeamFoundation.WorkItemTracking.Client;
-using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
-using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Microsoft.VisualStudio.Services.Operations;
-using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
-using Migration.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.VisualStudio.Services.Common;
 using System.Net;
-using Migration.WIContract;
-using Migration.Common.Log;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.TeamFoundation.Client;
+using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.Operations;
+using Migration.Common;
+using Migration.Common.Log;
+using Migration.WIContract;
+using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
+using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
+using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 namespace WorkItemImport
 {
@@ -676,16 +676,16 @@ namespace WorkItemImport
         {
             string assignedToRef = "System.AssignedTo";
             string assignedTo = wi.Fields[assignedToRef].Value.ToString();
-            
+
             if (rev.Fields.Any(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)))
             {
-                var field =  rev.Fields.Where(f=>f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)).First();
-                assignedTo =field.Value.ToString();
+                var field = rev.Fields.First(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
+                assignedTo = field.Value.ToString();
                 rev.Fields.RemoveAll(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
             }
             rev.Fields.Add(new WiField() { ReferenceName = assignedToRef, Value = assignedTo });
         }
-        
+
         private void EnsureDateFields(WiRevision rev)
         {
             string changedDateRef = "System.ChangedDate";
@@ -754,7 +754,7 @@ namespace WorkItemImport
         {
             var currentComment = wi.History;
             var commentUpdated = false;
-            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added))) 
+            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
                 var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
                 if (currentComment.Contains(fileName))
@@ -796,7 +796,7 @@ namespace WorkItemImport
 
                 EnsureDateFields(rev);
                 EnsureAuthorFields(rev);
-                EnsureAssigneeField(rev,wi);
+                EnsureAssigneeField(rev, wi);
 
                 var attachmentMap = new Dictionary<string, Attachment>();
                 if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap))
