@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace JiraExport
 {
     public class JiraSettings
@@ -13,7 +8,7 @@ namespace JiraExport
         public string Url { get; private set; }
         public string Project { get; internal set; }
         public string EpicLinkField { get; internal set; }
-        public string SprintField { get; internal set; } 
+        public string SprintField { get; internal set; }
         public string UserMappingFile { get; internal set; }
         public int BatchSize { get; internal set; }
         public string AttachmentsDir { get; internal set; }

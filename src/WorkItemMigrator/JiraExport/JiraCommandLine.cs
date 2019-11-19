@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Common.Config;
 using Microsoft.Extensions.CommandLineUtils;
-using Migration.Common;
 using Migration.Common.Config;
-using Migration.WIContract;
-using Newtonsoft.Json;
 using Migration.Common.Log;
-using System.Diagnostics;
+using Migration.WIContract;
 using static JiraExport.JiraProvider;
 
 namespace JiraExport
@@ -99,7 +94,7 @@ namespace JiraExport
                 BeginSession(configFileName, config, forceFresh, jiraProvider, itemsCount);
 
                 jiraSettings.EpicLinkField = jiraProvider.GetCustomId(config.EpicLinkField);
-                if(string.IsNullOrEmpty(jiraSettings.EpicLinkField))
+                if (string.IsNullOrEmpty(jiraSettings.EpicLinkField))
                 {
                     Logger.Log(LogLevel.Warning, $"Epic link field missing for config field '{config.EpicLinkField}'.");
                 }
@@ -156,7 +151,7 @@ namespace JiraExport
 
             Logger.Log(LogLevel.Info, $"Export started. Exporting {itemsCount} items.");
 
-            Logger.StartSession("Jira Export", 
+            Logger.StartSession("Jira Export",
                 "jira-export-started",
                 new Dictionary<string, string>() {
                     { "Tool version :", toolVersion },
@@ -186,7 +181,7 @@ namespace JiraExport
 
             Logger.Log(LogLevel.Info, $"Export complete. Exported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
-            Logger.EndSession("jira-export-completed", 
+            Logger.EndSession("jira-export-completed",
                 new Dictionary<string, string>() {
                     { "item-count", itemsCount.ToString() },
                     { "error-count", Logger.Errors.ToString() },
@@ -194,7 +189,7 @@ namespace JiraExport
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) }});
         }
 
-    public void Run()
+        public void Run()
         {
             commandLineApplication.Execute(args);
         }

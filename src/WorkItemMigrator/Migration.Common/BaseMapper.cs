@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Migration.Common.Log;
 
@@ -9,25 +8,11 @@ namespace Migration.Common
 {
     public class BaseMapper<TRevision> where TRevision : ISourceRevision
     {
+        protected Dictionary<string, string> UserMapping { get; private set; }
+
         public BaseMapper(string userMappingPath)
         {
-            ParseUserMappings(userMappingPath);
-        }
-
-        protected Dictionary<string, string> UserMapping { get; private set; } = new Dictionary<string, string>();
-        protected void ParseUserMappings(string userMappingPath)
-        {
-            if (!File.Exists(userMappingPath))
-                return;
-
-            string[] userMappings = File.ReadAllLines(userMappingPath);
-            foreach (var userMapping in userMappings.Select(um => um.Split('=')))
-            {
-                string jiraUser = userMapping[0].Trim();
-                string wiUser = userMapping[1].Trim();
-
-                UserMapping.Add(jiraUser, wiUser);
-            }
+            UserMapping = UserMapper.ParseUserMappings(userMappingPath);
         }
 
         protected virtual string MapUser(string sourceUser)

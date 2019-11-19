@@ -1,13 +1,12 @@
-﻿using Atlassian.Jira;
-using Migration.Common;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Atlassian.Jira;
+using Migration.Common;
 using Migration.Common.Log;
+using Newtonsoft.Json.Linq;
 
 namespace JiraExport
 {
@@ -116,7 +115,7 @@ namespace JiraExport
                             att.LocalPath = path;
                             Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
                         }
@@ -133,7 +132,7 @@ namespace JiraExport
                             att.LocalThumbPath = thumbPath;
                             Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             Logger.Log(LogLevel.Warning, $"Attachment thumbnail '{att.ToString()}' download failed.");
                         }
@@ -167,6 +166,12 @@ namespace JiraExport
 
                 remoteIssueBatch = response.SelectTokens("$.issues[*]").OfType<JObject>()
                                            .Select(i => i.SelectToken("$.key").Value<string>());
+
+                if (remoteIssueBatch == null)
+                {
+                    Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                    break;
+                }
 
                 currentStart += Settings.BatchSize;
 

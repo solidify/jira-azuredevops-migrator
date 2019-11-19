@@ -1,20 +1,21 @@
-﻿using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.Core.WebApi;
-using Microsoft.TeamFoundation.WorkItemTracking.Client;
-using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
-using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Microsoft.VisualStudio.Services.Operations;
-using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
-using Migration.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.VisualStudio.Services.Common;
 using System.Net;
-using Migration.WIContract;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.TeamFoundation.Client;
+using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.Operations;
+using Migration.Common;
 using Migration.Common.Log;
+using Migration.WIContract;
+using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
+using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
+using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 namespace WorkItemImport
 {
@@ -675,16 +676,16 @@ namespace WorkItemImport
         {
             string assignedToRef = "System.AssignedTo";
             string assignedTo = wi.Fields[assignedToRef].Value.ToString();
-            
+
             if (rev.Fields.Any(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)))
             {
-                var field =  rev.Fields.Where(f=>f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)).First();
-                assignedTo =field.Value.ToString();
+                var field = rev.Fields.First(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
+                assignedTo = field.Value.ToString();
                 rev.Fields.RemoveAll(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
             }
             rev.Fields.Add(new WiField() { ReferenceName = assignedToRef, Value = assignedTo });
         }
-        
+
         private void EnsureDateFields(WiRevision rev)
         {
             string changedDateRef = "System.ChangedDate";
@@ -708,14 +709,16 @@ namespace WorkItemImport
             bool descUpdated = false;
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
-                if (currentDescription.Contains(att.FilePath))
+                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                if (currentDescription.Contains(fileName))
                 {
                     var tfsAtt = IdentifyAttachment(att, wi);
                     descUpdated = true;
 
                     if (tfsAtt != null)
                     {
-                        currentDescription = currentDescription.Replace(att.FilePath, tfsAtt.Uri.AbsoluteUri);
+                        string imageSrcPattern = "src.*?=.*?\"([^\"]).*?\"";
+                        currentDescription = Regex.Replace(currentDescription, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
                         descUpdated = true;
                     }
                     else
@@ -747,6 +750,41 @@ namespace WorkItemImport
             return descUpdated;
         }
 
+        private void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev)
+        {
+            var currentComment = wi.History;
+            var commentUpdated = false;
+            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
+            {
+                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                if (currentComment.Contains(fileName))
+                {
+                    var tfsAtt = IdentifyAttachment(att, wi);
+
+                    if (tfsAtt != null)
+                    {
+                        string imageSrcPattern = "src.*?=.*?\"([^\"]).*?\"";
+                        currentComment = Regex.Replace(currentComment, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
+                        commentUpdated = true;
+                    }
+                    else
+                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in description but is missing from work item {wiItem.OriginId}/{wi.Id}.");
+                }
+            }
+            if (commentUpdated)
+            {
+                DateTime changedDate;
+                if (wiItem.Revisions.Count > rev.Index + 1)
+                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time, wiItem.Revisions[rev.Index + 1].Time);
+                else
+                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
+
+                wi.Fields["System.ChangedDate"].Value = changedDate;
+                wi.Fields["System.ChangedBy"].Value = rev.Author;
+                wi.Fields[CoreField.History].Value = currentComment;
+            }
+        }
+
         public bool ImportRevision(WiRevision rev, WorkItem wi)
         {
             try
@@ -758,7 +796,7 @@ namespace WorkItemImport
 
                 EnsureDateFields(rev);
                 EnsureAuthorFields(rev);
-                EnsureAssigneeField(rev,wi);
+                EnsureAssigneeField(rev, wi);
 
                 var attachmentMap = new Dictionary<string, Attachment>();
                 if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap))
@@ -777,6 +815,11 @@ namespace WorkItemImport
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
                     CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev);
+                }
+                if (!string.IsNullOrEmpty(wi.History))
+                {
+                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
+                    CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev);
                 }
 
                 SaveWorkItem(rev, wi);
