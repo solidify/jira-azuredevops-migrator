@@ -249,7 +249,7 @@ namespace JiraExport
 
         public IEnumerable<JObject> DownloadChangelog(string issueKey)
         {
-            var response = (JObject)Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/issue/{issueKey}?expand=changelog&fields=created").Result;
+            var response = (JObject)Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/issue/{issueKey}?expand=changelog,renderedFields&fields=created").Result;
             return response.SelectTokens("$.changelog.histories[*]").Cast<JObject>();
         }
 

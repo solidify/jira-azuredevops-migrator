@@ -24,13 +24,14 @@ namespace JiraExport
             Logger.Log(LogLevel.Debug, $"Created {revisions.Count} history revisions.");
 
             return jiraItem;
+
         }
 
         private static List<JiraRevision> BuildRevisions(JiraItem jiraItem, JiraProvider jiraProvider)
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
-            Dictionary<string, object> fields = ExtractFields(issueKey, (JObject)remoteIssue.SelectToken("$.fields"), jiraProvider);
+            Dictionary<string, object> fields = ExtractFields(issueKey, (JObject) remoteIssue, jiraProvider);
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
 
@@ -116,14 +117,13 @@ namespace JiraExport
         {
             var renderedFields = jiraItem.RemoteIssue.SelectToken("$.renderedFields.comment.comments");
             var comments = jiraProvider.Jira.Issues.GetCommentsAsync(jiraItem.Key).Result;
-            return comments.Select((c, i) =>
-            {
-                var rf = renderedFields.SelectToken($"$.[{i}].body");
+            return comments.Select((c,i) => {
+                var rc = renderedFields.SelectToken($"$.[{i}].body");
                 return new JiraRevision(jiraItem)
                 {
                     Author = c.Author,
                     Time = c.CreatedDate.Value,
-                    Fields = new Dictionary<string, object>() { { "comment", RenderedComment(rf.Value<string>()) } },
+                    Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", RenderedComment(rc.Value<string>()) } },
                     AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
                     LinkActions = new List<RevisionAction<JiraLink>>()
                 };
@@ -317,9 +317,12 @@ namespace JiraExport
         }
 
         private static Dictionary<string, Func<JToken, object>> _fieldExtractionMapping = null;
-        private static Dictionary<string, object> ExtractFields(string key, JObject remoteFields, JiraProvider jira)
+        private static Dictionary<string, object> ExtractFields(string key, JObject remoteIssue, JiraProvider jira)
         {
             var fields = new Dictionary<string, object>();
+
+            var remoteFields = (JObject)remoteIssue.SelectToken("$.fields");
+            var renderedFields = (JObject)remoteIssue.SelectToken("$.renderedFields");
 
             var extractName = new Func<JToken, object>((t) => t.ExValue<string>("$.name"));
 
@@ -370,6 +373,18 @@ namespace JiraExport
                 if (value != null)
                 {
                     fields[name] = value;
+
+                    if (renderedFields.TryGetValue(name, out JToken rendered))
+                    {
+                        if (rendered.Type == JTokenType.String)
+                        {
+                            fields[name + "$Rendered"] = rendered.Value<string>();
+                        }
+                        else
+                        {
+                            Logger.Log(LogLevel.Debug, $"Rendered field {name} contains unparsable type {rendered.Type.ToString()}, using text");
+                        }
+                    }
                 }
             }
 

@@ -58,5 +58,8 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "link-map", Required = Required.Always)]
         public LinkMap LinkMap { get; set; }
+
+        [JsonProperty(PropertyName = "rendered-fields")]
+        public string[] RenderedFields { get; set; } = new string[] { "description", "comment" };
     }
 }
