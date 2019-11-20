@@ -313,6 +313,9 @@ namespace JiraExport
                             case "MapRemainingWork":
                                 value = IfChanged<string>(item.Source, isCustomField, MapRemainingWork);
                                 break;
+                            case "MapRendered":
+                                value = r => MapRenderedValue(r, item.Source);
+                                break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
                                 break;
@@ -433,6 +436,36 @@ namespace JiraExport
                         if (string.IsNullOrEmpty(mappedValue))
                         {
                             Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}'.");
+                        }
+                        return (true, mappedValue);
+                    }
+                }
+                return (true, value);
+            }
+            else
+            {
+                return (false, null);
+            }
+        }
+
+        private (bool, object) MapRenderedValue(JiraRevision r, string itemSource)
+        {
+            var fieldName = itemSource + "$Rendered";
+
+            var targetWit = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
+
+            if (r.Fields.TryGetValue(fieldName, out object value))
+            {
+                foreach (var item in _config.FieldMap.Fields)
+                {
+                    if (((item.Source == fieldName && (item.For.Contains(targetWit) || item.For == "All")) ||
+                          item.Source == fieldName && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
+                          item.Mapping?.Values != null)
+                    {
+                        var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
+                        if (string.IsNullOrEmpty(mappedValue))
+                        {
+                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{fieldName}'.");
                         }
                         return (true, mappedValue);
                     }
