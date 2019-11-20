@@ -680,7 +680,7 @@ namespace WorkItemImport
             if (rev.Fields.Any(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)))
             {
                 var field = rev.Fields.First(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
-                assignedTo = field.Value.ToString();
+                assignedTo = field.Value?.ToString() ?? string.Empty;
                 rev.Fields.RemoveAll(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
             }
             rev.Fields.Add(new WiField() { ReferenceName = assignedToRef, Value = assignedTo });
