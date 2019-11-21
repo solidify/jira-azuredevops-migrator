@@ -702,48 +702,23 @@ namespace WorkItemImport
 
         private bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev)
         {
-            string currentDescription = wi.Type.Name == "Bug" ? wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value.ToString() : wi.Description;
-            if (string.IsNullOrWhiteSpace(currentDescription))
+            string description = wi.Type.Name == "Bug" ? wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value.ToString() : wi.Description;
+            if (string.IsNullOrWhiteSpace(description))
                 return false;
 
             bool descUpdated = false;
-            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
-            {
-                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                if (currentDescription.Contains(fileName))
-                {
-                    var tfsAtt = IdentifyAttachment(att, wi);
-                    descUpdated = true;
 
-                    if (tfsAtt != null)
-                    {
-                        string imageSrcPattern = "src.*?=.*?\"([^\"]).*?\"";
-                        currentDescription = Regex.Replace(currentDescription, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
-                        descUpdated = true;
-                    }
-                    else
-                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in description but is missing from work item {wiItem.OriginId}/{wi.Id}.");
-                }
-            }
+            CorrectImagePath(wi, wiItem, rev, ref description, ref descUpdated);
 
             if (descUpdated)
             {
-                DateTime changedDate;
-                if (wiItem.Revisions.Count > rev.Index + 1)
-                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time, wiItem.Revisions[rev.Index + 1].Time);
-                else
-                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
-
-                wi.Fields["System.ChangedDate"].Value = changedDate;
-                wi.Fields["System.ChangedBy"].Value = rev.Author;
-
                 if (wi.Type.Name == "Bug")
                 {
-                    wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value = currentDescription;
+                    wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value = description;
                 }
                 else
                 {
-                    wi.Fields["System.Description"].Value = currentDescription;
+                    wi.Fields["System.Description"].Value = description;
                 }
             }
 
@@ -754,24 +729,32 @@ namespace WorkItemImport
         {
             var currentComment = wi.History;
             var commentUpdated = false;
+            CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated);
+
+            if (commentUpdated)
+                wi.Fields[CoreField.History].Value = currentComment;
+        }
+
+        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated)
+        {
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
                 var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                if (currentComment.Contains(fileName))
+                if (textField.Contains(fileName))
                 {
                     var tfsAtt = IdentifyAttachment(att, wi);
 
                     if (tfsAtt != null)
                     {
                         string imageSrcPattern = "src.*?=.*?\"([^\"]).*?\"";
-                        currentComment = Regex.Replace(currentComment, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
-                        commentUpdated = true;
+                        textField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
+                        isUpdated = true;
                     }
                     else
-                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in description but is missing from work item {wiItem.OriginId}/{wi.Id}.");
+                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
                 }
             }
-            if (commentUpdated)
+            if (isUpdated)
             {
                 DateTime changedDate;
                 if (wiItem.Revisions.Count > rev.Index + 1)
@@ -781,7 +764,7 @@ namespace WorkItemImport
 
                 wi.Fields["System.ChangedDate"].Value = changedDate;
                 wi.Fields["System.ChangedBy"].Value = rev.Author;
-                wi.Fields[CoreField.History].Value = currentComment;
+
             }
         }
 
@@ -824,6 +807,12 @@ namespace WorkItemImport
 
                 SaveWorkItem(rev, wi);
 
+                foreach (var wiAtt in rev.Attachments)
+                {
+                    if (attachmentMap.TryGetValue(wiAtt.AttOriginId, out Attachment tfsAtt) && tfsAtt.IsSaved)
+                        _context.Journal.MarkAttachmentAsProcessed(wiAtt.AttOriginId, tfsAtt.Id);
+                }
+
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
@@ -840,11 +829,6 @@ namespace WorkItemImport
                 }
 
                 _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id, rev.Index);
-                foreach (var wiAtt in rev.Attachments)
-                {
-                    if (attachmentMap.TryGetValue(wiAtt.AttOriginId, out Attachment tfsAtt) && tfsAtt.IsSaved)
-                        _context.Journal.MarkAttachmentAsProcessed(wiAtt.AttOriginId, tfsAtt.Id);
-                }
 
                 Logger.Log(LogLevel.Debug, $"Imported revision.");
 

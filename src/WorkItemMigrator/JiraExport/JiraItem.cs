@@ -37,9 +37,13 @@ namespace JiraExport
 
             // save these field since these might be removed in the loop
             var reporter = fields.TryGetValue("reporter", out object rep) ? (string)rep : null;
-            var createdOn = (DateTime)fields["created"];
+            var createdOn = fields.TryGetValue("created", out object crdate) ? (DateTime)crdate : default(DateTime);
+            if (createdOn == DateTime.MinValue)
+                Logger.Log(LogLevel.Debug, "created key was not found, using DateTime default value");
+
 
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
+            Logger.Log(LogLevel.Debug, $"Downloaded issue: {issueKey} changelog.");
             changelog.Reverse();
 
             Stack<JiraRevision> revisions = new Stack<JiraRevision>();
@@ -53,7 +57,7 @@ namespace JiraExport
                 List<RevisionAction<JiraAttachment>> attachmentChanges = new List<RevisionAction<JiraAttachment>>();
                 Dictionary<string, object> fieldChanges = new Dictionary<string, object>();
 
-                var items = change.SelectTokens("$.items[*]").Cast<JObject>().Select(i => new JiraChangeItem(i));
+                var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
                 foreach (var item in items)
                 {
                     if (item.Field == "Link")
