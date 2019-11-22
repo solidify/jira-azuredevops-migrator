@@ -76,7 +76,8 @@
       },
       {
         "source": "description",
-        "target": "System.Description"
+        "target": "System.Description",
+        "mapper": "MapRendered"
       },
       {
         "source": "priority",
@@ -139,7 +140,8 @@
       },
       {
         "source": "comment",
-        "target": "System.History"
+        "target": "System.History",
+        "mapper": "MapRendered"
       },
       {
         "source": "status",
