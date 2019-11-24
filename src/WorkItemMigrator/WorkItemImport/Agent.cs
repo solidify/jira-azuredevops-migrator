@@ -383,7 +383,7 @@ namespace WorkItemImport
                     string fieldRef = fieldRev.ReferenceName;
                     object fieldValue = fieldRev.Value;
 
-                    if (fieldRef.Equals("System.IterationPath", StringComparison.InvariantCultureIgnoreCase))
+                    if (fieldRef.Equals(WiFieldReference.IterationPath, StringComparison.InvariantCultureIgnoreCase))
                     {
                         string iterationPath = Settings.BaseIterationPath;
 
@@ -407,7 +407,7 @@ namespace WorkItemImport
 
                         Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.IterationPath}'.");
                     }
-                    else if (fieldRef.Equals("System.AreaPath", StringComparison.InvariantCultureIgnoreCase))
+                    else if (fieldRef.Equals(WiFieldReference.AreaPath, StringComparison.InvariantCultureIgnoreCase))
                     {
                         string areaPath = Settings.BaseAreaPath;
 
@@ -431,14 +431,23 @@ namespace WorkItemImport
 
                         Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
                     }
+                    else if (fieldRef.Equals(WiFieldReference.ActivatedDate, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        SetFieldValue(wi, fieldRef, fieldValue);
+                    }
+                    else if (fieldRef.Equals(WiFieldReference.ClosedDate, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        SetFieldValue(wi, fieldRef, fieldValue);
+                    }
+                    else if (fieldRef.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        SetFieldValue(wi, fieldRef, fieldValue);
+                    }
                     else
                     {
                         if (fieldValue != null)
                         {
-                            var field = wi.Fields[fieldRef];
-                            field.Value = fieldValue;
-
-                            Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
+                            SetFieldValue(wi, fieldRef, fieldValue);
                         }
                     }
                 }
@@ -450,6 +459,14 @@ namespace WorkItemImport
             }
 
             return success;
+        }
+
+        private static void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
+        {
+            var field = wi.Fields[fieldRef];
+            field.Value = fieldValue;
+
+            Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
         }
 
         private bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, Attachment> attachmentMap)
@@ -660,49 +677,62 @@ namespace WorkItemImport
 
         private void EnsureAuthorFields(WiRevision rev)
         {
-            string changedByRef = "System.ChangedBy";
-            string createdByRef = "System.CreatedBy";
-            if (rev.Index == 0 && !rev.Fields.Any(f => f.ReferenceName.Equals(createdByRef, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Index == 0 && !rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.CreatedBy, StringComparison.InvariantCultureIgnoreCase)))
             {
-                rev.Fields.Add(new WiField() { ReferenceName = createdByRef, Value = rev.Author });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.CreatedBy, Value = rev.Author });
             }
-            if (!rev.Fields.Any(f => f.ReferenceName.Equals(changedByRef, StringComparison.InvariantCultureIgnoreCase)))
+            if (!rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.ChangedBy, StringComparison.InvariantCultureIgnoreCase)))
             {
-                rev.Fields.Add(new WiField() { ReferenceName = changedByRef, Value = rev.Author });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedBy, Value = rev.Author });
             }
         }
 
         private void EnsureAssigneeField(WiRevision rev, WorkItem wi)
         {
-            string assignedToRef = "System.AssignedTo";
-            string assignedTo = wi.Fields[assignedToRef].Value.ToString();
+            string assignedTo = wi.Fields[WiFieldReference.AssignedTo].Value.ToString();
 
-            if (rev.Fields.Any(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.AssignedTo, StringComparison.InvariantCultureIgnoreCase)))
             {
-                var field = rev.Fields.First(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
+                var field = rev.Fields.First(f => f.ReferenceName.Equals(WiFieldReference.AssignedTo, StringComparison.InvariantCultureIgnoreCase));
                 assignedTo = field.Value?.ToString() ?? string.Empty;
-                rev.Fields.RemoveAll(f => f.ReferenceName.Equals(assignedToRef, StringComparison.InvariantCultureIgnoreCase));
+                rev.Fields.RemoveAll(f => f.ReferenceName.Equals(WiFieldReference.AssignedTo, StringComparison.InvariantCultureIgnoreCase));
             }
-            rev.Fields.Add(new WiField() { ReferenceName = assignedToRef, Value = assignedTo });
+            rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AssignedTo, Value = assignedTo });
         }
 
         private void EnsureDateFields(WiRevision rev)
         {
-            string changedDateRef = "System.ChangedDate";
-            string createdDateRef = "System.CreatedDate";
-            if (rev.Index == 0 && !rev.Fields.Any(f => f.ReferenceName.Equals(createdDateRef, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Index == 0 && !rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.CreatedDate, StringComparison.InvariantCultureIgnoreCase)))
             {
-                rev.Fields.Add(new WiField() { ReferenceName = createdDateRef, Value = rev.Time.ToString("o") });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.CreatedDate, Value = rev.Time.ToString("o") });
             }
-            if (!rev.Fields.Any(f => f.ReferenceName.Equals(changedDateRef, StringComparison.InvariantCultureIgnoreCase)))
+            if (!rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.ChangedDate, StringComparison.InvariantCultureIgnoreCase)))
             {
-                rev.Fields.Add(new WiField() { ReferenceName = changedDateRef, Value = rev.Time.ToString("o") });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
+            }
+        }
+
+
+        private void EnsureDateFieldsOnStateChange(WiRevision rev, WorkItem wi)
+        {
+            if (rev.Index != 0 && rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                var wiState = wi.Fields[WiFieldReference.State]?.Value.ToString() ?? string.Empty;
+                var revState = rev.Fields.FirstOrDefault(f => f.ReferenceName.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase))?.Value.ToString() ?? string.Empty;
+                if (wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = null });
+
+                }
+                if (wiState.Equals("In Progress", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = null });
             }
         }
 
         private bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev)
         {
-            string description = wi.Type.Name == "Bug" ? wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value.ToString() : wi.Description;
+            string description = wi.Type.Name == "Bug" ? wi.Fields[WiFieldReference.ReproSteps].Value.ToString() : wi.Description;
             if (string.IsNullOrWhiteSpace(description))
                 return false;
 
@@ -714,11 +744,11 @@ namespace WorkItemImport
             {
                 if (wi.Type.Name == "Bug")
                 {
-                    wi.Fields["Microsoft.VSTS.TCM.ReproSteps"].Value = description;
+                    wi.Fields[WiFieldReference.ReproSteps].Value = description;
                 }
                 else
                 {
-                    wi.Fields["System.Description"].Value = description;
+                    wi.Fields[WiFieldReference.Description].Value = description;
                 }
             }
 
@@ -762,9 +792,8 @@ namespace WorkItemImport
                 else
                     changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
 
-                wi.Fields["System.ChangedDate"].Value = changedDate;
-                wi.Fields["System.ChangedBy"].Value = rev.Author;
-
+                wi.Fields[WiFieldReference.ChangedDate].Value = changedDate;
+                wi.Fields[WiFieldReference.ChangedBy].Value = rev.Author;
             }
         }
 
@@ -780,6 +809,7 @@ namespace WorkItemImport
                 EnsureDateFields(rev);
                 EnsureAuthorFields(rev);
                 EnsureAssigneeField(rev, wi);
+                EnsureDateFieldsOnStateChange(rev, wi);
 
                 var attachmentMap = new Dictionary<string, Attachment>();
                 if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap))
@@ -849,11 +879,11 @@ namespace WorkItemImport
 
         private void EnsureClasificationFields(Migration.WIContract.WiRevision rev)
         {
-            if (!rev.Fields.Any(f => f.ReferenceName == "System.AreaPath"))
-                rev.Fields.Add(new WiField() { ReferenceName = "System.AreaPath", Value = "" });
+            if (!rev.Fields.Any(f => f.ReferenceName == WiFieldReference.AreaPath))
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
 
-            if (!rev.Fields.Any(f => f.ReferenceName == "System.IterationPath"))
-                rev.Fields.Add(new WiField() { ReferenceName = "System.IterationPath", Value = "" });
+            if (!rev.Fields.Any(f => f.ReferenceName == WiFieldReference.IterationPath))
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
         }
 
         #endregion
