@@ -96,7 +96,8 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |MapSprint|Maps a sprint by matching the Azure DevOps iteration tree|
 |MapTags|Maps tags by replacing space with semi-colon|
 |MapArray|Maps an array by replacing comma with semi-colon|
-|MapRemainingWork|Maps and converts a Jira time to hours| 
+|MapRemainingWork|Maps and converts a Jira time to hours|
+|MapRendered|Maps field to rendered html format value|
 |(default)|Simply copies soure to target|
 
 ## Example configuration
@@ -180,7 +181,8 @@ Currently the tool has a rather naive implementation for mapping certain constru
       },
       {
         "source": "description",
-        "target": "System.Description"
+        "target": "System.Description",
+		"mapper":"MapRendered"
       },
       {
         "source": "priority",
@@ -243,7 +245,8 @@ Currently the tool has a rather naive implementation for mapping certain constru
       },
       {
         "source": "comment",
-        "target": "System.History"
+        "target": "System.History",
+		"mapper":"MapRendered"
       },
       {
         "source": "status",
