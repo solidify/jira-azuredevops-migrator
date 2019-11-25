@@ -718,7 +718,7 @@ namespace WorkItemImport
             if (rev.Index != 0 && rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase)))
             {
                 var wiState = wi.Fields[WiFieldReference.State]?.Value.ToString() ?? string.Empty;
-                var revState = rev.Fields.FirstOrDefault(f => f.ReferenceName.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase))?.Value.ToString() ?? string.Empty;
+                var revState = rev.Fields.FirstOrDefault(f => f.ReferenceName.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase))?.Value?.ToString() ?? string.Empty;
                 if (wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
