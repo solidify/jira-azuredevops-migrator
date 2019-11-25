@@ -132,8 +132,6 @@ namespace JiraExport
                 if (type != null)
                 {
                     var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
-                    //MapLastDescription(revisions, issue);
-
                     wiItem.OriginId = issue.Key;
                     wiItem.Type = type;
                     wiItem.Revisions = revisions;
