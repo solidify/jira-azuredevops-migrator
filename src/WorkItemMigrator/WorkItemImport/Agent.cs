@@ -703,11 +703,11 @@ namespace WorkItemImport
 
         private void EnsureAuthorFields(WiRevision rev)
         {
-            if (rev.Index == 0 && !rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.CreatedBy, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Index == 0 && !rev.Fields.HasAnyByRefName(WiFieldReference.CreatedBy))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.CreatedBy, Value = rev.Author });
             }
-            if (!rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.ChangedBy, StringComparison.InvariantCultureIgnoreCase)))
+            if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedBy))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedBy, Value = rev.Author });
             }
@@ -717,7 +717,7 @@ namespace WorkItemImport
         {
             string assignedTo = wi.Fields[WiFieldReference.AssignedTo].Value.ToString();
 
-            if (rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.AssignedTo, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Fields.HasAnyByRefName(WiFieldReference.AssignedTo))
             {
                 var field = rev.Fields.First(f => f.ReferenceName.Equals(WiFieldReference.AssignedTo, StringComparison.InvariantCultureIgnoreCase));
                 assignedTo = field.Value?.ToString() ?? string.Empty;
@@ -728,23 +728,24 @@ namespace WorkItemImport
 
         private void EnsureDateFields(WiRevision rev)
         {
-            if (rev.Index == 0 && !rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.CreatedDate, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Index == 0 && !rev.Fields.HasAnyByRefName(WiFieldReference.CreatedDate))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.CreatedDate, Value = rev.Time.ToString("o") });
             }
-            if (!rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.ChangedDate, StringComparison.InvariantCultureIgnoreCase)))
+            if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedDate))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
             }
+
         }
 
 
         private void EnsureDateFieldsOnStateChange(WiRevision rev, WorkItem wi)
         {
-            if (rev.Index != 0 && rev.Fields.Any(f => f.ReferenceName.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase)))
+            if (rev.Index != 0 && rev.Fields.HasAnyByRefName(WiFieldReference.State))
             {
-                var wiState = wi.Fields[WiFieldReference.State]?.Value.ToString() ?? string.Empty;
-                var revState = rev.Fields.FirstOrDefault(f => f.ReferenceName.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase))?.Value?.ToString() ?? string.Empty;
+                var wiState = wi.Fields[WiFieldReference.State]?.Value?.ToString() ?? string.Empty;
+                var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State);
                 if (wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
@@ -903,12 +904,12 @@ namespace WorkItemImport
             }
         }
 
-        private void EnsureClasificationFields(Migration.WIContract.WiRevision rev)
+        private void EnsureClasificationFields(WiRevision rev)
         {
-            if (!rev.Fields.Any(f => f.ReferenceName == WiFieldReference.AreaPath))
+            if (!rev.Fields.HasAnyByRefName(WiFieldReference.AreaPath))
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
 
-            if (!rev.Fields.Any(f => f.ReferenceName == WiFieldReference.IterationPath))
+            if (!rev.Fields.HasAnyByRefName(WiFieldReference.AreaPath))
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
         }
 
