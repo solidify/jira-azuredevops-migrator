@@ -582,13 +582,39 @@ namespace WorkItemImport
 
             if (linkEnd != null)
             {
-                var relatedLink = new RelatedLink(linkEnd, link.TargetWiId);
-                relatedLink = ResolveCiclycalLinks(relatedLink, wi);
-                wi.Links.Add(relatedLink);
-                return true;
+                try
+                {
+                    var relatedLink = new RelatedLink(linkEnd, link.TargetWiId);
+                    relatedLink = ResolveCiclycalLinks(relatedLink, wi);
+                    if (!IsDuplicateWorkItemLink(wi.Links, relatedLink))
+                    {
+                        wi.Links.Add(relatedLink);
+                        return true;
+                    }
+                    return false;
+                }
+
+                catch (Exception ex)
+                {
+
+                    Logger.Log(LogLevel.Error, ex.Message);
+                    return false;
+                }
             }
             else
                 return false;
+
+        }
+
+        private bool IsDuplicateWorkItemLink(LinkCollection links, RelatedLink relatedLink)
+        {
+            if (links.Contains(relatedLink))
+            {
+                Logger.Log(LogLevel.Warning, $"Duplicate work item link, related workitem id: {relatedLink.RelatedWorkItemId}");
+                return false;
+            }
+            return true;
+
 
         }
 
