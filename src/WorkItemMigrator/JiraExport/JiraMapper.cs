@@ -107,7 +107,8 @@ namespace JiraExport
                 Author = MapUser(r.Author),
                 Attachments = attachments,
                 Fields = fields,
-                Links = links
+                Links = links,
+                AttachmentReferences = attachments.Any()
             };
         }
 
@@ -131,8 +132,6 @@ namespace JiraExport
                 if (type != null)
                 {
                     var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
-                    MapLastDescription(revisions, issue);
-
                     wiItem.OriginId = issue.Key;
                     wiItem.Type = type;
                     wiItem.Revisions = revisions;
@@ -274,7 +273,7 @@ namespace JiraExport
             var commonFields = new FieldMapping<JiraRevision>();
             var typeFields = new Dictionary<string, FieldMapping<JiraRevision>>();
 
-            foreach(var targetType in _targetTypes)
+            foreach (var targetType in _targetTypes)
             {
                 if (!typeFields.ContainsKey(targetType))
                     typeFields.Add(targetType, new FieldMapping<JiraRevision>());
@@ -354,7 +353,7 @@ namespace JiraExport
                         else
                         {
                             // If we haven't mapped the Type then we probably want to ignore the field
-                            if (typeFields.TryGetValue(wit, out FieldMapping<JiraRevision> fm)) 
+                            if (typeFields.TryGetValue(wit, out FieldMapping<JiraRevision> fm))
                             {
                                 fm.Add(item.Target, value);
                             }
@@ -470,6 +469,9 @@ namespace JiraExport
                         return (true, mappedValue);
                     }
                 }
+                if (itemSource.Equals("description", StringComparison.InvariantCultureIgnoreCase))
+                    value = BuildDescriptionValue(value, r);
+
                 return (true, value);
             }
             else
@@ -515,59 +517,29 @@ namespace JiraExport
             return iterationPath;
         }
 
-        private void MapLastDescription(List<WiRevision> revisions, JiraItem issue)
+        private string BuildDescriptionValue(object value, JiraRevision revision)
         {
-            var descFieldName = issue.Type == "Bug" ? "Microsoft.VSTS.TCM.ReproSteps" : "System.Description";
+            var descriptionHtml = value.ToString();
 
-            var lastDescUpdateRev = ((IEnumerable<WiRevision>)revisions)
-                                        .Reverse()
-                                        .FirstOrDefault(r => r.Fields.Any(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase)));
-
-            if (lastDescUpdateRev != null)
+            foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
             {
-                var lastDescUpdate = lastDescUpdateRev?.Fields?.FirstOrDefault(i => i.ReferenceName.Equals(descFieldName, StringComparison.InvariantCultureIgnoreCase));
-                var renderedDescription = MapRenderedDescription(issue);
+                if (!string.IsNullOrWhiteSpace(att.ThumbUrl) && descriptionHtml.Contains(att.ThumbUrl))
+                    descriptionHtml = descriptionHtml.Replace(att.ThumbUrl, att.ThumbUrl);
 
-                if (lastDescUpdate == null && !string.IsNullOrWhiteSpace(renderedDescription))
-                {
-                    lastDescUpdate = new WiField() { ReferenceName = descFieldName, Value = renderedDescription };
-                    lastDescUpdateRev = revisions.First();
-                    lastDescUpdateRev.Fields.Add(lastDescUpdate);
-                }
-
-                if (lastDescUpdate != null)
-                {
-                    lastDescUpdate.Value = renderedDescription;
-                }
-
-                lastDescUpdateRev.AttachmentReferences = true;
-            }
-        }
-
-        private string MapRenderedDescription(JiraItem issue)
-        {
-            string originalHtml = issue.RemoteIssue.ExValue<string>("$.renderedFields.description");
-            string wiHtml = originalHtml;
-
-            foreach (var att in issue.Revisions.SelectMany(r => r.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value)))
-            {
-                if (!string.IsNullOrWhiteSpace(att.ThumbUrl) && wiHtml.Contains(att.ThumbUrl))
-                    wiHtml = wiHtml.Replace(att.ThumbUrl, att.ThumbUrl);
-
-                if (!string.IsNullOrWhiteSpace(att.Url) && wiHtml.Contains(att.Url))
-                    wiHtml = wiHtml.Replace(att.Url, att.Url);
+                if (!string.IsNullOrWhiteSpace(att.Url) && descriptionHtml.Contains(att.Url))
+                    descriptionHtml = descriptionHtml.Replace(att.Url, att.Url);
             }
 
-            wiHtml = RevisionUtility.ReplaceHtmlElements(wiHtml);
+            descriptionHtml = RevisionUtility.ReplaceHtmlElements(descriptionHtml);
 
             string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
             if (string.IsNullOrWhiteSpace(css))
                 Logger.Log(LogLevel.Warning, "Could not read css styles for description.");
             else
-                wiHtml = "<style>" + css + "</style>" + wiHtml;
+                descriptionHtml = "<style>" + css + "</style>" + descriptionHtml;
 
+            return descriptionHtml;
 
-            return wiHtml ?? string.Empty;
         }
 
         #endregion
