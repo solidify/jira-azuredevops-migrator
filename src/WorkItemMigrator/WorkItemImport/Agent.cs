@@ -909,8 +909,8 @@ namespace WorkItemImport
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.AreaPath))
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
 
-            if (!rev.Fields.HasAnyByRefName(WiFieldReference.AreaPath))
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
+            if (!rev.Fields.HasAnyByRefName(WiFieldReference.IterationPath))
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.IterationPath, Value = "" });
         }
 
         #endregion
