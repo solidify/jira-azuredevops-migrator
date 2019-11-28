@@ -431,15 +431,15 @@ namespace WorkItemImport
 
                         Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
                     }
-                    else if (fieldRef.Equals(WiFieldReference.ActivatedDate, StringComparison.InvariantCultureIgnoreCase))
+                    else if (fieldRef.Equals(WiFieldReference.ActivatedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
                     {
                         SetFieldValue(wi, fieldRef, fieldValue);
                     }
-                    else if (fieldRef.Equals(WiFieldReference.ClosedDate, StringComparison.InvariantCultureIgnoreCase))
+                    else if (fieldRef.Equals(WiFieldReference.ClosedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
                     {
                         SetFieldValue(wi, fieldRef, fieldValue);
                     }
-                    else if (fieldRef.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase))
+                    else if (fieldRef.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
                     {
                         SetFieldValue(wi, fieldRef, fieldValue);
                     }
@@ -463,10 +463,20 @@ namespace WorkItemImport
 
         private static void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
         {
-            var field = wi.Fields[fieldRef];
-            field.Value = fieldValue;
+            try
+            {
+                var field = wi.Fields[fieldRef];
+                field.Value = fieldValue;
 
-            Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
+                Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
+            }
+            catch (ValidationException ex)
+            {
+
+                Logger.Log(LogLevel.Error, ex.Message);
+            }
+
+
         }
 
         private bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, Attachment> attachmentMap)
@@ -754,6 +764,9 @@ namespace WorkItemImport
                 }
                 if (wiState.Equals("In Progress", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = null });
+
+                if (revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && !rev.Fields.Any(x => x.ReferenceName.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase)))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = rev.Author });
             }
         }
 
