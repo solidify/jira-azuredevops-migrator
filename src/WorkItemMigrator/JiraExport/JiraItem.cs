@@ -31,7 +31,7 @@ namespace JiraExport
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
-            Dictionary<string, object> fields = ExtractFields(issueKey, (JObject) remoteIssue, jiraProvider);
+            Dictionary<string, object> fields = ExtractFields(issueKey, (JObject)remoteIssue, jiraProvider);
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
 
@@ -121,26 +121,18 @@ namespace JiraExport
         {
             var renderedFields = jiraItem.RemoteIssue.SelectToken("$.renderedFields.comment.comments");
             var comments = jiraProvider.Jira.Issues.GetCommentsAsync(jiraItem.Key).Result;
-            return comments.Select((c,i) => {
+            return comments.Select((c, i) =>
+            {
                 var rc = renderedFields.SelectToken($"$.[{i}].body");
                 return new JiraRevision(jiraItem)
                 {
                     Author = c.Author,
                     Time = c.CreatedDate.Value,
-                    Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", RenderedComment(rc.Value<string>()) } },
+                    Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", rc.Value<string>() } },
                     AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
                     LinkActions = new List<RevisionAction<JiraLink>>()
                 };
             }).ToList();
-        }
-
-        private static string RenderedComment(string comment)
-        {
-            if (!string.IsNullOrEmpty(comment))
-            {
-                comment = RevisionUtility.ReplaceHtmlElements(comment);
-            }
-            return comment;
         }
 
         private static void UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
