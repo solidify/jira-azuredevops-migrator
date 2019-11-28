@@ -469,8 +469,7 @@ namespace JiraExport
                         return (true, mappedValue);
                     }
                 }
-                if (itemSource.Equals("description", StringComparison.InvariantCultureIgnoreCase))
-                    value = BuildDescriptionValue(value, r);
+                value = CorrectRenderedHtmlvalue(value, r);
 
                 return (true, value);
             }
@@ -517,28 +516,28 @@ namespace JiraExport
             return iterationPath;
         }
 
-        private string BuildDescriptionValue(object value, JiraRevision revision)
+        private string CorrectRenderedHtmlvalue(object value, JiraRevision revision)
         {
-            var descriptionHtml = value.ToString();
+            var htmlValue = value.ToString();
 
             foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
             {
-                if (!string.IsNullOrWhiteSpace(att.ThumbUrl) && descriptionHtml.Contains(att.ThumbUrl))
-                    descriptionHtml = descriptionHtml.Replace(att.ThumbUrl, att.ThumbUrl);
+                if (!string.IsNullOrWhiteSpace(att.ThumbUrl) && htmlValue.Contains(att.ThumbUrl))
+                    htmlValue = htmlValue.Replace(att.ThumbUrl, att.ThumbUrl);
 
-                if (!string.IsNullOrWhiteSpace(att.Url) && descriptionHtml.Contains(att.Url))
-                    descriptionHtml = descriptionHtml.Replace(att.Url, att.Url);
+                if (!string.IsNullOrWhiteSpace(att.Url) && htmlValue.Contains(att.Url))
+                    htmlValue = htmlValue.Replace(att.Url, att.Url);
             }
 
-            descriptionHtml = RevisionUtility.ReplaceHtmlElements(descriptionHtml);
+            htmlValue = RevisionUtility.ReplaceHtmlElements(htmlValue);
 
             string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
             if (string.IsNullOrWhiteSpace(css))
-                Logger.Log(LogLevel.Warning, "Could not read css styles for description.");
+                Logger.Log(LogLevel.Warning, $"Could not read css styles for rendered field in {revision.OriginId}.");
             else
-                descriptionHtml = "<style>" + css + "</style>" + descriptionHtml;
+                htmlValue = "<style>" + css + "</style>" + htmlValue;
 
-            return descriptionHtml;
+            return htmlValue;
 
         }
 
