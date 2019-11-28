@@ -26,12 +26,7 @@
         public static string CreatedDate => "System.CreatedDate";
         public static string ReproSteps => "Microsoft.VSTS.TCM.ReproSteps";
         public static string Description => "System.Description";
-
-
-
-
-
-
+        public static string ActivatedBy => "Microsoft.VSTS.Common.ActivatedBy";
 
     }
 }

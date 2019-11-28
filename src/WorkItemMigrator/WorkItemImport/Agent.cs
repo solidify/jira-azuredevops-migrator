@@ -435,6 +435,10 @@ namespace WorkItemImport
                     {
                         SetFieldValue(wi, fieldRef, fieldValue);
                     }
+                    else if (fieldRef.Equals(WiFieldReference.ActivatedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
+                    {
+                        SetFieldValue(wi, fieldRef, fieldValue);
+                    }
                     else if (fieldRef.Equals(WiFieldReference.ClosedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
                     {
                         SetFieldValue(wi, fieldRef, fieldValue);
@@ -750,22 +754,25 @@ namespace WorkItemImport
         }
 
 
-        private void EnsureDateFieldsOnStateChange(WiRevision rev, WorkItem wi)
+        private void EnsureFieldsOnStateChange(WiRevision rev, WorkItem wi)
         {
             if (rev.Index != 0 && rev.Fields.HasAnyByRefName(WiFieldReference.State))
             {
                 var wiState = wi.Fields[WiFieldReference.State]?.Value?.ToString() ?? string.Empty;
-                var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State);
+                var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
                 if (wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = null });
 
                 }
-                if (wiState.Equals("In Progress", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+                if (!wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+                {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = null });
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = null });
+                }
 
-                if (revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && !rev.Fields.Any(x => x.ReferenceName.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase)))
+                if (revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && !rev.Fields.HasAnyByRefName(WiFieldReference.ClosedBy))
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = rev.Author });
             }
         }
@@ -849,7 +856,7 @@ namespace WorkItemImport
                 EnsureDateFields(rev);
                 EnsureAuthorFields(rev);
                 EnsureAssigneeField(rev, wi);
-                EnsureDateFieldsOnStateChange(rev, wi);
+                EnsureFieldsOnStateChange(rev, wi);
 
                 var attachmentMap = new Dictionary<string, Attachment>();
                 if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap))
