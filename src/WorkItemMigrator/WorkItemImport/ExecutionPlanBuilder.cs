@@ -1,7 +1,7 @@
-﻿using Migration.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Migration.Common;
 using Migration.Common.Log;
 
 namespace WorkItemImport
@@ -14,7 +14,7 @@ namespace WorkItemImport
         {
             _context = context;
         }
-        
+
         public ExecutionPlan BuildExecutionPlan()
         {
             var path = _context.MigrationWorkspace;
@@ -62,7 +62,7 @@ namespace WorkItemImport
                         nextTime = next.Time;
                 }
 
-                if (prev.Time >= current.Time)
+                if (prev.Time >= current.Time && prev.OriginId == current.OriginId)
                     current.Time = RevisionUtility.NextValidDeltaRev(prev.Time, nextTime);
             }
         }
