@@ -25,13 +25,14 @@ namespace Migration.Common.Log
         private static List<string> _errors = new List<string>();
         private static List<string> _warnings = new List<string>();
         private static TelemetryClient _telemetryClient = null;
+        private static bool? _continueOnCritical;
 
         static Logger()
         {
             InitApplicationInsights();
         }
 
-        public static void Init(string app, string dirPath, string level)
+        public static void Init(string app, string dirPath, string level, string continueOnCritical = null)
         {
             if (!Directory.Exists(dirPath))
             {
@@ -39,6 +40,7 @@ namespace Migration.Common.Log
             }
             _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now.ToString("yyMMdd-HHmmss")}.txt");
             _logLevel = GetLogLevelFromString(level);
+            _continueOnCritical = ParseContinueOnCritical(continueOnCritical);
         }
 
         public static void StartSession(string app, string message, Dictionary<string, string> context, Dictionary<string, string> properties)
@@ -93,9 +95,18 @@ namespace Migration.Common.Log
                 if (!_errors.Contains(message))
                     _errors.Add(message);
 
-                Console.Write("Do you want to continue (y/n)? ");
-                var answer = Console.ReadKey();
-                if (answer.Key == ConsoleKey.N)
+                ConsoleKey answer;
+                if (!_continueOnCritical.HasValue)
+                {
+                    Console.Write("Do you want to continue (y/n)? ");
+                    answer = Console.ReadKey().Key;
+                }
+                else
+                {
+                    answer = _continueOnCritical.Value ? ConsoleKey.Y : ConsoleKey.N;
+                }
+                
+                if (answer == ConsoleKey.N)
                     throw new AbortMigrationException(message);
             }
             else if (level == LogLevel.Error)
@@ -218,6 +229,23 @@ namespace Migration.Common.Log
                 case LogLevel.Critical: return "C";
                 default: return "I";
             }
+        }
+
+        private static bool? ParseContinueOnCritical(string continueOnCritical)
+        {
+            if (string.IsNullOrEmpty(continueOnCritical))
+            {
+                return null;
+            }
+
+            var success = bool.TryParse(continueOnCritical, out var result);
+
+            if (!success)
+            {
+                return null;
+            }
+
+            return result;
         }
 
         public static int Warnings => _warnings.Count;
