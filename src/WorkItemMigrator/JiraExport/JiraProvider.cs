@@ -42,8 +42,15 @@ namespace JiraExport
             Logger.Log(LogLevel.Info, "Retrieving Jira fields...");
             provider.Jira.Fields.GetCustomFieldsAsync().Wait();
             Logger.Log(LogLevel.Info, "Retrieving Jira link types...");
-            provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
+            try
+            {
+                provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
+            }
 
+            catch (AggregateException e)
+            {
+                Logger.Log(e, "Failed to retrive linktypes from Jira");
+            }
             return provider;
         }
 
@@ -159,13 +166,24 @@ namespace JiraExport
             int currentStart = 0;
             IEnumerable<string> remoteIssueBatch = null;
             int index = 0;
+            JToken response = null;
+
+            Logger.Log(LogLevel.Debug, "Enumerate remote issues");
+
             do
             {
-                var response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET,
-                    $"rest/api/2/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
+                try
+                {
+                    response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
+                }
+                catch (AggregateException e)
+                {
+                    Logger.Log(e, "Failed to retrive issues");
+                    break;
+                }
 
-                remoteIssueBatch = response.SelectTokens("$.issues[*]").OfType<JObject>()
-                                           .Select(i => i.SelectToken("$.key").Value<string>());
+                remoteIssueBatch = response?.SelectTokens("$.issues[*]").OfType<JObject>()
+                                        .Select(i => i.SelectToken("$.key").Value<string>());
 
                 if (remoteIssueBatch == null)
                 {
@@ -236,9 +254,19 @@ namespace JiraExport
 
         public int GetItemCount(string jql)
         {
-            var response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&maxResults=0").Result;
+            Logger.Log(LogLevel.Debug, $"Get item count using query: '{jql}'");
+            try
+            {
+                var response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&maxResults=0").Result;
 
-            return (int)response.SelectToken("$.total");
+                return (int)response.SelectToken("$.total");
+            }
+            catch (AggregateException e)
+            {
+                Logger.Log(e, $"Failed to get item count using query: '{jql}'");
+                return 0;
+            }
+
         }
 
         public JiraVersion GetJiraVersion()
