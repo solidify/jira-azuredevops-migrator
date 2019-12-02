@@ -47,7 +47,7 @@ namespace JiraExport
                 provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
             }
 
-            catch (AggregateException e)
+            catch (Exception e)
             {
                 Logger.Log(e, "Failed to retrive linktypes from Jira");
             }
@@ -176,7 +176,7 @@ namespace JiraExport
                 {
                     response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
                 }
-                catch (AggregateException e)
+                catch (Exception e)
                 {
                     Logger.Log(e, "Failed to retrive issues");
                     break;
@@ -261,7 +261,7 @@ namespace JiraExport
 
                 return (int)response.SelectToken("$.total");
             }
-            catch (AggregateException e)
+            catch (Exception e)
             {
                 Logger.Log(e, $"Failed to get item count using query: '{jql}'");
                 return 0;
