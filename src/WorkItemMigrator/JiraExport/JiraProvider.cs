@@ -181,57 +181,59 @@ namespace JiraExport
                     Logger.Log(e, "Failed to retrive issues");
                     break;
                 }
-
-                remoteIssueBatch = response?.SelectTokens("$.issues[*]").OfType<JObject>()
-                                        .Select(i => i.SelectToken("$.key").Value<string>());
-
-                if (remoteIssueBatch == null)
+                if (response != null)
                 {
-                    Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
-                    break;
-                }
+                    remoteIssueBatch = response?.SelectTokens("$.issues[*]").OfType<JObject>()
+                                            .Select(i => i.SelectToken("$.key").Value<string>());
 
-                currentStart += Settings.BatchSize;
-
-                int totalItems = (int)response.SelectToken("$.total");
-
-                foreach (var issueKey in remoteIssueBatch)
-                {
-                    if (skipList.Contains(issueKey))
+                    if (remoteIssueBatch == null)
                     {
-                        Logger.Log(LogLevel.Info, $"Skipped Jira '{issueKey}' - already downloaded.");
-                        index++;
-                        continue;
+                        Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                        break;
                     }
 
-                    Logger.Log(LogLevel.Info, $"Processing {index + 1}/{totalItems} - '{issueKey}'.");
-                    var issue = ProcessItem(issueKey, skipList);
-                    yield return issue;
-                    index++;
+                    currentStart += Settings.BatchSize;
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) && (issue.EpicParent != null) && !skipList.Contains(issue.EpicParent))
-                    {
-                        Logger.Log(LogLevel.Info, $"Processing epic parent '{issue.EpicParent}'.");
-                        var parentEpic = ProcessItem(issue.EpicParent, skipList);
-                        yield return parentEpic;
-                    }
+                    int totalItems = (int)response.SelectToken("$.total");
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && (issue.Parent != null) && !skipList.Contains(issue.Parent))
+                    foreach (var issueKey in remoteIssueBatch)
                     {
-                        Logger.Log(LogLevel.Info, $"Processing parent issue '{issue.Parent}'.");
-                        var parent = ProcessItem(issue.Parent, skipList);
-                        yield return parent;
-                    }
-
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeSubItems) && (issue.SubItems != null) && issue.SubItems.Any())
-                    {
-                        foreach (var subitemKey in issue.SubItems)
+                        if (skipList.Contains(issueKey))
                         {
-                            if (!skipList.Contains(subitemKey))
+                            Logger.Log(LogLevel.Info, $"Skipped Jira '{issueKey}' - already downloaded.");
+                            index++;
+                            continue;
+                        }
+
+                        Logger.Log(LogLevel.Info, $"Processing {index + 1}/{totalItems} - '{issueKey}'.");
+                        var issue = ProcessItem(issueKey, skipList);
+                        yield return issue;
+                        index++;
+
+                        if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) && (issue.EpicParent != null) && !skipList.Contains(issue.EpicParent))
+                        {
+                            Logger.Log(LogLevel.Info, $"Processing epic parent '{issue.EpicParent}'.");
+                            var parentEpic = ProcessItem(issue.EpicParent, skipList);
+                            yield return parentEpic;
+                        }
+
+                        if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && (issue.Parent != null) && !skipList.Contains(issue.Parent))
+                        {
+                            Logger.Log(LogLevel.Info, $"Processing parent issue '{issue.Parent}'.");
+                            var parent = ProcessItem(issue.Parent, skipList);
+                            yield return parent;
+                        }
+
+                        if (downloadOptions.HasFlag(DownloadOptions.IncludeSubItems) && (issue.SubItems != null) && issue.SubItems.Any())
+                        {
+                            foreach (var subitemKey in issue.SubItems)
                             {
-                                Logger.Log(LogLevel.Info, $"Processing sub-item '{subitemKey}'.");
-                                var subItem = ProcessItem(subitemKey, skipList);
-                                yield return subItem;
+                                if (!skipList.Contains(subitemKey))
+                                {
+                                    Logger.Log(LogLevel.Info, $"Processing sub-item '{subitemKey}'.");
+                                    var subItem = ProcessItem(subitemKey, skipList);
+                                    yield return subItem;
+                                }
                             }
                         }
                     }
