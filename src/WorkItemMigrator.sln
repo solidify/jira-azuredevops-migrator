@@ -1,17 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29503.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.WIContract", "Migration.WIContract\Migration.WIContract.csproj", "{19B3AF60-8BE6-47FC-9911-7829455B3557}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.WIContract", "Common\Migration.WIContract\Migration.WIContract.csproj", "{19B3AF60-8BE6-47FC-9911-7829455B3557}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jira-export", "JiraExport\jira-export.csproj", "{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jira-export", "Exporter\JiraExport\jira-export.csproj", "{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common", "Migration.Common\Migration.Common.csproj", "{3D3E0FD1-05FC-454B-828A-9004D3DDB296}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common", "Common\Migration.Common\Migration.Common.csproj", "{3D3E0FD1-05FC-454B-828A-9004D3DDB296}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wi-import", "WorkItemImport\wi-import.csproj", "{FE3852EF-A2A8-45B7-8598-CA9400D7F60B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wi-import", "Importer\WorkItemImport\wi-import.csproj", "{FE3852EF-A2A8-45B7-8598-CA9400D7F60B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common.Log", "Migration.Common.Log\Migration.Common.Log.csproj", "{87DF777C-D3CB-4B0B-8552-159247B1F022}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common.Log", "Common\Migration.Common.Log\Migration.Common.Log.csproj", "{87DF777C-D3CB-4B0B-8552-159247B1F022}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Importer", "Importer", "{FBE7CE41-A806-41F9-8473-7681375769B3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Exporter", "Exporter", "{AA655B1E-27A0-412E-BD8A-050EF7DA78F7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{65878D2A-A10B-4E47-AE9E-5A7CA8A78EF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +48,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{19B3AF60-8BE6-47FC-9911-7829455B3557} = {65878D2A-A10B-4E47-AE9E-5A7CA8A78EF8}
+		{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C} = {AA655B1E-27A0-412E-BD8A-050EF7DA78F7}
+		{3D3E0FD1-05FC-454B-828A-9004D3DDB296} = {65878D2A-A10B-4E47-AE9E-5A7CA8A78EF8}
+		{FE3852EF-A2A8-45B7-8598-CA9400D7F60B} = {FBE7CE41-A806-41F9-8473-7681375769B3}
+		{87DF777C-D3CB-4B0B-8552-159247B1F022} = {65878D2A-A10B-4E47-AE9E-5A7CA8A78EF8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C79F9C98-4D90-4590-A3F5-1D49EEAE40C0}
