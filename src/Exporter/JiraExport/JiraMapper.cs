@@ -7,7 +7,7 @@ using Common.Config;
 using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
-using Migration.WIContract;
+using Migration.Contract.WorkItem;
 
 namespace JiraExport
 {

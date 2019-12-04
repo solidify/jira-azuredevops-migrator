@@ -88,7 +88,7 @@
       <Project>{87df777c-d3cb-4b0b-8552-159247b1f022}</Project>
       <Name>Migration.Common.Log</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Migration.WIContract\Migration.WIContract.csproj">
+    <ProjectReference Include="..\Migration.Contract.WorkItem\Migration.Contract.WorkItem.csproj">
       <Project>{19b3af60-8be6-47fc-9911-7829455b3557}</Project>
       <Name>Migration.WIContract</Name>
     </ProjectReference>

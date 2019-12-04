@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Services.Operations;
 
 using Migration.Common;
 using Migration.Common.Log;
-using Migration.WIContract;
+using Migration.Contract.WorkItem;
 
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
 using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
