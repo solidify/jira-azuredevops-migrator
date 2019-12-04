@@ -4,17 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{87DF777C-D3CB-4B0B-8552-159247B1F022}</ProjectGuid>
+    <ProjectGuid>{3D3E0FD1-05FC-454B-828A-9004D3DDB296}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Migration.Common.Log</RootNamespace>
-    <AssemblyName>Migration.Common.Log</AssemblyName>
+    <RootNamespace>Migration.Common</RootNamespace>
+    <AssemblyName>Migration.Common</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,22 +33,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.ApplicationInsights, Version=2.9.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.ApplicationInsights.2.9.1\lib\net46\Microsoft.ApplicationInsights.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Semver, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Semver.2.0.4\lib\net452\Semver.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.5.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
+      <HintPath>..\..\packages\System.Diagnostics.DiagnosticSource.4.5.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,15 +55,43 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbortMigrationException.cs" />
-    <Compile Include="Logger.cs" />
+    <Compile Include="BaseMapper.cs" />
+    <Compile Include="Config\ConfigJson.cs" />
+    <Compile Include="Config\ConfigReaderJson.cs" />
+    <Compile Include="Config\Field.cs" />
+    <Compile Include="Config\IConfigReader.cs" />
+    <Compile Include="Config\FieldMap.cs" />
+    <Compile Include="Config\Link.cs" />
+    <Compile Include="Config\LinkMap.cs" />
+    <Compile Include="Config\Mapping.cs" />
+    <Compile Include="Config\Value.cs" />
+    <Compile Include="Config\Type.cs" />
+    <Compile Include="Config\TypeMap.cs" />
+    <Compile Include="FieldMapping.cs" />
+    <Compile Include="ISourceRevision.cs" />
+    <Compile Include="Journal.cs" />
+    <Compile Include="JsonExtensions.cs" />
+    <Compile Include="MigrationContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VersionInfo.cs" />
+    <Compile Include="RevisionUtility.cs" />
+    <Compile Include="UserMapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
+    <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="ApplicationInsights.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Migration.Common.Log\Migration.Common.Log.csproj">
+      <Project>{87df777c-d3cb-4b0b-8552-159247b1f022}</Project>
+      <Name>Migration.Common.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Migration.WIContract\Migration.WIContract.csproj">
+      <Project>{19b3af60-8be6-47fc-9911-7829455b3557}</Project>
+      <Name>Migration.WIContract</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
