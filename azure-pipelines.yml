@@ -1,12 +1,9 @@
-resources:
-- repo: self
+trigger: 
+- master
 
-queue:
-  name: Hosted VS2017
-  demands: 
-  - msbuild
-  - visualstudio
-  - npm
+resources:
+  repositories:
+    - repository: self
 
 variables:
   BuildPlatform: 'any cpu'
@@ -16,110 +13,131 @@ variables:
 
 name: $(major).$(minor)$(rev:.r)
 
-trigger:
-- master
+jobs:
+- job: WorkItemMigrator
+  displayName: Work Item Migrator
+  dependsOn: []
+  pool:
+    vmImage: 'windows-2019'
 
-steps:
-- task: richardfennellBM.BM-VSTS-Versioning-Task.Version-Assemblies-Task.VersionAssemblies@2
-  displayName: 'Version Assemblies'
-  inputs:
-    VersionRegex: '\d+\.\d+\.\d+'
+  steps:
+  - task: richardfennellBM.BM-VSTS-Versioning-Task.Version-Assemblies-Task.VersionAssemblies@2
+    displayName: 'Version Assemblies'
+    inputs:
+      VersionRegex: '\d+\.\d+\.\d+'
 
-- task: NuGetCommand@2
-  displayName: 'NuGet restore'
-  inputs:
-    restoreSolution: '**\*.sln'
+  - task: DotNetCoreCLI@2
+    displayName: 'NuGet restore'
+    inputs:
+      command: 'restore'
+      projects: '**\*.sln'
+      feedsToUse: 'select'
 
-- task: SonarSource.sonarcloud.14d9cde6-c1da-4d55-aa01-2965cd301255.SonarCloudPrepare@1
-  displayName: 'Prepare analysis on SonarCloud'
-  inputs:
-    SonarCloud: SonarCloud
-    organization: solidifylabs
-    projectKey: 'jira-azuredevops-migrator'
-    projectName: 'jira-azuredevops-migrator'
-    projectVersion: '$(Build.BuildNumber)'
+  - task: SonarSource.sonarcloud.14d9cde6-c1da-4d55-aa01-2965cd301255.SonarCloudPrepare@1
+    displayName: 'Prepare analysis on SonarCloud'
+    inputs:
+      SonarCloud: SonarCloud
+      organization: solidifylabs
+      projectKey: 'jira-azuredevops-migrator'
+      projectName: 'jira-azuredevops-migrator'
+      projectVersion: '$(Build.BuildNumber)'
+      
+  - task: VSBuild@1
+    displayName: 'Build solution WorkItemMigrator'
+    inputs:
+      solution: src/WorkItemMigrator.sln
+      platform: '$(BuildPlatform)'
+      configuration: '$(BuildConfiguration)'
+
+  - task: SonarSource.sonarcloud.ce096e50-6155-4de8-8800-4221aaeed4a1.SonarCloudAnalyze@1
+    displayName: 'Run Code Analysis'
+
+  - task: SonarSource.sonarcloud.38b27399-a642-40af-bb7d-9971f69712e8.SonarCloudPublish@1
+    displayName: 'Publish Quality Gate Result'
     
-- task: VSBuild@1
-  displayName: 'Build solution WorkItemMigrator'
-  inputs:
-    solution: src/WorkItemMigrator/WorkItemMigrator.sln
-    platform: '$(BuildPlatform)'
-    configuration: '$(BuildConfiguration)'
+  - task: ms-devlabs.vsts-developer-tools-build-tasks.package-extension-build-task.PackageVSTSExtension@1
+    displayName: 'Package Extension: src/Tools/WorkItemMigrator.Extension'
+    inputs:
+      rootFolder: src/Tools/WorkItemMigrator.Extension
+      outputPath: '$(Build.ArtifactStagingDirectory)\jira-devops-workitem-migrator-$(Build.BuildNumber).vsix'
+      bypassLocalValidation: true
 
-- task: SonarSource.sonarcloud.ce096e50-6155-4de8-8800-4221aaeed4a1.SonarCloudAnalyze@1
-  displayName: 'Run Code Analysis'
+  - task: CopyFiles@2
+    displayName: 'Copy JiraExport files'
+    inputs:
+      SourceFolder: '$(system.defaultworkingdirectory)\src\Exporter\JiraExport\bin\$(BuildConfiguration)\netcoreapp3.0'
+      Contents: |
+          runtimes\**\*.*
+          ApplicationInsights.config     
+          Atlassian.Jira.dll
+          jira-export.deps.json
+          jira-export.dll
+          jira-export.dll.config
+          jira-export.exe
+          jira-export.runtimeconfig.json
+          Microsoft.AI.Agent.Intercept.dll
+          Microsoft.AI.DependencyCollector.dll
+          Microsoft.ApplicationInsights.dll
+          Microsoft.Extensions.CommandLineUtils.dll
+          Migration.Common.dll
+          Migration.Common.Log.dll
+          Migration.Contract.WorkItem.dll
+          Newtonsoft.Json.dll
+          RestSharp.dll
+          Semver.dll
+          System.Configuration.ConfigurationManager.dll
+          System.Diagnostics.DiagnosticSource.dll
+          System.Security.Permissions
+      TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
+      flattenFolders: false
 
-- task: SonarSource.sonarcloud.38b27399-a642-40af-bb7d-9971f69712e8.SonarCloudPublish@1
-  displayName: 'Publish Quality Gate Result'
-  
-- task: ms-devlabs.vsts-developer-tools-build-tasks.package-extension-build-task.PackageVSTSExtension@1
-  displayName: 'Package Extension: src/WorkItemMigrator.Extension'
-  inputs:
-    rootFolder: src/WorkItemMigrator.Extension
-    outputPath: '$(Build.ArtifactStagingDirectory)\jira-devops-workitem-migrator-$(Build.BuildNumber).vsix'
-    bypassLocalValidation: true
+  - task: CopyFiles@2
+    displayName: 'Copy WorkItemImport files'
+    inputs:
+      SourceFolder: '$(system.defaultworkingdirectory)\src\Importer\WorkItemImport\bin\$(BuildConfiguration)\net471'
+      Contents: |
+          Microsoft.ApplicationInsights.dll
+          Microsoft.Extensions.CommandLineUtils.dll
+          Microsoft.TeamFoundation.Client.dll
+          Microsoft.TeamFoundation.Common.dll
+          Microsoft.TeamFoundation.Core.WebApi.dll
+          Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader.dll
+          Microsoft.TeamFoundation.WorkItemTracking.Client.dll
+          Microsoft.TeamFoundation.WorkItemTracking.Common.dll
+          Microsoft.TeamFoundation.WorkItemTracking.Proxy.dll
+          Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll
+          Microsoft.VisualStudio.Services.Common.dll
+          Microsoft.VisualStudio.Services.WebApi.dll
+          Microsoft.WITDataStore32.dll
+          Microsoft.WITDataStore64.dll
+          Migration.Common.dll
+          Migration.Common.Log.dll
+          Migration.Contract.WorkItem.dll
+          Newtonsoft.Json.dll
+          Semver.dll
+          System.Configuration.ConfigurationManager.dll
+          System.Net.Http.dll
+          System.Net.Http.Formatting.dll
+          wi-import.exe
+          wi-import.exe.config
+      TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
+      flattenFolders: true
 
-- task: CopyFiles@2
-  displayName: 'Copy JiraExport files'
-  inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)'
-    Contents: |
-        ApplicationInsights.config     
-        Atlassian.Jira.dll
-        jira-export.exe
-        jira-export.exe.config
-        Microsoft.AI.Agent.Intercept.dll
-        Microsoft.AI.DependencyCollector.dll
-        Microsoft.ApplicationInsights.dll
-        Microsoft.Extensions.CommandLineUtils.dll
-        Migration.Common.dll
-        Migration.Common.Log.dll
-        Migration.WIContract.dll
-        Newtonsoft.Json.dll
-        RestSharp.dll
-        Semver.dll
-        System.Diagnostics.DiagnosticSource.dll
-    TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
-    flattenFolders: true
+  - task: CopyFiles@2
+    displayName: 'Copy sample files'
+    inputs:
+      SourceFolder: '$(system.defaultworkingdirectory)\docs\samples'
+      TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator\Samples'
+      flattenFolders: true
 
-- task: CopyFiles@2
-  displayName: 'Copy WorkItemImport files'
-  inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)'
-    Contents: |
-        Microsoft.TeamFoundation.Client.dll
-        Microsoft.TeamFoundation.Common.dll
-        Microsoft.TeamFoundation.Core.WebApi.dll
-        Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader.dll
-        Microsoft.TeamFoundation.WorkItemTracking.Client.dll
-        Microsoft.TeamFoundation.WorkItemTracking.Common.dll
-        Microsoft.TeamFoundation.WorkItemTracking.Proxy.dll
-        Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll
-        Microsoft.VisualStudio.Services.Common.dll
-        Microsoft.VisualStudio.Services.WebApi.dll
-        Microsoft.WITDataStore32.dll
-        System.Net.Http.dll
-        System.Net.Http.Formatting.dll
-        wi-import.exe
-        wi-import.exe.config
-    TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
-    flattenFolders: true
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: WorkItemMigrator'
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)\WorkItemMigrator'
+      ArtifactName: WorkItemMigrator
 
-- task: CopyFiles@2
-  displayName: 'Copy sample files'
-  inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\docs\samples'
-    TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator\Samples'
-    flattenFolders: true
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: WorkItemMigrator'
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)\WorkItemMigrator'
-    ArtifactName: WorkItemMigrator
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: WorkItemMigratorExtension'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)\jira-devops-workitem-migrator-$(Build.BuildNumber).vsix'
-    ArtifactName: WorkItemMigratorExtension
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: WorkItemMigratorExtension'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)\jira-devops-workitem-migrator-$(Build.BuildNumber).vsix'
+      ArtifactName: WorkItemMigratorExtension
