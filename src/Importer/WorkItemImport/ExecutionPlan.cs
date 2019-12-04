@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Migration.Common;
-using Migration.WIContract;
+using Migration.Contract.WorkItem;
 
 namespace WorkItemImport
 {

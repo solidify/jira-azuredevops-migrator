@@ -154,7 +154,7 @@
       <Project>{3d3e0fd1-05fc-454b-828a-9004d3ddb296}</Project>
       <Name>Migration.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Common\Migration.WIContract\Migration.WIContract.csproj">
+    <ProjectReference Include="..\..\Common\Migration.Contract.WorkItem\Migration.Contract.WorkItem.csproj">
       <Project>{19b3af60-8be6-47fc-9911-7829455b3557}</Project>
       <Name>Migration.WIContract</Name>
     </ProjectReference>

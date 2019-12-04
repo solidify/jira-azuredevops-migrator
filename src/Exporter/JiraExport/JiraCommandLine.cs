@@ -7,7 +7,7 @@ using Common.Config;
 using Microsoft.Extensions.CommandLineUtils;
 using Migration.Common.Config;
 using Migration.Common.Log;
-using Migration.WIContract;
+using Migration.Contract.WorkItem;
 using static JiraExport.JiraProvider;
 
 namespace JiraExport

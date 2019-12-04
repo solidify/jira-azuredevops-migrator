@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Migration.WIContract")]
+[assembly: AssemblyTitle("Migration.Contract.WorkItem")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Migration.WIContract")]
+[assembly: AssemblyProduct("Migration.Contract.WorkItem")]
 [assembly: AssemblyCopyright("Copyright (c) Solidify")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

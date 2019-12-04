@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Migration.WIContract
+namespace Migration.Contract.WorkItem
 {
     public class WiAttachment
     {
