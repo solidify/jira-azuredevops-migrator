@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace Migration.WIContract
+namespace Migration.Contract.WorkItem
 {
     public class WiItemProvider
     {

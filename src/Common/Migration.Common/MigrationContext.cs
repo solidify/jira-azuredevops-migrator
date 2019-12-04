@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using Migration.Common.Log;
-using Migration.WIContract;
+using Migration.Contract.WorkItem;
 
 namespace Migration.Common
 {

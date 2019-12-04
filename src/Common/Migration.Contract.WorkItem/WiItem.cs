@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Migration.WIContract
+namespace Migration.Contract.WorkItem
 {
     public class WiItem
     {

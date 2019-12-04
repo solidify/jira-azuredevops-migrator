@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Migration.WIContract
+namespace Migration.Contract.WorkItem
 {
     public class WiLink
     {
