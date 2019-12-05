@@ -281,56 +281,30 @@ namespace JiraExport
                     }
                     else if (!string.IsNullOrWhiteSpace(item.Mapper))
                     {
-                        switch (item.Mapper)
+                        value = item.Mapper switch
                         {
-                            case "MapTitle":
-                                value = r => MapTitle(r);
-                                break;
-                            case "MapTitleWithoutKey":
-                                value = r => MapTitleWithoutKey(r);
-                                break;
-                            case "MapUser":
-                                value = IfChanged<string>(item.Source, isCustomField, MapUser);
-                                break;
-                            case "MapSprint":
-                                value = IfChanged<string>(item.Source, isCustomField, MapSprint);
-                                break;
-                            case "MapTags":
-                                value = IfChanged<string>(item.Source, isCustomField, MapTags);
-                                break;
-                            case "MapArray":
-                                value = IfChanged<string>(item.Source, isCustomField, MapArray);
-                                break;
-                            case "MapRemainingWork":
-                                value = IfChanged<string>(item.Source, isCustomField, MapRemainingWork);
-                                break;
-                            case "MapRendered":
-                                value = r => MapRenderedValue(r, item.Source);
-                                break;
-                            default:
-                                value = IfChanged<string>(item.Source, isCustomField);
-                                break;
-                        }
+                            "MapTitle" => r => MapTitle(r),
+                            "MapTitleWithoutKey" => r => MapTitleWithoutKey(r),
+                            "MapUser" => IfChanged<string>(item.Source, isCustomField, MapUser),
+                            "MapSprint" => IfChanged<string>(item.Source, isCustomField, MapSprint),
+                            "MapTags" => IfChanged<string>(item.Source, isCustomField, MapTags),
+                            "MapArray" => IfChanged<string>(item.Source, isCustomField, MapArray),
+                            "MapRemainingWork" => IfChanged<string>(item.Source, isCustomField, MapRemainingWork),
+                            "MapRendered" => r => MapRenderedValue(r, item.Source),
+                            _ => IfChanged<string>(item.Source, isCustomField),
+                        };
                     }
                     else
                     {
-                        var dataType = item.Type.ToLower();
-                        if (dataType == "double")
+                        value = item.Type.ToLower() switch
                         {
-                            value = IfChanged<double>(item.Source, isCustomField);
-                        }
-                        else if (dataType == "int" || dataType == "integer")
-                        {
-                            value = IfChanged<int>(item.Source, isCustomField);
-                        }
-                        else if (dataType == "datetime" || dataType == "date")
-                        {
-                            value = IfChanged<DateTime>(item.Source, isCustomField);
-                        }
-                        else
-                        {
-                            value = IfChanged<string>(item.Source, isCustomField);
-                        }
+                            "double" => IfChanged<double>(item.Source, isCustomField),
+                            "int" => IfChanged<int>(item.Source, isCustomField),
+                            "integer" => IfChanged<int>(item.Source, isCustomField),
+                            "datetime" => IfChanged<DateTime>(item.Source, isCustomField),
+                            "date" => IfChanged<DateTime>(item.Source, isCustomField),
+                            _ => IfChanged<string>(item.Source, isCustomField),
+                        };
                     }
 
                     // Check if not-for has been set, if so get all work item types except that one, else for has been set and get those                 
