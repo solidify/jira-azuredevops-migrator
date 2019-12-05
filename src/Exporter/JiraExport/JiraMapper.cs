@@ -510,7 +510,7 @@ namespace JiraExport
 
             htmlValue = RevisionUtility.ReplaceHtmlElements(htmlValue);
 
-            string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
+            string css = ReadEmbeddedFile("jira_export.jirastyles.css");
             if (string.IsNullOrWhiteSpace(css))
                 Logger.Log(LogLevel.Warning, $"Could not read css styles for rendered field in {revision.OriginId}.");
             else
