@@ -34,7 +34,7 @@ The key capabilities of the tool includes:
 ## Azure DevOps/TFS requirements
 
 1. Get the name of the target Azure DevOps organization/TFS collection
-2. Aquire a [personal access token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) for the organization/collection with the following scopes
+2. Aquire a [personal access token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) for the organization/collection with the following scopes: Work Items (Read, write, & manage) as minimum requirement. 
 3. Get the url and the name of the target project. The import tool can create the target project if it does not already exist.
 4. Discuss how users should be mapped between Jira and Azure DevOps/TFS.
 
