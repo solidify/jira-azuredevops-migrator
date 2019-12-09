@@ -42,8 +42,15 @@ namespace JiraExport
             Logger.Log(LogLevel.Info, "Retrieving Jira fields...");
             provider.Jira.Fields.GetCustomFieldsAsync().Wait();
             Logger.Log(LogLevel.Info, "Retrieving Jira link types...");
-            provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
+            try
+            {
+                provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
+            }
 
+            catch (Exception e)
+            {
+                Logger.Log(e, "Failed to retrive linktypes from Jira");
+            }
             return provider;
         }
 
@@ -159,61 +166,74 @@ namespace JiraExport
             int currentStart = 0;
             IEnumerable<string> remoteIssueBatch = null;
             int index = 0;
+            JToken response = null;
+
+            Logger.Log(LogLevel.Debug, "Enumerate remote issues");
+
             do
             {
-                var response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET,
-                    $"rest/api/2/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
-
-                remoteIssueBatch = response.SelectTokens("$.issues[*]").OfType<JObject>()
-                                           .Select(i => i.SelectToken("$.key").Value<string>());
-
-                if (remoteIssueBatch == null)
+                try
                 {
-                    Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                    response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
+                }
+                catch (Exception e)
+                {
+                    Logger.Log(e, "Failed to retrive issues");
                     break;
                 }
-
-                currentStart += Settings.BatchSize;
-
-                int totalItems = (int)response.SelectToken("$.total");
-
-                foreach (var issueKey in remoteIssueBatch)
+                if (response != null)
                 {
-                    if (skipList.Contains(issueKey))
+                    remoteIssueBatch = response?.SelectTokens("$.issues[*]").OfType<JObject>()
+                                            .Select(i => i.SelectToken("$.key").Value<string>());
+
+                    if (remoteIssueBatch == null)
                     {
-                        Logger.Log(LogLevel.Info, $"Skipped Jira '{issueKey}' - already downloaded.");
-                        index++;
-                        continue;
+                        Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                        break;
                     }
 
-                    Logger.Log(LogLevel.Info, $"Processing {index + 1}/{totalItems} - '{issueKey}'.");
-                    var issue = ProcessItem(issueKey, skipList);
-                    yield return issue;
-                    index++;
+                    currentStart += Settings.BatchSize;
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) && (issue.EpicParent != null) && !skipList.Contains(issue.EpicParent))
-                    {
-                        Logger.Log(LogLevel.Info, $"Processing epic parent '{issue.EpicParent}'.");
-                        var parentEpic = ProcessItem(issue.EpicParent, skipList);
-                        yield return parentEpic;
-                    }
+                    int totalItems = (int)response.SelectToken("$.total");
 
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && (issue.Parent != null) && !skipList.Contains(issue.Parent))
+                    foreach (var issueKey in remoteIssueBatch)
                     {
-                        Logger.Log(LogLevel.Info, $"Processing parent issue '{issue.Parent}'.");
-                        var parent = ProcessItem(issue.Parent, skipList);
-                        yield return parent;
-                    }
-
-                    if (downloadOptions.HasFlag(DownloadOptions.IncludeSubItems) && (issue.SubItems != null) && issue.SubItems.Any())
-                    {
-                        foreach (var subitemKey in issue.SubItems)
+                        if (skipList.Contains(issueKey))
                         {
-                            if (!skipList.Contains(subitemKey))
+                            Logger.Log(LogLevel.Info, $"Skipped Jira '{issueKey}' - already downloaded.");
+                            index++;
+                            continue;
+                        }
+
+                        Logger.Log(LogLevel.Info, $"Processing {index + 1}/{totalItems} - '{issueKey}'.");
+                        var issue = ProcessItem(issueKey, skipList);
+                        yield return issue;
+                        index++;
+
+                        if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) && (issue.EpicParent != null) && !skipList.Contains(issue.EpicParent))
+                        {
+                            Logger.Log(LogLevel.Info, $"Processing epic parent '{issue.EpicParent}'.");
+                            var parentEpic = ProcessItem(issue.EpicParent, skipList);
+                            yield return parentEpic;
+                        }
+
+                        if (downloadOptions.HasFlag(DownloadOptions.IncludeParents) && (issue.Parent != null) && !skipList.Contains(issue.Parent))
+                        {
+                            Logger.Log(LogLevel.Info, $"Processing parent issue '{issue.Parent}'.");
+                            var parent = ProcessItem(issue.Parent, skipList);
+                            yield return parent;
+                        }
+
+                        if (downloadOptions.HasFlag(DownloadOptions.IncludeSubItems) && (issue.SubItems != null) && issue.SubItems.Any())
+                        {
+                            foreach (var subitemKey in issue.SubItems)
                             {
-                                Logger.Log(LogLevel.Info, $"Processing sub-item '{subitemKey}'.");
-                                var subItem = ProcessItem(subitemKey, skipList);
-                                yield return subItem;
+                                if (!skipList.Contains(subitemKey))
+                                {
+                                    Logger.Log(LogLevel.Info, $"Processing sub-item '{subitemKey}'.");
+                                    var subItem = ProcessItem(subitemKey, skipList);
+                                    yield return subItem;
+                                }
                             }
                         }
                     }
@@ -236,9 +256,19 @@ namespace JiraExport
 
         public int GetItemCount(string jql)
         {
-            var response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&maxResults=0").Result;
+            Logger.Log(LogLevel.Debug, $"Get item count using query: '{jql}'");
+            try
+            {
+                var response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&maxResults=0").Result;
 
-            return (int)response.SelectToken("$.total");
+                return (int)response.SelectToken("$.total");
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e, $"Failed to get item count using query: '{jql}'");
+                return 0;
+            }
+
         }
 
         public JiraVersion GetJiraVersion()

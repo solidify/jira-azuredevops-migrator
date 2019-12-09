@@ -107,7 +107,7 @@ Example:
 
 3. How to map custom field by name?
  - To map a custom field by name we have to add a mapping in the configuration file.
- 
+
  Example: 
 `{
     "source": "CustomFieldName",
@@ -133,3 +133,4 @@ Example:
 - To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
 Some.JiraUser@domain.com=Some.AzureDevOpsUser@domain.com
+
