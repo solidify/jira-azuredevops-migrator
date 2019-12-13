@@ -1,9 +1,11 @@
-﻿using Migration.Common.Log;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+
+using Migration.Common.Log;
+
+using Newtonsoft.Json;
 
 namespace Migration.WIContract
 {
@@ -32,7 +34,7 @@ namespace Migration.WIContract
                 serialized = Regex.Replace(serialized, @"\\u[0-F]{4}", "");
             }
 
-            var deserialized = JsonConvert.DeserializeObject<WiItem>(serialized, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore});
+            var deserialized = JsonConvert.DeserializeObject<WiItem>(serialized, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
             foreach (var rev in deserialized.Revisions)
                 rev.ParentOriginId = deserialized.OriginId;
@@ -43,7 +45,7 @@ namespace Migration.WIContract
         public void Save(WiItem item)
         {
             string path = Path.Combine(_itemsDir, $"{item.OriginId}.json");
-            var serialized = JsonConvert.SerializeObject(item);
+            var serialized = JsonConvert.SerializeObject(item, Formatting.Indented);
             File.WriteAllText(path, serialized);
         }
 
@@ -57,7 +59,7 @@ namespace Migration.WIContract
                 {
                     result.Add(LoadFile(filePath));
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     Logger.Log(LogLevel.Warning, $"Failed to load '{Path.GetFileName(filePath)}' (perhaps not a migration file?).");
                 }
