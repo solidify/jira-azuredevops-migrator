@@ -299,8 +299,8 @@ namespace JiraExport
                             case "MapTitle":
                                 value = r => MapTitle(r);
                                 break;
-                            case "MapTitleWithKey":
-                                value = r => MapTitleWithKey(r);
+                            case "MapTitleWithoutKey":
+                                value = r => MapTitleWithoutKey(r);
                                 break;
                             case "MapUser":
                                 value = IfChanged<string>(item.Source, isCustomField, MapUser);
@@ -428,15 +428,14 @@ namespace JiraExport
         private (bool, object) MapTitle(JiraRevision r)
         {
             if (r.Fields.TryGetValue("summary", out object summary))
-                return (true, summary);
+                return (true, $"[{r.ParentItem.Key}] {summary}");
             else
                 return (false, null);
         }
-
-        private (bool, object) MapTitleWithKey(JiraRevision r)
+        private (bool, object) MapTitleWithoutKey(JiraRevision r)
         {
             if (r.Fields.TryGetValue("summary", out object summary))
-                return (true, $"[{r.ParentItem.Key}] {summary}");
+                return (true, summary);
             else
                 return (false, null);
         }
