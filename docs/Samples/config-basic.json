@@ -112,7 +112,6 @@
       {
         "source": "status",
         "target": "System.State",
-        "for": "Issue,Epic,Bug,Task",
         "mapping": {
           "values": [
             {
