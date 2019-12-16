@@ -346,21 +346,30 @@ namespace JiraExport
 
                     foreach (var wit in currentWorkItemTypes)
                     {
-                        if (wit == "All" || wit == "Common")
+                        try
                         {
-                            commonFields.Add(item.Target, value);
-                        }
-                        else
-                        {
-                            // If we haven't mapped the Type then we probably want to ignore the field
-                            if (typeFields.TryGetValue(wit, out FieldMapping<JiraRevision> fm))
+                            if (wit == "All" || wit == "Common")
                             {
-                                fm.Add(item.Target, value);
+                                commonFields.Add(item.Target, value);
                             }
                             else
                             {
-                                Logger.Log(LogLevel.Warning, $"No target type '{wit}' is set, field {item.Source} cannot be mapped.");
+                                // If we haven't mapped the Type then we probably want to ignore the field
+                                if (typeFields.TryGetValue(wit, out FieldMapping<JiraRevision> fm))
+                                {
+                                    fm.Add(item.Target, value);
+                                }
+                                else
+                                {
+                                    Logger.Log(LogLevel.Warning, $"No target type '{wit}' is set, field {item.Source} cannot be mapped.");
+                                }
                             }
+                        }
+
+                        catch (Exception)
+                        {
+                            Logger.Log(LogLevel.Warning, $"Ignoring target mapping with key: '{item.Target}', because it is already configured.");
+                            continue;
                         }
                     }
                 }
