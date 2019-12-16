@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Common.Config;
+
 using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
@@ -297,6 +299,9 @@ namespace JiraExport
                             case "MapTitle":
                                 value = r => MapTitle(r);
                                 break;
+                            case "MapTitleWithoutKey":
+                                value = r => MapTitleWithoutKey(r);
+                                break;
                             case "MapUser":
                                 value = IfChanged<string>(item.Source, isCustomField, MapUser);
                                 break;
@@ -424,6 +429,13 @@ namespace JiraExport
         {
             if (r.Fields.TryGetValue("summary", out object summary))
                 return (true, $"[{r.ParentItem.Key}] {summary}");
+            else
+                return (false, null);
+        }
+        private (bool, object) MapTitleWithoutKey(JiraRevision r)
+        {
+            if (r.Fields.TryGetValue("summary", out object summary))
+                return (true, summary);
             else
                 return (false, null);
         }

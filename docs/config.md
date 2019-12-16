@@ -92,6 +92,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |Name|Description|
 |---|---|
 |MapTitle|Maps summary on the format [id] summary|
+|MapTitleWithoutKey|Maps summary field without [id]|
 |MapUser|Maps users based on email or name by lookup in the users.txt if specified|
 |MapSprint|Maps a sprint by matching the Azure DevOps iteration tree|
 |MapTags|Maps tags by replacing space with semi-colon|
