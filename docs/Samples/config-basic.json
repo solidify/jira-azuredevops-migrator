@@ -1,8 +1,8 @@
 {
   "source-project": "SourceProject",
   "target-project": "TargetProject",
-  "query": "project=ProjectName ORDER BY project ASC",
-  "workspace": "C:\\Temp\\",
+  "query": "project=ProjectName ORDER BY Prio ASC",
+  "workspace": "C:\\Temp\\JiraExport\\",
   "epic-link-field": "Epic Link",
   "sprint-field": "Sprint",
   "download-options": 7,
@@ -10,8 +10,8 @@
   "log-level": "Info",
   "attachment-folder": "Attachments",
   "user-mapping-file": "users.txt",
-  "base-area-path": "",
-  "base-iteration-path": "",
+  "base-area-path": "Migrated",
+  "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
   "process-template": "Basic",
   "link-map": {
