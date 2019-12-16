@@ -13,7 +13,7 @@
   "base-area-path": "Migrated",
   "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
-  "process-template": "Scrum",
+  "process-template": "Agile",
   "link-map": {
     "link": [
       {
@@ -34,19 +34,15 @@
       }
     ]
   },
-  "type-map":{
+  "type-map": {
     "type": [
-      {
-        "source": "Feature",
-        "target": "Feature"
-      },
       {
         "source": "Epic",
         "target": "Epic"
       },
       {
         "source": "Story",
-        "target": "Product Backlog Item"
+        "target": "Feature"
       },
       {
         "source": "Bug",
@@ -54,7 +50,7 @@
       },
       {
         "source": "Task",
-        "target": "Product Backlog Item"
+        "target": "User Story"
       },
       {
         "source": "Sub-task",
@@ -85,20 +81,8 @@
         "mapping": {
           "values": [
             {
-              "source": "Blocker",
-              "target": "1"
-            },
-            {
-              "source": "Critical",
-              "target": "1"
-            },
-            {
               "source": "Highest",
               "target": "1"
-            },
-            {
-              "source": "Major",
-              "target": "2"
             },
             {
               "source": "High",
@@ -115,23 +99,9 @@
             {
               "source": "Lowest",
               "target": "4"
-            },
-            {
-              "source": "Minor",
-              "target": "4"
-            },
-            {
-              "source": "Trivial",
-              "target": "4"
             }
           ]
         }
-      },
-      {
-        "source": "Sprint",
-        "source-type": "name",
-        "target": "System.IterationPath",
-        "mapper": "MapSprint"
       },
       {
         "source": "labels",
@@ -146,62 +116,53 @@
       {
         "source": "status",
         "target": "System.State",
+        "for": "Feature,Epic,User Story,Bug",
+        "mapping": {
+          "values": [
+            {
+              "source": "To Do",
+              "target": "New"
+            },
+            {
+              "source": "In Progress",
+              "target": "Active"
+            },
+            {
+              "source": "Done",
+              "target": "Resolved"
+            },
+            {
+              "source": "Done",
+              "target": "Closed"
+            },
+            {
+              "source": "Removed",
+              "target": "Removed"
+            }
+          ]
+        }
+      },
+      {
+        "source": "status",
+        "target": "System.State",
         "for": "Task",
         "mapping": {
           "values": [
             {
               "source": "To Do",
-              "target": "To Do"
-            },
-            {
-              "source": "Done",
-              "target": "Done"
-            },
-            {
-              "source": "In Progress",
-              "target": "In Progress"
-            }
-          ]
-        }
-      },
-      {
-        "source": "status",
-        "target": "System.State",
-        "for": "Bug,Product Backlog Item",
-        "mapping": {
-          "values": [
-            {
-              "source": "To Do",
               "target": "New"
             },
             {
-              "source": "Done",
-              "target": "Done"
-            },
-            {
               "source": "In Progress",
-              "target": "Committed"
-            }
-          ]
-        }
-      },
-      {
-        "source": "status",
-        "target": "System.State",
-        "for": "Epic,Feature",
-        "mapping": {
-          "values": [
-            {
-              "source": "To Do",
-              "target": "New"
+              "target": "Active"
             },
             {
               "source": "Done",
-              "target": "Done"
+              "target": "Closed"
             },
             {
-              "source": "In Progress",
-              "target": "In Progress"
+              "source": "Removed",
+              "target": "Removed"
             }
           ]
         }
@@ -209,7 +170,7 @@
       {
         "source": "Story Points",
         "source-type": "name",
-        "target": "Microsoft.VSTS.Scheduling.Effort",
+        "target": "Microsoft.VSTS.Scheduling.StoryPoints",
         "not-for": "Task"
       },
       {
@@ -222,6 +183,12 @@
         "source": "description",
         "target": "Microsoft.VSTS.TCM.ReproSteps",
         "for": "Bug"
+      },
+      {
+        "source": "environment",
+        "source-type": "name",
+        "target": "Microsoft.VSTS.TCM.SystemInfo",
+        "for": "Bug,Epic"
       }
     ]
   }
