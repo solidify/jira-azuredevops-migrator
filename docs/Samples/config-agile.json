@@ -13,7 +13,7 @@
   "base-area-path": "",
   "base-iteration-path": "",
   "ignore-failed-links": true,
-  "process-template": "Kanban",
+  "process-template": "Agile",
   "link-map": {
     "link": [
       {
