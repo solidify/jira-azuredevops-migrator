@@ -455,7 +455,7 @@ namespace JiraExport
                         var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
                         if (string.IsNullOrEmpty(mappedValue))
                         {
-                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}'.");
+                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}' for item type '{r.Type}'.");
                         }
                         return (true, mappedValue);
                     }
