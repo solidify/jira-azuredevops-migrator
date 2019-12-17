@@ -330,8 +330,6 @@ namespace JiraExport
             }
             else
             {
-                email = string.Empty;
-
                 try
                 {
                     email = Jira.Users.GetUserAsync(username).Result.Email;
