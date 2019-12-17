@@ -1,13 +1,16 @@
-﻿using Common.Config;
-using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.TeamFoundation.WorkItemTracking.Client;
-using Migration.Common;
-using Migration.Common.Config;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Migration.Common.Log;
 using System.Linq;
+
+using Common.Config;
+
+using Microsoft.Extensions.CommandLineUtils;
+using Microsoft.TeamFoundation.WorkItemTracking.Client;
+
+using Migration.Common;
+using Migration.Common.Config;
+using Migration.Common.Log;
 
 namespace WorkItemImport
 {
@@ -121,7 +124,7 @@ namespace WorkItemImport
                         else
                             wi = agent.CreateWI(executionItem.WiType);
 
-                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{wi.Id}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
+                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
                         agent.ImportRevision(executionItem.Revision, wi);
                         importedItems++;
@@ -168,7 +171,7 @@ namespace WorkItemImport
 
             Logger.Log(LogLevel.Info, $"Import started. Importing {itemsCount} items with {revisionCount} revisions.");
 
-            Logger.StartSession("Azure DevOps Work Item Import", 
+            Logger.StartSession("Azure DevOps Work Item Import",
                 "wi-import-started",
                 new Dictionary<string, string>() {
                     { "Tool version         :", toolVersion },
@@ -196,7 +199,7 @@ namespace WorkItemImport
         private static string GetHostingType(Agent agent)
         {
             var uri = new Uri(agent.Settings.Account);
-            switch(uri.Host.ToLower())
+            switch (uri.Host.ToLower())
             {
                 case "dev.azure.com":
                 case "visualstudio.com":
