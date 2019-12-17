@@ -1,7 +1,7 @@
 {
   "source-project": "SourceProject",
   "target-project": "TargetProject",
-  "query": "project=ProjectName ORDER BY Rank ASC",
+  "query": "project=ProjectName ORDER BY Prio ASC",
   "workspace": "C:\\Temp\\JiraExport\\",
   "epic-link-field": "Epic Link",
   "sprint-field": "Sprint",
@@ -13,7 +13,7 @@
   "base-area-path": "Migrated",
   "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
-  "process-template": "Scrum",
+  "process-template": "Basic",
   "link-map": {
     "link": [
       {
@@ -34,19 +34,15 @@
       }
     ]
   },
-  "type-map":{
+  "type-map": {
     "type": [
-      {
-        "source": "Feature",
-        "target": "Feature"
-      },
       {
         "source": "Epic",
         "target": "Epic"
       },
       {
-        "source": "Story",
-        "target": "Product Backlog Item"
+        "source": "New Feature",
+        "target": "Issue"
       },
       {
         "source": "Bug",
@@ -54,10 +50,6 @@
       },
       {
         "source": "Task",
-        "target": "Product Backlog Item"
-      },
-      {
-        "source": "Sub-task",
         "target": "Task"
       }
     ]
@@ -85,20 +77,8 @@
         "mapping": {
           "values": [
             {
-              "source": "Blocker",
-              "target": "1"
-            },
-            {
-              "source": "Critical",
-              "target": "1"
-            },
-            {
               "source": "Highest",
               "target": "1"
-            },
-            {
-              "source": "Major",
-              "target": "2"
             },
             {
               "source": "High",
@@ -115,23 +95,9 @@
             {
               "source": "Lowest",
               "target": "4"
-            },
-            {
-              "source": "Minor",
-              "target": "4"
-            },
-            {
-              "source": "Trivial",
-              "target": "4"
             }
           ]
         }
-      },
-      {
-        "source": "Sprint",
-        "source-type": "name",
-        "target": "System.IterationPath",
-        "mapper": "MapSprint"
       },
       {
         "source": "labels",
@@ -146,7 +112,6 @@
       {
         "source": "status",
         "target": "System.State",
-        "for": "Task",
         "mapping": {
           "values": [
             {
@@ -154,69 +119,15 @@
               "target": "To Do"
             },
             {
-              "source": "Done",
-              "target": "Done"
-            },
-            {
               "source": "In Progress",
-              "target": "In Progress"
-            }
-          ]
-        }
-      },
-      {
-        "source": "status",
-        "target": "System.State",
-        "for": "Bug,Product Backlog Item",
-        "mapping": {
-          "values": [
-            {
-              "source": "To Do",
-              "target": "New"
+              "target": "Doing"
             },
             {
               "source": "Done",
               "target": "Done"
-            },
-            {
-              "source": "In Progress",
-              "target": "Committed"
             }
           ]
         }
-      },
-      {
-        "source": "status",
-        "target": "System.State",
-        "for": "Epic,Feature",
-        "mapping": {
-          "values": [
-            {
-              "source": "To Do",
-              "target": "New"
-            },
-            {
-              "source": "Done",
-              "target": "Done"
-            },
-            {
-              "source": "In Progress",
-              "target": "In Progress"
-            }
-          ]
-        }
-      },
-      {
-        "source": "Story Points",
-        "source-type": "name",
-        "target": "Microsoft.VSTS.Scheduling.Effort",
-        "not-for": "Task"
-      },
-      {
-        "source": "timeestimate",
-        "target": "Microsoft.VSTS.Scheduling.RemainingWork",
-        "mapper": "MapRemainingWork",
-        "for": "Bug,Task"
       },
       {
         "source": "description",
