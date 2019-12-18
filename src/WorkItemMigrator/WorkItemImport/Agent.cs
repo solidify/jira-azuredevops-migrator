@@ -752,7 +752,6 @@ namespace WorkItemImport
             }
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedDate))
             {
-                //Ensure that workitem.ChangeDate != revision.Time
                 if (wi.ChangedDate == rev.Time)
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
