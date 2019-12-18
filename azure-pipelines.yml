@@ -98,6 +98,7 @@ steps:
         Microsoft.VisualStudio.Services.Common.dll
         Microsoft.VisualStudio.Services.WebApi.dll
         Microsoft.WITDataStore32.dll
+        System.Net.Http.dll
         System.Net.Http.Formatting.dll
         wi-import.exe
         wi-import.exe.config
