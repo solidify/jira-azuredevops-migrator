@@ -18,6 +18,8 @@ The key capabilities of the tool includes:
 
 # Migration process
 
+**Note:** The tool is implemented as a Windows executable and will only work on Windows (duh!). We have plans to convert the project to .NET core to support running the migrations on MacOS or Linux. When that happens this section will be removed. 
+
 ## Jira requirements 
 
 1. Identify the migration account (username and password) to access Jira   
