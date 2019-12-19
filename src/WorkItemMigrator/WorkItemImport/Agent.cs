@@ -709,7 +709,6 @@ namespace WorkItemImport
             try
             {
                 newWorkItem.Save(SaveFlags.MergeAll);
-                var wi = Store.GetWorkItem(newWorkItem.Id);
             }
             catch (FileAttachmentException faex)
             {
