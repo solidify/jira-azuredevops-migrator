@@ -5,14 +5,17 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
+
 using Migration.Common;
 using Migration.Common.Log;
 using Migration.WIContract;
+
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
 using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
@@ -740,7 +743,7 @@ namespace WorkItemImport
             rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AssignedTo, Value = assignedTo });
         }
 
-        private void EnsureDateFields(WiRevision rev)
+        private void EnsureDateFields(WiRevision rev, WorkItem wi)
         {
             if (rev.Index == 0 && !rev.Fields.HasAnyByRefName(WiFieldReference.CreatedDate))
             {
@@ -748,7 +751,12 @@ namespace WorkItemImport
             }
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedDate))
             {
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
+                if (wi.ChangedDate == rev.Time)
+                {
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
+                }
+                else
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
             }
 
         }
@@ -853,7 +861,7 @@ namespace WorkItemImport
                 if (rev.Index == 0)
                     EnsureClasificationFields(rev);
 
-                EnsureDateFields(rev);
+                EnsureDateFields(rev, wi);
                 EnsureAuthorFields(rev);
                 EnsureAssigneeField(rev, wi);
                 EnsureFieldsOnStateChange(rev, wi);
