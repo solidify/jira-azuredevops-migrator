@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Atlassian.Jira;
+
 using Migration.Common;
 using Migration.Common.Log;
+
 using Newtonsoft.Json.Linq;
 
 namespace JiraExport
@@ -306,8 +309,7 @@ namespace JiraExport
                 {
                     Id = attObj.ExValue<string>("$.id"),
                     Filename = attObj.ExValue<string>("$.filename"),
-                    Url = attObj.ExValue<string>("$.content"),
-                    ThumbUrl = attObj.ExValue<string>("$.thumbnail")
+                    Url = attObj.ExValue<string>("$.content")
                 };
             }).ToList();
         }

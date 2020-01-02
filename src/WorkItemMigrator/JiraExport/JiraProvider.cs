@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Atlassian.Jira;
+
 using Migration.Common;
 using Migration.Common.Log;
+
 using Newtonsoft.Json.Linq;
 
 namespace JiraExport
@@ -92,8 +95,7 @@ namespace JiraExport
                 {
                     Id = id,
                     Filename = attObj.ExValue<string>("$.filename"),
-                    Url = attObj.ExValue<string>("$.content"),
-                    ThumbUrl = attObj.ExValue<string>("$.thumbnail")
+                    Url = attObj.ExValue<string>("$.content")
                 };
             }
             catch (Exception ex)
@@ -125,23 +127,6 @@ namespace JiraExport
                         catch (Exception)
                         {
                             Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
-                        }
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(att.ThumbUrl))
-                    {
-                        try
-                        {
-                            string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
-                            var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
-                            EnsurePath(thumbPath);
-                            await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
-                            att.LocalThumbPath = thumbPath;
-                            Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
-                        }
-                        catch (Exception)
-                        {
-                            Logger.Log(LogLevel.Warning, $"Attachment thumbnail '{att.ToString()}' download failed.");
                         }
                     }
                 }
