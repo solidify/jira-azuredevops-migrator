@@ -112,22 +112,19 @@ namespace JiraExport
                 if (string.IsNullOrWhiteSpace(att.Url))
                     att = await GetAttachmentInfo(att.Id);
 
-                if (att != null)
+                if (att != null && !string.IsNullOrWhiteSpace(att.Url))
                 {
-                    if (!string.IsNullOrWhiteSpace(att.Url))
+                    try
                     {
-                        try
-                        {
-                            string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
-                            EnsurePath(path);
-                            await web.DownloadWithAuthenticationAsync(att.Url, path);
-                            att.LocalPath = path;
-                            Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
-                        }
-                        catch (Exception)
-                        {
-                            Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
-                        }
+                        string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
+                        EnsurePath(path);
+                        await web.DownloadWithAuthenticationAsync(att.Url, path);
+                        att.LocalPath = path;
+                        Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
+                    }
+                    catch (Exception)
+                    {
+                        Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
                     }
                 }
             }
