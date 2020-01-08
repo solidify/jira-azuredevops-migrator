@@ -400,6 +400,7 @@ namespace WorkItemImport
 
                         if (!string.IsNullOrWhiteSpace(iterationPath))
                         {
+                            iterationPath = Regex.Replace(iterationPath, "[\\/$?*:\"&<>#%|+]", "");
                             EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
                             wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
                         }
