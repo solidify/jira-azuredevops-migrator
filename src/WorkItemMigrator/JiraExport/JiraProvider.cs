@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Atlassian.Jira;
+
 using Migration.Common;
 using Migration.Common.Log;
+
 using Newtonsoft.Json.Linq;
 
 namespace JiraExport
@@ -92,8 +95,7 @@ namespace JiraExport
                 {
                     Id = id,
                     Filename = attObj.ExValue<string>("$.filename"),
-                    Url = attObj.ExValue<string>("$.content"),
-                    ThumbUrl = attObj.ExValue<string>("$.thumbnail")
+                    Url = attObj.ExValue<string>("$.content")
                 };
             }
             catch (Exception ex)
@@ -110,39 +112,19 @@ namespace JiraExport
                 if (string.IsNullOrWhiteSpace(att.Url))
                     att = await GetAttachmentInfo(att.Id);
 
-                if (att != null)
+                if (att != null && !string.IsNullOrWhiteSpace(att.Url))
                 {
-                    if (!string.IsNullOrWhiteSpace(att.Url))
+                    try
                     {
-                        try
-                        {
-                            string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
-                            EnsurePath(path);
-                            await web.DownloadWithAuthenticationAsync(att.Url, path);
-                            att.LocalPath = path;
-                            Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
-                        }
-                        catch (Exception)
-                        {
-                            Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
-                        }
+                        string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
+                        EnsurePath(path);
+                        await web.DownloadWithAuthenticationAsync(att.Url, path);
+                        att.LocalPath = path;
+                        Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
                     }
-
-                    if (!string.IsNullOrWhiteSpace(att.ThumbUrl))
+                    catch (Exception)
                     {
-                        try
-                        {
-                            string thumbname = Path.GetFileNameWithoutExtension(att.Filename) + ".thumb" + Path.GetExtension(att.Filename);
-                            var thumbPath = Path.Combine(Settings.AttachmentsDir, att.Id, thumbname);
-                            EnsurePath(thumbPath);
-                            await web.DownloadWithAuthenticationAsync(att.ThumbUrl, Path.Combine(Settings.AttachmentsDir, att.Id, thumbname));
-                            att.LocalThumbPath = thumbPath;
-                            Logger.Log(LogLevel.Debug, $"Downloaded attachment thumbnail '{att.ToString()}'.");
-                        }
-                        catch (Exception)
-                        {
-                            Logger.Log(LogLevel.Warning, $"Attachment thumbnail '{att.ToString()}' download failed.");
-                        }
+                        Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
                     }
                 }
             }
