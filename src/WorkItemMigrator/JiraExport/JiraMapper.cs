@@ -205,19 +205,6 @@ namespace JiraExport
                     Comment = "Imported from Jira"
                 };
                 attachments.Add(wiAtt);
-
-                if (!string.IsNullOrWhiteSpace(att.Value.LocalThumbPath))
-                {
-                    var wiThumbAtt = new WiAttachment()
-                    {
-                        Change = change,
-                        AttOriginId = att.Value.Id + "-thumb",
-                        FilePath = att.Value.LocalThumbPath,
-                        Comment = $"Thumbnail for {att.Value.Filename}"
-                    };
-
-                    attachments.Add(wiThumbAtt);
-                }
             }
 
             return attachments;
@@ -543,9 +530,6 @@ namespace JiraExport
 
             foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
             {
-                if (!string.IsNullOrWhiteSpace(att.ThumbUrl) && htmlValue.Contains(att.ThumbUrl))
-                    htmlValue = htmlValue.Replace(att.ThumbUrl, att.ThumbUrl);
-
                 if (!string.IsNullOrWhiteSpace(att.Url) && htmlValue.Contains(att.Url))
                     htmlValue = htmlValue.Replace(att.Url, att.Url);
             }
