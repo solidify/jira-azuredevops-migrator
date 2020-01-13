@@ -27,6 +27,7 @@
         public static string ReproSteps => "Microsoft.VSTS.TCM.ReproSteps";
         public static string Description => "System.Description";
         public static string ActivatedBy => "Microsoft.VSTS.Common.ActivatedBy";
+        public static string Tags => "System.Tags";
 
     }
 }
