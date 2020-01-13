@@ -372,9 +372,9 @@ namespace WorkItemImport
 
         #region Import Revision
 
-        private bool UpdateWIFields(List<WiField> fields, WorkItem wi)
+        private bool UpdateWIFields(IEnumerable<WiField> fields, WorkItem wi)
         {
-            bool success = true;
+            var success = true;
 
             if (!wi.IsOpen || !wi.IsPartialOpen)
                 wi.PartialOpen();
@@ -383,79 +383,76 @@ namespace WorkItemImport
             {
                 try
                 {
-                    string fieldRef = fieldRev.ReferenceName;
-                    object fieldValue = fieldRev.Value;
+                    var fieldRef = fieldRev.ReferenceName;
+                    var fieldValue = fieldRev.Value;
 
-                    if (fieldRef.Equals(WiFieldReference.IterationPath, StringComparison.InvariantCultureIgnoreCase))
+
+                    switch (fieldRef)
                     {
-                        string iterationPath = Settings.BaseIterationPath;
+                        case var s when s.Equals(WiFieldReference.IterationPath, StringComparison.InvariantCultureIgnoreCase):
 
-                        if (!string.IsNullOrWhiteSpace((string)fieldValue))
-                        {
-                            if (string.IsNullOrWhiteSpace(iterationPath))
-                                iterationPath = (string)fieldValue;
+                            var iterationPath = Settings.BaseIterationPath;
+
+                            if (!string.IsNullOrWhiteSpace((string)fieldValue))
+                            {
+                                if (string.IsNullOrWhiteSpace(iterationPath))
+                                    iterationPath = (string)fieldValue;
+                                else
+                                    iterationPath = string.Join("/", iterationPath, (string)fieldValue);
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(iterationPath))
+                            {
+                                EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
+                                wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
+                            }
                             else
-                                iterationPath = string.Join("/", iterationPath, (string)fieldValue);
-                        }
+                            {
+                                wi.IterationPath = Settings.Project;
+                            }
+                            Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.IterationPath}'.");
+                            break;
 
-                        if (!string.IsNullOrWhiteSpace(iterationPath))
-                        {
-                            EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
-                            wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
-                        }
-                        else
-                        {
-                            wi.IterationPath = Settings.Project;
-                        }
+                        case var s when s.Equals(WiFieldReference.AreaPath, StringComparison.InvariantCultureIgnoreCase):
 
-                        Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.IterationPath}'.");
-                    }
-                    else if (fieldRef.Equals(WiFieldReference.AreaPath, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        string areaPath = Settings.BaseAreaPath;
+                            var areaPath = Settings.BaseAreaPath;
 
-                        if (!string.IsNullOrWhiteSpace((string)fieldValue))
-                        {
-                            if (string.IsNullOrWhiteSpace(areaPath))
-                                areaPath = (string)fieldValue;
+                            if (!string.IsNullOrWhiteSpace((string)fieldValue))
+                            {
+                                if (string.IsNullOrWhiteSpace(areaPath))
+                                    areaPath = (string)fieldValue;
+                                else
+                                    areaPath = string.Join("/", areaPath, (string)fieldValue);
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(areaPath))
+                            {
+                                EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
+                                wi.AreaPath = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
+                            }
                             else
-                                areaPath = string.Join("/", areaPath, (string)fieldValue);
-                        }
+                            {
+                                wi.AreaPath = Settings.Project;
+                            }
 
-                        if (!string.IsNullOrWhiteSpace(areaPath))
-                        {
-                            EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
-                            wi.AreaPath = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
-                        }
-                        else
-                        {
-                            wi.AreaPath = Settings.Project;
-                        }
+                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
 
-                        Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
-                    }
-                    else if (fieldRef.Equals(WiFieldReference.ActivatedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
-                    {
-                        SetFieldValue(wi, fieldRef, fieldValue);
-                    }
-                    else if (fieldRef.Equals(WiFieldReference.ActivatedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
-                    {
-                        SetFieldValue(wi, fieldRef, fieldValue);
-                    }
-                    else if (fieldRef.Equals(WiFieldReference.ClosedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
-                    {
-                        SetFieldValue(wi, fieldRef, fieldValue);
-                    }
-                    else if (fieldRef.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null)
-                    {
-                        SetFieldValue(wi, fieldRef, fieldValue);
-                    }
-                    else
-                    {
-                        if (fieldValue != null)
-                        {
+                            break;
+
+                        case var s when s.Equals(WiFieldReference.ActivatedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
+                             s.Equals(WiFieldReference.ActivatedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
+                            s.Equals(WiFieldReference.ClosedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
+                            s.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
+                            s.Equals(WiFieldReference.Tags, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null:
+
                             SetFieldValue(wi, fieldRef, fieldValue);
-                        }
+                            break;
+                        default:
+                            if (fieldValue != null)
+                            {
+                                SetFieldValue(wi, fieldRef, fieldValue);
+                            }
+                            break;
                     }
                 }
                 catch (Exception ex)
@@ -488,7 +485,7 @@ namespace WorkItemImport
 
         private bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, Attachment> attachmentMap)
         {
-            bool success = true;
+            var success = true;
 
             if (!wi.IsOpen)
                 wi.Open();
@@ -645,12 +642,10 @@ namespace WorkItemImport
 
         private bool DetectCycle(WorkItem startingWi, RelatedLink startingLink)
         {
-            WorkItem nextWi;
             var nextWiLink = startingLink;
-
             do
             {
-                nextWi = Store.GetWorkItem(nextWiLink.RelatedWorkItemId);
+                var nextWi = Store.GetWorkItem(nextWiLink.RelatedWorkItemId);
                 nextWiLink = nextWi.Links.OfType<RelatedLink>().FirstOrDefault(rl => rl.LinkTypeEnd.Id == startingLink.LinkTypeEnd.Id);
 
                 if (nextWiLink != null && nextWiLink.RelatedWorkItemId == startingWi.Id)
@@ -854,12 +849,11 @@ namespace WorkItemImport
 
         public bool ImportRevision(WiRevision rev, WorkItem wi)
         {
+            var incomplete = false;
             try
             {
-                bool incomplete = false;
-
                 if (rev.Index == 0)
-                    EnsureClasificationFields(rev);
+                    EnsureClassificationFields(rev);
 
                 EnsureDateFields(rev, wi);
                 EnsureAuthorFields(rev);
@@ -879,7 +873,7 @@ namespace WorkItemImport
                 if (incomplete)
                     Logger.Log(LogLevel.Warning, $"'{rev.ToString()}' - not all changes were saved.");
 
-                if (!rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
+                if (rev.Attachments.All(a => a.Change != ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
                     CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev);
@@ -932,7 +926,7 @@ namespace WorkItemImport
             }
         }
 
-        private void EnsureClasificationFields(WiRevision rev)
+        private void EnsureClassificationFields(WiRevision rev)
         {
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.AreaPath))
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
