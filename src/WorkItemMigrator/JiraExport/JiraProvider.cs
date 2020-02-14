@@ -105,7 +105,7 @@ namespace JiraExport
             }
         }
 
-        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att, WebClientWrapper web)
+        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att)
         {
             if (att != null)
             {
@@ -116,13 +116,15 @@ namespace JiraExport
                 {
                     try
                     {
-                        string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
+                        var path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
                         EnsurePath(path);
-                        await web.DownloadWithAuthenticationAsync(att.Url, path);
+
+                        await DownloadWithJiraRestClientAsync(att.Url, path);
+
                         att.LocalPath = path;
                         Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
                     }
@@ -130,6 +132,19 @@ namespace JiraExport
             }
 
             return att;
+        }
+
+        private async Task DownloadWithJiraRestClientAsync(string url, string fileFullPath)
+        {
+            var attachmentData = Jira.RestClient.DownloadData(url);
+
+            using (var stream = new MemoryStream(attachmentData))
+            {
+                using (var file = File.Create(fileFullPath))
+                {
+                    await stream.CopyToAsync(file);
+                }
+            }
         }
 
         private void EnsurePath(string path)
@@ -279,15 +294,13 @@ namespace JiraExport
             if (attChanges != null && attChanges.Any(a => a.ChangeType == RevisionChangeType.Added))
             {
                 var downloadedAtts = new List<JiraAttachment>();
-                using (var web = new WebClientWrapper(this))
+
+                foreach (var remoteAtt in attChanges)
                 {
-                    foreach (var remoteAtt in attChanges)
+                    var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value);
+                    if (jiraAtt != null && !string.IsNullOrWhiteSpace(jiraAtt.LocalPath))
                     {
-                        var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value, web);
-                        if (jiraAtt != null && !string.IsNullOrWhiteSpace(jiraAtt.LocalPath))
-                        {
-                            downloadedAtts.Add(jiraAtt);
-                        }
+                        downloadedAtts.Add(jiraAtt);
                     }
                 }
 
