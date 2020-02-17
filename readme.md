@@ -30,6 +30,10 @@ The tools are provided as-is and will require detailed understanding of how to m
 * Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/blog/jira-to-vsts-migration-work-items) for more context of the process.
 * Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/blog/jira-azure-devops-migration) for a complete step-by-step walkthrough on a migration.
 
+# FAQ - Frequently Asked Questions
+
+* See [FAQ - Frequently Asked Questions](docs/faq.md)
+
 # Telemetry
 
 In order to improve the tool we collect some telemetry data using Microsoft Application Insights. See [Telemetry](docs/telemetry.md) for more details, including how to disable telemetry collection.

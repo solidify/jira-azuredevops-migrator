@@ -51,12 +51,17 @@ steps:
 
 - task: SonarSource.sonarcloud.38b27399-a642-40af-bb7d-9971f69712e8.SonarCloudPublish@1
   displayName: 'Publish Quality Gate Result'
-  
-- task: ms-devlabs.vsts-developer-tools-build-tasks.package-extension-build-task.PackageVSTSExtension@1
+
+- task: TfxInstaller@1
+  inputs:
+    version: 'v0.6.x'
+
+- task: PackageAzureDevOpsExtension@2
   displayName: 'Package Extension: src/WorkItemMigrator.Extension'
   inputs:
-    rootFolder: src/WorkItemMigrator.Extension
+    rootFolder: 'src/WorkItemMigrator.Extension'
     outputPath: '$(Build.ArtifactStagingDirectory)\jira-devops-workitem-migrator-$(Build.BuildNumber).vsix'
+    updateTasksVersion: false
     bypassLocalValidation: true
 
 - task: CopyFiles@2
