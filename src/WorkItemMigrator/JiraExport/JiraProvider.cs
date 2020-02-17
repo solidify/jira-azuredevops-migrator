@@ -124,9 +124,9 @@ namespace JiraExport
                         att.LocalPath = path;
                         Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
+                        Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. Reason '{ex.Message}'.");
                     }
                 }
             }
@@ -149,33 +149,31 @@ namespace JiraExport
 
         private void EnsurePath(string path)
         {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
             var dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir))
-            {
-                var parentDir = Path.GetDirectoryName(dir);
-                EnsurePath(parentDir);
-                Directory.CreateDirectory(dir);
-            }
+            Directory.CreateDirectory(dir);
         }
 
         public IEnumerable<JiraItem> EnumerateIssues(string jql, HashSet<string> skipList, DownloadOptions downloadOptions)
         {
-            int currentStart = 0;
+            var currentStart = 0;
             IEnumerable<string> remoteIssueBatch = null;
-            int index = 0;
-            JToken response = null;
+            var index = 0;
 
             Logger.Log(LogLevel.Debug, "Enumerate remote issues");
 
             do
             {
+                JToken response = null;
                 try
                 {
                     response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
                 }
                 catch (Exception e)
                 {
-                    Logger.Log(e, "Failed to retrive issues");
+                    Logger.Log(e, "Failed to retrieve issues");
                     break;
                 }
                 if (response != null)
