@@ -105,7 +105,7 @@ namespace JiraExport
             }
         }
 
-        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att, WebClientWrapper web)
+        private async Task<JiraAttachment> DownloadAttachmentAsync(JiraAttachment att)
         {
             if (att != null)
             {
@@ -116,15 +116,17 @@ namespace JiraExport
                 {
                     try
                     {
-                        string path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
+                        var path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
                         EnsurePath(path);
-                        await web.DownloadWithAuthenticationAsync(att.Url, path);
+
+                        await DownloadWithJiraRestClientAsync(att.Url, path);
+
                         att.LocalPath = path;
                         Logger.Log(LogLevel.Debug, $"Downloaded attachment '{att.ToString()}'");
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. ");
+                        Logger.Log(LogLevel.Warning, $"Attachment download failed for '{att.Id}'. Reason '{ex.Message}'.");
                     }
                 }
             }
@@ -132,35 +134,46 @@ namespace JiraExport
             return att;
         }
 
+        private async Task DownloadWithJiraRestClientAsync(string url, string fileFullPath)
+        {
+            var attachmentData = Jira.RestClient.DownloadData(url);
+
+            using (var stream = new MemoryStream(attachmentData))
+            {
+                using (var file = File.Create(fileFullPath))
+                {
+                    await stream.CopyToAsync(file);
+                }
+            }
+        }
+
         private void EnsurePath(string path)
         {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
             var dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir))
-            {
-                var parentDir = Path.GetDirectoryName(dir);
-                EnsurePath(parentDir);
-                Directory.CreateDirectory(dir);
-            }
+            Directory.CreateDirectory(dir);
         }
 
         public IEnumerable<JiraItem> EnumerateIssues(string jql, HashSet<string> skipList, DownloadOptions downloadOptions)
         {
-            int currentStart = 0;
+            var currentStart = 0;
             IEnumerable<string> remoteIssueBatch = null;
-            int index = 0;
-            JToken response = null;
+            var index = 0;
 
             Logger.Log(LogLevel.Debug, "Enumerate remote issues");
 
             do
             {
+                JToken response = null;
                 try
                 {
                     response = Jira.RestClient.ExecuteRequestAsync(RestSharp.Method.GET, $"rest/api/2/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
                 }
                 catch (Exception e)
                 {
-                    Logger.Log(e, "Failed to retrive issues");
+                    Logger.Log(e, "Failed to retrieve issues");
                     break;
                 }
                 if (response != null)
@@ -279,15 +292,13 @@ namespace JiraExport
             if (attChanges != null && attChanges.Any(a => a.ChangeType == RevisionChangeType.Added))
             {
                 var downloadedAtts = new List<JiraAttachment>();
-                using (var web = new WebClientWrapper(this))
+
+                foreach (var remoteAtt in attChanges)
                 {
-                    foreach (var remoteAtt in attChanges)
+                    var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value);
+                    if (jiraAtt != null && !string.IsNullOrWhiteSpace(jiraAtt.LocalPath))
                     {
-                        var jiraAtt = await DownloadAttachmentAsync(remoteAtt.Value, web);
-                        if (jiraAtt != null && !string.IsNullOrWhiteSpace(jiraAtt.LocalPath))
-                        {
-                            downloadedAtts.Add(jiraAtt);
-                        }
+                        downloadedAtts.Add(jiraAtt);
                     }
                 }
 
