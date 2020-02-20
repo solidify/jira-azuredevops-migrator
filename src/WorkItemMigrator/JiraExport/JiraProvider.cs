@@ -11,6 +11,8 @@ using Migration.Common.Log;
 
 using Newtonsoft.Json.Linq;
 
+using RestSharp;
+
 namespace JiraExport
 {
     public class JiraProvider
@@ -66,6 +68,8 @@ namespace JiraExport
                 Logger.Log(LogLevel.Info, "Connecting to Jira...");
 
                 jira = Jira.CreateRestClient(jiraSettings.Url, jiraSettings.UserID, jiraSettings.Pass);
+                jira.RestClient.RestSharpClient.AddDefaultHeader("X-Atlassian-Token", "no-check");
+
             }
             catch (Exception ex)
             {
