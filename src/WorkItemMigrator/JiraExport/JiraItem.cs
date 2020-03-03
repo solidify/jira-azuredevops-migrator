@@ -58,7 +58,7 @@ namespace JiraExport
 
                 List<RevisionAction<JiraLink>> linkChanges = new List<RevisionAction<JiraLink>>();
                 List<RevisionAction<JiraAttachment>> attachmentChanges = new List<RevisionAction<JiraAttachment>>();
-                Dictionary<string, object> fieldChanges = new Dictionary<string, object>();
+                Dictionary<string, object> fieldChanges = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
                 foreach (var item in items)
