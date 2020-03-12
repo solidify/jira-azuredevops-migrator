@@ -305,7 +305,7 @@ namespace JiraExport
                                 value = IfChanged<string>(item.Source, isCustomField, MapRemainingWork);
                                 break;
                             case "MapRendered":
-                                value = r => MapRenderedValue(r, item.Source);
+                                value = r => MapRenderedValue(r, item.Source, isCustomField);
                                 break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
@@ -455,9 +455,14 @@ namespace JiraExport
             }
         }
 
-        private (bool, object) MapRenderedValue(JiraRevision r, string itemSource)
+        private (bool, object) MapRenderedValue(JiraRevision r, string sourceField, bool isCustomField)
         {
-            var fieldName = itemSource + "$Rendered";
+            if (isCustomField)
+            {
+                var customFieldName = _jiraProvider.GetCustomId(sourceField);
+                sourceField = customFieldName;
+            }
+            var fieldName = sourceField + "$Rendered";
 
             var targetWit = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
