@@ -69,7 +69,7 @@ Name-value pairs of work item types to map in the migration.
 |---|---|---|---|
 |**source**|True|string|Name of Jira source field.|
 |**target**|True|string|Name of Azure DevOps/TFS target field (reference name).|
-|**source-type**|False|string|Name of Jira field to get custom field id from. Default = "id".|
+|**source-type**|False|string|Name of Jira field to get custom field id from. Default = "id". When using Jira Server do not use this when mapping to custom User Picker field.|
 |**for**|False|string|Types of work items this field should be migrated to, i.e. Bug, Task, Product backlog item in a comma-delimiter list. Default = "All".  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**not-for**|False|string|Negation of above, i.e this field is for a Bug only and nothing else.  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**type**|False|string|Data type, i.e string, int, double. Default = string|
@@ -93,7 +93,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |---|---|
 |MapTitle|Maps summary on the format [id] summary|
 |MapTitleWithoutKey|Maps summary field without [id]|
-|MapUser|Maps users based on email or name by lookup in the users.txt if specified|
+|MapUser|Maps users based on email or name by lookup in the users.txt if specified.|
 |MapSprint|Maps a sprint by matching the Azure DevOps iteration tree|
 |MapTags|Maps tags by replacing space with semi-colon|
 |MapArray|Maps an array by replacing comma with semi-colon|
