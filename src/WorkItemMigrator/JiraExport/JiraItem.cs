@@ -62,6 +62,7 @@ namespace JiraExport
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
 
+
                 foreach (var item in items)
                 {
                     if (item.Field == "Link")
@@ -409,8 +410,8 @@ namespace JiraExport
 
         private static string ExtractAuthorIdentity(string author)
         {
-            if (author is null)
-                return author;
+            if (string.IsNullOrEmpty(author))
+                return default(string);
 
             if (!author.Contains(':'))
                 return author;
