@@ -61,6 +61,7 @@ namespace JiraExport
                 Dictionary<string, object> fieldChanges = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
+
                 foreach (var item in items)
                 {
                     if (item.Field == "Link")

@@ -339,7 +339,7 @@ namespace JiraExport
                     _userEmailCache.Add(usernameOrAccountId, email);
                     return email;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Logger.Log(LogLevel.Warning, $"User with '{usernameOrAccountId}' not found in Jira, using usernameOrAccountId '{usernameOrAccountId}' for mapping. Using accountId instead");
                     return usernameOrAccountId;
