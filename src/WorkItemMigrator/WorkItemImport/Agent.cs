@@ -826,7 +826,7 @@ namespace WorkItemImport
 
                     if (tfsAtt != null)
                     {
-                        string imageSrcPattern = "src.*?=.*?\"([^\"]).*?\"";
+                        string imageSrcPattern = $"src.*?=.*?\"([^\"])(?=.*{att.AttOriginId}).*?\"";
                         textField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Uri.AbsoluteUri}\"");
                         isUpdated = true;
                     }
