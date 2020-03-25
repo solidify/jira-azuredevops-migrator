@@ -62,40 +62,42 @@ namespace JiraExport
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
 
-
-                foreach (var item in items)
+                if (items.Any())
                 {
-                    if (item.Field == "Link")
+                    foreach (var item in items)
                     {
-                        var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
-                        if (linkChange == null)
-                            continue;
+                        if (item.Field == "Link")
+                        {
+                            var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
+                            if (linkChange == null)
+                                continue;
 
-                        linkChanges.Add(linkChange);
+                            linkChanges.Add(linkChange);
 
-                        UndoLinkChange(linkChange, links);
-                    }
-                    else if (item.Field == "Attachment")
-                    {
-                        var attachmentChange = TransformAttachmentChange(item);
-                        if (attachmentChange == null)
-                            continue;
+                            UndoLinkChange(linkChange, links);
+                        }
+                        else if (item.Field == "Attachment")
+                        {
+                            var attachmentChange = TransformAttachmentChange(item);
+                            if (attachmentChange == null)
+                                continue;
 
-                        attachmentChanges.Add(attachmentChange);
+                            attachmentChanges.Add(attachmentChange);
 
-                        UndoAttachmentChange(attachmentChange, attachments);
-                    }
-                    else
-                    {
-                        var (fieldref, from, to) = TransformFieldChange(item, jiraProvider);
-
-                        fieldChanges[fieldref] = to;
-
-                        // undo field change
-                        if (string.IsNullOrEmpty(from))
-                            fields.Remove(fieldref);
+                            UndoAttachmentChange(attachmentChange, attachments);
+                        }
                         else
-                            fields[fieldref] = from;
+                        {
+                            var (fieldref, from, to) = TransformFieldChange(item, jiraProvider);
+
+                            fieldChanges[fieldref] = to;
+
+                            // undo field change
+                            if (string.IsNullOrEmpty(from))
+                                fields.Remove(fieldref);
+                            else
+                                fields[fieldref] = from;
+                        }
                     }
                 }
 
