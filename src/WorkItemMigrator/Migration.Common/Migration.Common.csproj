@@ -67,7 +67,6 @@
     <Compile Include="Config\Value.cs" />
     <Compile Include="Config\Type.cs" />
     <Compile Include="Config\TypeMap.cs" />
-    <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="FieldMapping.cs" />
     <Compile Include="ISourceRevision.cs" />
     <Compile Include="Journal.cs" />
