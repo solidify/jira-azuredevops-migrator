@@ -62,7 +62,7 @@ namespace JiraExport
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
 
-                if (items.Any())
+                if (items.IsAny())
                 {
                     foreach (var item in items)
                     {
@@ -408,7 +408,6 @@ namespace JiraExport
             return ExtractAuthorIdentity(author);
 
         }
-
 
         private static string ExtractAuthorIdentity(string author)
         {
