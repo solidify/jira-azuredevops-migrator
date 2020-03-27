@@ -93,7 +93,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |---|---|
 |MapTitle|Maps summary on the format [id] summary|
 |MapTitleWithoutKey|Maps summary field without [id]|
-|MapUser|Maps users based on email or name by lookup in the users.txt if specified.|
+|MapUser|Maps users based on email or name by lookup in the users.txt if specified, this applies only for Jira Server. When using Jira Cloud mapping can be done email if email is allowed to be displayed on the user profile or by accountId|
 |MapSprint|Maps a sprint by matching the Azure DevOps iteration tree|
 |MapTags|Maps tags by replacing space with semi-colon|
 |MapArray|Maps an array by replacing comma with semi-colon|

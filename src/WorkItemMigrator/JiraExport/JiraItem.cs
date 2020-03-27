@@ -39,7 +39,7 @@ namespace JiraExport
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
 
             // save these field since these might be removed in the loop
-            var reporter = fields.TryGetValue("reporter", out object rep) ? (string)rep : null;
+            string reporter = GetAuthor(fields);
             var createdOn = fields.TryGetValue("created", out object crdate) ? (DateTime)crdate : default(DateTime);
             if (createdOn == DateTime.MinValue)
                 Logger.Log(LogLevel.Debug, "created key was not found, using DateTime default value");
@@ -54,13 +54,14 @@ namespace JiraExport
             foreach (var change in changelog)
             {
                 DateTime created = change.ExValue<DateTime>("$.created");
-                string author = change.ExValue<string>("$.author.name");
+                string author = GetAuthor(change);
 
                 List<RevisionAction<JiraLink>> linkChanges = new List<RevisionAction<JiraLink>>();
                 List<RevisionAction<JiraAttachment>> attachmentChanges = new List<RevisionAction<JiraAttachment>>();
                 Dictionary<string, object> fieldChanges = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
+
                 foreach (var item in items)
                 {
                     if (item.Field == "Link")
@@ -129,7 +130,7 @@ namespace JiraExport
                 var rc = renderedFields.SelectToken($"$.[{i}].body");
                 return new JiraRevision(jiraItem)
                 {
-                    Author = c.Author,
+                    Author = c.AuthorUser.Username ?? ExtractAuthorIdentity(c.AuthorUser.AccountId),
                     Time = c.CreatedDate.Value,
                     Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", rc.Value<string>() } },
                     AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
@@ -323,6 +324,7 @@ namespace JiraExport
             var renderedFields = (JObject)remoteIssue.SelectToken("$.renderedFields");
 
             var extractName = new Func<JToken, object>((t) => t.ExValue<string>("$.name"));
+            var extractAccountIdOrUsername = new Func<JToken, object>((t) => t.ExValue<string>("$.name") ?? t.ExValue<string>("$.accountId"));
 
             if (_fieldExtractionMapping == null)
             {
@@ -332,7 +334,7 @@ namespace JiraExport
                         { "labels", t => t.Values<string>().Any() ? string.Join(" ", t.Values<string>()) : null },
                         { "assignee", extractName },
                         { "creator", extractName },
-                        { "reporter", extractName},
+                        { "reporter", extractAccountIdOrUsername},
                         { jira.Settings.SprintField, t => string.Join(", ", ParseCustomField(jira.Settings.SprintField, t, jira)) },
                         { "status", extractName },
                         { "parent", t => t.ExValue<string>("$.key") }
@@ -391,6 +393,31 @@ namespace JiraExport
 
             return fields;
         }
+        private static string GetAuthor(Dictionary<string, object> fields)
+        {
+            var reporter = fields.TryGetValue("reporter", out object rep) ? (string)rep : null;
+
+            return ExtractAuthorIdentity(reporter);
+        }
+        private static string GetAuthor(JObject change)
+        {
+            var author = change.ExValue<string>("$.author.name") ?? change.ExValue<string>("$.author.accountId");
+            return ExtractAuthorIdentity(author);
+
+        }
+
+        private static string ExtractAuthorIdentity(string author)
+        {
+            if (string.IsNullOrEmpty(author))
+                return default(string);
+
+            if (!author.Contains(':'))
+                return author;
+
+            var startIndex = author.IndexOf(':') + 1;
+
+            return author.Substring(startIndex, author.Length - startIndex).Replace("-", "");
+        }
 
         private static string[] ParseCustomField(string fieldName, JToken value, JiraProvider provider)
         {
@@ -412,7 +439,6 @@ namespace JiraExport
 
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
         public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
-
         public string EpicParent
         {
             get
@@ -426,18 +452,13 @@ namespace JiraExport
         public string Parent { get { return RemoteIssue.ExValue<string>("$.fields.parent.key"); } }
         public List<string> SubItems { get { return GetSubTasksKey(); } }
 
-
-
         public JObject RemoteIssue { get; private set; }
-
         public List<JiraRevision> Revisions { get; set; }
-
         private JiraItem(JiraProvider provider, JObject remoteIssue)
         {
             this._provider = provider;
             RemoteIssue = remoteIssue;
         }
-
         internal string GetUserEmail(string author)
         {
             return _provider.GetUserEmail(author);

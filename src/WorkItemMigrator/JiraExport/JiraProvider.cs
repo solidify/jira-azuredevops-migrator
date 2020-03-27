@@ -319,9 +319,9 @@ namespace JiraExport
             return Jira.Issues.GetCommentsAsync(key).Result.Count();
         }
 
-        public string GetUserEmail(string username)
+        public string GetUserEmail(string usernameOrAccountId)
         {
-            if (_userEmailCache.TryGetValue(username, out string email))
+            if (_userEmailCache.TryGetValue(usernameOrAccountId, out string email))
             {
                 return email;
             }
@@ -329,20 +329,20 @@ namespace JiraExport
             {
                 try
                 {
-                    var user = Jira.Users.GetUserAsync(username).Result;
+                    var user = Jira.Users.GetUserAsync(usernameOrAccountId).Result;
                     if (string.IsNullOrEmpty(user.Email))
                     {
-                        Logger.Log(LogLevel.Warning, $"Email for user '{username}' not found in Jira, using username '{username}' for mapping.");
-                        return username;
+                        Logger.Log(LogLevel.Warning, $"Email for user '{usernameOrAccountId}' not found in Jira, using usernameOrAccountId '{usernameOrAccountId}' for mapping.");
+                        return usernameOrAccountId;
                     }
                     email = user.Email;
-                    _userEmailCache.Add(username, email);
+                    _userEmailCache.Add(usernameOrAccountId, email);
                     return email;
                 }
                 catch (Exception)
                 {
-                    Logger.Log(LogLevel.Warning, $"User '{username}' not found in Jira, using username '{username}' for mapping.");
-                    return username;
+                    Logger.Log(LogLevel.Warning, $"User with '{usernameOrAccountId}' not found in Jira, using usernameOrAccountId '{usernameOrAccountId}' for mapping. Using accountId instead");
+                    return usernameOrAccountId;
                 }
             }
         }
