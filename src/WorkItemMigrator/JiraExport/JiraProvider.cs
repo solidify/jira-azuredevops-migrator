@@ -28,7 +28,6 @@ namespace JiraExport
         }
 
         private readonly string JiraApiV2 = "rest/api/2";
-        private readonly string JiraApiV3 = "rest/api/3";
 
         readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
 
