@@ -38,7 +38,14 @@ Example:
 `
 
 5. How to migrate correct user from Jira to Azure DevOps and assign to the new work items ?
-- To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
+- User mapping  differes between Jira Cloud and Jira Server. To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
-Some.JiraUser@domain.com=Some.AzureDevOpsUser@domain.com
+ - When using Jira Clould then firstly make sure in the config the ' "using-jira-cloud": true' is set. In the mapping file the mapping should look like this. To get the email for user from Jira API then email should be set to visible in the user profile
+ otherwise we the tool cant get the email and will use accountId instead.
+
+    JiraAccountId=Some.AzureDevOpsUser@domain.com
+
+ - When using Jira Server then firstly make sure in the config the ' "using-jira-cloud": false' is set. The mapping should look like the example below:
+
+    Some.JiraUser@domain.com=Some.AzureDevOpsUser@domain.com
 

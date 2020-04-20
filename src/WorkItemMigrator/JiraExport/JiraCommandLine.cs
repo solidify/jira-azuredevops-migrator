@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Common.Config;
+
 using Microsoft.Extensions.CommandLineUtils;
+
 using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
+
 using static JiraExport.JiraProvider;
 
 namespace JiraExport
@@ -84,7 +88,8 @@ namespace JiraExport
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
-                    JQL = config.Query
+                    JQL = config.Query,
+                    UsingJiraCloud = config.UsingJiraCloud
                 };
 
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
