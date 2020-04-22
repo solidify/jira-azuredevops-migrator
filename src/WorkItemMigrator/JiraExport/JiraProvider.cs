@@ -335,6 +335,7 @@ namespace JiraExport
                 var user = Jira.Users.GetUserAsync(usernameOrAccountId).Result;
                 if (string.IsNullOrEmpty(user.Email))
                 {
+
                     Logger.Log(LogLevel.Warning,
                         Settings.UsingJiraCloud
                             ? $"Email is not public for user '{usernameOrAccountId}' in Jira, using usernameOrAccountId '{usernameOrAccountId}' for mapping."
