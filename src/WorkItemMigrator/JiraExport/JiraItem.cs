@@ -130,7 +130,7 @@ namespace JiraExport
                 var rc = renderedFields.SelectToken($"$.[{i}].body");
                 return new JiraRevision(jiraItem)
                 {
-                    Author = c.AuthorUser.Username ?? ExtractAuthorIdentity(c.AuthorUser.AccountId),
+                    Author = c.AuthorUser.Username ?? GetAuthorIdentityOrDefault(c.AuthorUser.AccountId),
                     Time = c.CreatedDate.Value,
                     Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", rc.Value<string>() } },
                     AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
@@ -397,26 +397,22 @@ namespace JiraExport
         {
             var reporter = fields.TryGetValue("reporter", out object rep) ? (string)rep : null;
 
-            return ExtractAuthorIdentity(reporter);
+            return GetAuthorIdentityOrDefault(reporter);
         }
         private static string GetAuthor(JObject change)
         {
             var author = change.ExValue<string>("$.author.name") ?? change.ExValue<string>("$.author.accountId");
-            return ExtractAuthorIdentity(author);
+            return GetAuthorIdentityOrDefault(author);
 
         }
 
-        private static string ExtractAuthorIdentity(string author)
+        private static string GetAuthorIdentityOrDefault(string author)
         {
             if (string.IsNullOrEmpty(author))
                 return default(string);
 
-            if (!author.Contains(':'))
-                return author;
+            return author;
 
-            var startIndex = author.IndexOf(':') + 1;
-
-            return author.Substring(startIndex, author.Length - startIndex).Replace("-", "");
         }
 
         private static string[] ParseCustomField(string fieldName, JToken value, JiraProvider provider)
