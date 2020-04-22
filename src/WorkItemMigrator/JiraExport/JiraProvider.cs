@@ -345,7 +345,7 @@ namespace JiraExport
                 _userEmailCache.Add(usernameOrAccountId, email);
                 return email;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.Log(LogLevel.Warning,
                     Settings.UsingJiraCloud
