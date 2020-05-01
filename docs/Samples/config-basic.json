@@ -1,6 +1,7 @@
 {
   "source-project": "SourceProject",
   "target-project": "TargetProject",
+  "collection": "",
   "query": "project=ProjectName ORDER BY Prio ASC",
   "using-jira-cloud": true,
   "workspace": "C:\\Temp\\JiraExport\\",

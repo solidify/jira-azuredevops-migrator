@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.VersionControl.Common.Internal;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
@@ -85,6 +86,7 @@ namespace WorkItemImport
 
             // check if projects exists, if not create it
             var project = agent.GetOrCreateProjectAsync().Result;
+            
             if (project == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not establish connection to the remote Azure DevOps/TFS project.");
@@ -130,9 +132,11 @@ namespace WorkItemImport
         {
             try
             {
+                //setup the url to include the collection if it exists
+                string url = !string.IsNullOrEmpty(settings.Collection) ?   $"{settings.Account}/{settings.Collection}": settings.Account;
                 Logger.Log(LogLevel.Info, "Connecting to Azure DevOps/TFS...");
                 var credentials = new VssBasicCredential("", settings.Pat);
-                var uri = new Uri(settings.Account);
+                var uri = new Uri(url);
                 return new VsWebApi.VssConnection(uri, credentials);
             }
             catch (Exception ex)
@@ -145,9 +149,13 @@ namespace WorkItemImport
         private static TfsTeamProjectCollection EstablishSoapConnection(Settings settings)
         {
             NetworkCredential netCred = new NetworkCredential(string.Empty, settings.Pat);
+
+            //setup the url to include the collection if it exists
+            string url = !string.IsNullOrEmpty(settings.Collection) ? $"{settings.Account}/{settings.Collection}" :  settings.Account;
+
             VssBasicCredential basicCred = new VssBasicCredential(netCred);
             VssCredentials tfsCred = new VssCredentials(basicCred);
-            var collection = new TfsTeamProjectCollection(new Uri(settings.Account), tfsCred);
+            var collection = new TfsTeamProjectCollection(new Uri(url), tfsCred);
             collection.Authenticate();
             return collection;
         }
@@ -195,6 +203,7 @@ namespace WorkItemImport
 
             // Setup process properties       
             ProcessHttpClient processClient = RestConnection.GetClient<ProcessHttpClient>();
+
             Guid processId = processClient.GetProcessesAsync().Result.Find(process => { return process.Name.Equals(processName, StringComparison.InvariantCultureIgnoreCase); }).Id;
 
             Dictionary<string, string> processProperaties = new Dictionary<string, string>

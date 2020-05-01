@@ -27,5 +27,11 @@ namespace Migration.Common.Config
 
         [JsonProperty("mapping")]
         public Mapping Mapping { get; set; }
+
+        /// <summary>
+        /// this is necessary to setup the correct URL for projects that exist in TFS/AzureDevOps under a "collection"
+        /// </summary>
+        [JsonProperty("collection")]
+        public Mapping Collection { get; set; }
     }
 }

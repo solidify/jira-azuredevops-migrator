@@ -66,5 +66,11 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "using-jira-cloud")]
         public bool UsingJiraCloud { get; set; } = true;
+
+        /// <summary>
+        /// this is necessary to setup the correct URL for projects that exist in TFS/AzureDevOps under a "collection"
+        /// </summary>
+        [JsonProperty(PropertyName = "collection")]
+        public string Collection { get; set; } = "";
     }
 }
