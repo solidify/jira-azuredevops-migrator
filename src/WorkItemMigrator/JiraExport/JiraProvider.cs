@@ -87,6 +87,9 @@ namespace JiraExport
         private JiraItem ProcessItem(string issueKey, HashSet<string> skipList)
         {
             var issue = JiraItem.CreateFromRest(issueKey, this);
+            if (issue == null)
+                return default(JiraItem);
+
             skipList.Add(issue.Key);
             return issue;
         }
@@ -211,6 +214,10 @@ namespace JiraExport
 
                         Logger.Log(LogLevel.Info, $"Processing {index + 1}/{totalItems} - '{issueKey}'.");
                         var issue = ProcessItem(issueKey, skipList);
+
+                        if (issue == null)
+                            continue;
+
                         yield return issue;
                         index++;
 
@@ -289,9 +296,20 @@ namespace JiraExport
 
         public JObject DownloadIssue(string key)
         {
-            var response = Jira.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{key}?expand=renderedFields").Result;
-            var remoteItem = (JObject)response;
-            return remoteItem;
+            try
+            {
+                var response =
+                    Jira.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{key}?expand=renderedFields").Result;
+
+                var remoteItem = (JObject)response;
+                return remoteItem;
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e, $"Failed to download issue with key: {key}");
+                return default(JObject);
+            }
+
         }
 
         public async Task<List<RevisionAction<JiraAttachment>>> DownloadAttachments(JiraRevision rev)
