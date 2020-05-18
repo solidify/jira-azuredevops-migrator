@@ -707,9 +707,27 @@ namespace WorkItemImport
             }
             catch (FileAttachmentException faex)
             {
-                Logger.Log(faex, $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
+                Logger.Log(faex,
+                    $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
                 newWorkItem.Attachments.Remove(faex.SourceAttachment);
                 SaveWorkItem(rev, newWorkItem);
+            }
+            catch (WorkItemLinkValidationException wilve)
+            {
+                Logger.Log(wilve, $"[{wilve.GetType()}] {wilve.Message}. Link Source: {wilve.LinkInfo.SourceId}, Target: {wilve.LinkInfo.TargetId} in {rev} will be skipped.");
+                RemoveLinksFromWiThatExceedsLimit(newWorkItem);
+                SaveWorkItem(rev, newWorkItem);
+            }
+        }
+
+        private void RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
+        {
+            var links = newWorkItem.Links.OfType<RelatedLink>().ToList();
+            foreach (var link in links)
+            {
+                var relatedLinkCount = GetWorkItem(link.RelatedWorkItemId).RelatedLinkCount;
+                if (relatedLinkCount == 1000)
+                    newWorkItem.Links.Remove(link);
             }
         }
 
