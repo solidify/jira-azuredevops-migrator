@@ -1,0 +1,38 @@
+
+
+name: CI Build $(major).$(minor)$(rev:.r)
+
+#var
+
+on:
+  push:
+    branches: 
+    - master
+    - feature/**
+jobs:
+  build:
+    runs-on: windows-2016
+
+    steps:
+    - name: "Checkout" 
+      uses: actions/checkout@master
+      
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+    - name: Install dependencies
+      run: dotnet restore WorkItemMigrator.sln
+      
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@v1.2
+      with:
+        # Set the sonar.projectBaseDir analysis property
+        projectBaseDir: "." 
+      
+    - name: Build
+      run: dotnet build WorkItemMigrator.sln --configuration Release --no-restore
+      env:
+        CI: true
+
+    
