@@ -622,12 +622,15 @@ namespace WorkItemImport
 
         private bool IsDuplicateWorkItemLink(LinkCollection links, RelatedLink relatedLink)
         {
-            if (links.Contains(relatedLink))
-            {
-                Logger.Log(LogLevel.Warning, $"Duplicate work item link, related workitem id: {relatedLink.RelatedWorkItemId}");
-                return true;
-            }
-            return false;
+            var containsRelatedLink = links.Contains(relatedLink);
+            var hasSameRelatedWorkItemId = links.OfType<RelatedLink>()
+                .Any(l => l.RelatedWorkItemId == relatedLink.RelatedWorkItemId);
+
+            if (!containsRelatedLink && !hasSameRelatedWorkItemId)
+                return false;
+
+            Logger.Log(LogLevel.Warning, $"Duplicate work item link detected to related workitem id: {relatedLink.RelatedWorkItemId}, Skipping link");
+            return true;
 
 
         }

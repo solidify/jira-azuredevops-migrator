@@ -182,6 +182,9 @@ namespace JiraExport
             // map parent
             AddRemoveSingleLink(r, links, "parent", "Parent");
 
+            // map epic child
+            AddRemoveSingleLink(r, links, "epic child", "Child");
+
             return links;
         }
 
