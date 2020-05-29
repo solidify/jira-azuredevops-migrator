@@ -19,6 +19,9 @@ namespace JiraExport
         public static JiraItem CreateFromRest(string issueKey, JiraProvider jiraProvider)
         {
             var remoteIssue = jiraProvider.DownloadIssue(issueKey);
+            if (remoteIssue == null)
+                return default(JiraItem);
+
             Logger.Log(LogLevel.Debug, $"Downloaded item.");
 
             var jiraItem = new JiraItem(jiraProvider, remoteIssue);
@@ -47,7 +50,9 @@ namespace JiraExport
 
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
             Logger.Log(LogLevel.Debug, $"Downloaded issue: {issueKey} changelog.");
-            changelog.Reverse();
+
+            if (jiraProvider.Settings.UsingJiraCloud)
+                changelog.Reverse();
 
             Stack<JiraRevision> revisions = new Stack<JiraRevision>();
 

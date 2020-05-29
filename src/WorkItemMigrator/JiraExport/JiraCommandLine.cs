@@ -44,6 +44,7 @@ namespace JiraExport
             CommandOption urlOption = commandLineApplication.Option("--url <accounturl>", "Url for the account", CommandOptionType.SingleValue);
             CommandOption configOption = commandLineApplication.Option("--config <configurationfilename>", "Export the work items based on this configuration file", CommandOptionType.SingleValue);
             CommandOption forceOption = commandLineApplication.Option("--force", "Forces execution from start (instead of continuing from previous run)", CommandOptionType.NoValue);
+            CommandOption continueOnCriticalOption = commandLineApplication.Option("--continue", "Continue execution upon a critical error", CommandOptionType.SingleValue);
 
             commandLineApplication.OnExecute(() =>
             {
@@ -51,7 +52,7 @@ namespace JiraExport
 
                 if (configOption.HasValue())
                 {
-                    ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh);
+                    ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
@@ -62,7 +63,7 @@ namespace JiraExport
             });
         }
 
-        private void ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh)
+        private void ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             var itemsCount = 0;
             var exportedItemsCount = 0;
@@ -75,7 +76,7 @@ namespace JiraExport
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 var config = configReaderJson.Deserialize();
 
-                InitSession(config);
+                InitSession(config, continueOnCritical.Value());
 
                 // Migration session level settings
                 // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
@@ -118,6 +119,9 @@ namespace JiraExport
 
                 foreach (var issue in issues)
                 {
+                    if (issue == null)
+                        continue;
+
                     WiItem wiItem = mapper.Map(issue);
                     if (wiItem != null)
                     {
@@ -141,9 +145,9 @@ namespace JiraExport
             }
         }
 
-        private static void InitSession(ConfigJson config)
+        private static void InitSession(ConfigJson config, string continueOnCritical)
         {
-            Logger.Init("jira-export", config.Workspace, config.LogLevel);
+            Logger.Init("jira-export", config.Workspace, config.LogLevel, continueOnCritical);
         }
 
         private static void BeginSession(string configFile, ConfigJson config, bool force, JiraProvider jiraProvider, int itemsCount)
