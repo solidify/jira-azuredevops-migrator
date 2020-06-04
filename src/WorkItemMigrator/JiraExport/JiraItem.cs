@@ -337,8 +337,8 @@ namespace JiraExport
                     {
                         { "priority", extractName },
                         { "labels", t => t.Values<string>().Any() ? string.Join(" ", t.Values<string>()) : null },
-                        { "assignee", extractName },
-                        { "creator", extractName },
+                        { "assignee", extractAccountIdOrUsername },
+                        { "creator", extractAccountIdOrUsername },
                         { "reporter", extractAccountIdOrUsername},
                         { jira.Settings.SprintField, t => string.Join(", ", ParseCustomField(jira.Settings.SprintField, t, jira)) },
                         { "status", extractName },
