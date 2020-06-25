@@ -369,6 +369,7 @@ namespace JiraExport
                     Settings.UsingJiraCloud
                         ? $"Specified user '{usernameOrAccountId}' does not exist or you do not have required permissions, using accountId '{usernameOrAccountId}'"
                         : $"User '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");
+                _userEmailCache.Add(usernameOrAccountId, usernameOrAccountId);
                 return usernameOrAccountId;
             }
         }
