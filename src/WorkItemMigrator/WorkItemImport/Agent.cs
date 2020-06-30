@@ -470,13 +470,19 @@ namespace WorkItemImport
             try
             {
                 var field = wi.Fields[fieldRef];
+
                 field.Value = fieldValue;
 
-                Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
+                if (field.IsValid)
+                    Logger.Log(LogLevel.Debug, $"Mapped '{fieldRef}' '{fieldValue}'.");
+                else
+                {
+                    field.Value = null;
+                    Logger.Log(LogLevel.Warning, $"Mapped empty value for '{fieldRef}', because value was not valid");
+                }
             }
             catch (ValidationException ex)
             {
-
                 Logger.Log(LogLevel.Error, ex.Message);
             }
 
