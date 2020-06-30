@@ -351,16 +351,15 @@ namespace JiraExport
             try
             {
                 var user = Jira.Users.GetUserAsync(usernameOrAccountId).Result;
-                if (string.IsNullOrEmpty(user.Email))
+                var isUserEmailMissing = string.IsNullOrEmpty(user.Email);
+                if (isUserEmailMissing)
                 {
-
                     Logger.Log(LogLevel.Warning,
                         Settings.UsingJiraCloud
                             ? $"Email is not public for user '{usernameOrAccountId}' in Jira, using usernameOrAccountId '{usernameOrAccountId}' for mapping."
                             : $"Email for user '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");
-                    return usernameOrAccountId;
                 }
-                email = user.Email;
+                email = isUserEmailMissing ? usernameOrAccountId : user.Email;
                 _userEmailCache.Add(usernameOrAccountId, email);
                 return email;
             }
@@ -370,6 +369,7 @@ namespace JiraExport
                     Settings.UsingJiraCloud
                         ? $"Specified user '{usernameOrAccountId}' does not exist or you do not have required permissions, using accountId '{usernameOrAccountId}'"
                         : $"User '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");
+                _userEmailCache.Add(usernameOrAccountId, usernameOrAccountId);
                 return usernameOrAccountId;
             }
         }
