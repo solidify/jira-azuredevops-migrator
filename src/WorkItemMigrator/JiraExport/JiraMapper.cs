@@ -77,6 +77,32 @@ namespace JiraExport
             }
         }
 
+        private void AddSingleLink(JiraRevision r, List<WiLink> links, string field, string type)
+        {
+            if (r.Fields.TryGetValue(field, out object value))
+            {
+                var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
+                var linkType = (from t in _config.LinkMap.Links where t.Source == type select t.Target).FirstOrDefault();
+
+                // regardless if action is add or remove, as there can be only one, we remove previous epic link if it exists
+
+                if (changeType == ReferenceChangeType.Added)
+                {
+                    string linkedItemKey = (string)value;
+
+                    var link = new WiLink()
+                    {
+                        Change = changeType,
+                        SourceOriginId = r.ParentItem.Key,
+                        TargetOriginId = linkedItemKey,
+                        WiType = linkType,
+                    };
+
+                    links.Add(link);
+                }
+            }
+        }
+
         private List<string> GetWorkItemTypes(params string[] notFor)
         {
             List<string> list;
@@ -182,8 +208,28 @@ namespace JiraExport
             // map parent
             AddRemoveSingleLink(r, links, "parent", "Parent");
 
+            // map epic child
+            MapEpicChildLink(r, links, "epic child", "Child");
+
+
             return links;
         }
+
+        private void MapEpicChildLink(JiraRevision r, List<WiLink> links, string field, string type)
+        {
+            if (r.Fields.TryGetValue(field, out object value))
+            {
+                var parentKeyStr = r.OriginId.Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
+                var childKeyStr = value?.ToString().Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
+
+                if (int.TryParse(parentKeyStr, out var parentKey) && int.TryParse(childKeyStr, out var childKey))
+                {
+                    if (parentKey > childKey)
+                        AddSingleLink(r, links, field, type);
+                }
+            }
+        }
+
 
         private List<WiAttachment> MapAttachments(JiraRevision rev)
         {
@@ -377,6 +423,8 @@ namespace JiraExport
 
             return mappingPerWiType;
         }
+
+
 
         private object MapRemainingWork(string seconds)
         {
