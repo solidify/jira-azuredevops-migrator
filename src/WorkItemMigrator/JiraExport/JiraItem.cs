@@ -37,7 +37,7 @@ namespace JiraExport
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
-            Dictionary<string, object> fields = ExtractFields(issueKey, (JObject)remoteIssue, jiraProvider);
+            Dictionary<string, object> fields = ExtractFields(issueKey, remoteIssue, jiraProvider);
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
 

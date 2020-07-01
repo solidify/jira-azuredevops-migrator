@@ -407,7 +407,6 @@ namespace JiraExport
                         catch (Exception)
                         {
                             Logger.Log(LogLevel.Warning, $"Ignoring target mapping with key: '{item.Target}', because it is already configured.");
-                            continue;
                         }
                     }
                 }
