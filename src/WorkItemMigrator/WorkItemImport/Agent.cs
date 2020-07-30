@@ -667,11 +667,11 @@ namespace WorkItemImport
 
         private WorkItemLinkTypeEnd ParseLinkEnd(WiLink link, WorkItem wi)
         {
-            var props = link.WiType.Split('-');
-            var linkType = wi.Project.Store.WorkItemLinkTypes.SingleOrDefault(lt => lt.ReferenceName == props[0]);
+            var props = link.WiType?.Split('-');
+            var linkType = wi.Project.Store.WorkItemLinkTypes.SingleOrDefault(lt => lt.ReferenceName == props?[0]);
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({props[0]}) does not exist in project");
+                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({props?[0]}) does not exist in project");
                 return null;
             }
 
@@ -679,7 +679,7 @@ namespace WorkItemImport
 
             if (linkType.IsDirectional)
             {
-                if (props.Length > 1)
+                if (props?.Length > 1)
                     linkEnd = props[1] == "Forward" ? linkType.ForwardEnd : linkType.ReverseEnd;
                 else
                     Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link direction not provided for '{wi.Id}'.");
