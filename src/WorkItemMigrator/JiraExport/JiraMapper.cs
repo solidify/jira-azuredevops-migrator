@@ -84,11 +84,16 @@ namespace JiraExport
                 var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
                 var linkType = (from t in _config.LinkMap.Links where t.Source == type select t.Target).FirstOrDefault();
 
-                // regardless if action is add or remove, as there can be only one, we remove previous epic link if it exists
 
                 if (changeType == ReferenceChangeType.Added)
                 {
                     string linkedItemKey = (string)value;
+
+                    if (string.IsNullOrEmpty(linkType))
+                    {
+                        Logger.Log(LogLevel.Warning, $"Cannot add 'Child' {linkedItemKey} link to 'Parent' {r.ParentItem.Key}, 'Child' link-map configuration missing.");
+                        return;
+                    }
 
                     var link = new WiLink()
                     {
