@@ -36,7 +36,7 @@ steps:
     SonarCloud: SonarCloud
     organization: solidify
     projectKey: 'jira-azuredevops-migrator'
-    projectName: 'jira-azuredevops-migrator-gh'
+    projectName: 'jira-azuredevops-migrator'
     projectVersion: '$(Build.BuildNumber)'
     
 - task: VSBuild@1
