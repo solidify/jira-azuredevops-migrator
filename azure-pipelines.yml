@@ -30,13 +30,13 @@ steps:
   inputs:
     restoreSolution: '**\*.sln'
 
-- task: SonarSource.sonarcloud.14d9cde6-c1da-4d55-aa01-2965cd301255.SonarCloudPrepare@1
+- task: SonarCloudPrepare@1
   displayName: 'Prepare analysis on SonarCloud'
   inputs:
     SonarCloud: SonarCloud
     organization: solidify
     projectKey: 'jira-azuredevops-migrator'
-    projectName: 'jira-azuredevops-migrator'
+    projectName: 'jira-azuredevops-migrator-gh'
     projectVersion: '$(Build.BuildNumber)'
     
 - task: VSBuild@1
@@ -46,11 +46,13 @@ steps:
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
 
-- task: SonarSource.sonarcloud.ce096e50-6155-4de8-8800-4221aaeed4a1.SonarCloudAnalyze@1
+- task: SonarCloudAnalyze@1
   displayName: 'Run Code Analysis'
 
-- task: SonarSource.sonarcloud.38b27399-a642-40af-bb7d-9971f69712e8.SonarCloudPublish@1
+- task: SonarCloudPublish@1
   displayName: 'Publish Quality Gate Result'
+  inputs:
+    pollingTimeoutSec: '300'
 
 - task: TfxInstaller@1
   inputs:
