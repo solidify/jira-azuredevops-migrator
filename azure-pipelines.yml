@@ -34,7 +34,7 @@ steps:
   displayName: 'Prepare analysis on SonarCloud'
   inputs:
     SonarCloud: SonarCloud
-    organization: solidifylabs
+    organization: solidify
     projectKey: 'jira-azuredevops-migrator'
     projectName: 'jira-azuredevops-migrator'
     projectVersion: '$(Build.BuildNumber)'
