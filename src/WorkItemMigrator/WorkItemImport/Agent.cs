@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.Client;
+using Microsoft.TeamFoundation.Common;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Microsoft.VisualStudio.Services.Common;
@@ -882,7 +883,39 @@ namespace WorkItemImport
             }
         }
 
-        public bool ImportRevision(WiRevision rev, WorkItem wi)
+        public bool LinkBackToJiraWi(string linkBack, string id, WorkItem wi)
+        {
+            Regex regex = new Regex(@"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.atlassian\.net\/browse\/");
+            if (!regex.IsMatch(linkBack))
+            {
+                string unmodifiedLink = linkBack;
+                linkBack += '/';
+                if (!regex.IsMatch(linkBack))
+                {
+                    Logger.Log(LogLevel.Error, $"{unmodifiedLink}/{id} is not a valid Jira work item url");
+                    return false;
+                }
+            }
+
+            if (!wi.IsOpen)
+                wi.Open();
+
+            Hyperlink hyperLink = new Hyperlink($"{linkBack}{id}");
+            if (!wi.Links.Contains(hyperLink))
+            {
+                try
+                {
+                    wi.Links.Add(hyperLink);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Error, $"{ex.Message}");
+                }
+            }
+            return true;
+        }
+
+        public bool ImportRevision(WiRevision rev, WorkItem wi, string linkBack)
         {
             var incomplete = false;
             try
@@ -894,6 +927,10 @@ namespace WorkItemImport
                 EnsureAuthorFields(rev);
                 EnsureAssigneeField(rev, wi);
                 EnsureFieldsOnStateChange(rev, wi);
+
+                if (!linkBack.IsNullOrEmpty())
+                    if (!LinkBackToJiraWi(linkBack, rev.ParentOriginId, wi))
+                        incomplete = true;
 
                 var attachmentMap = new Dictionary<string, Attachment>();
                 if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap))
