@@ -224,10 +224,12 @@ namespace JiraExport
 
                     if (revisionNumber == 0)
                     {
-                        var link = CommonFunctions.ValidateUrl(linkAzure.Value(), new Regex(@"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+/~#=]{1,256}\/_workitems\/edit\/"));
+                        var link = CommonFunctions.ValidateUrl(linkAzure.Value(), new Regex(@"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+/~#=]{1,256}\/"));
                         if (link != null)
                         {
-                            jiraProvider.PostAzureUrl(jiraWorkItem, $"{link}{azureWorkItem}", $"Azure WI #{azureWorkItem}");
+                            var targetProject = config.TargetProject.Replace(" ", "%20");
+                            var azureWorkItemLink = $"{link}{targetProject}/_workitems/edit/{azureWorkItem}";
+                            jiraProvider.PostAzureUrl(jiraWorkItem, azureWorkItemLink, $"Azure WI #{azureWorkItem}");
                             Logger.Log(LogLevel.Info, $"Adding link from Jira item {jiraWorkItem} to Azure item {azureWorkItem}");
                         }
                     }
