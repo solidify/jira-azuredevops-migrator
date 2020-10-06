@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
+using System.Text.RegularExpressions;
 using Common.Config;
 
 using Microsoft.Extensions.CommandLineUtils;
-
+using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
@@ -43,6 +43,7 @@ namespace JiraExport
             CommandOption passwordOption = commandLineApplication.Option("-p <password>", "Password for authentication", CommandOptionType.SingleValue);
             CommandOption urlOption = commandLineApplication.Option("--url <accounturl>", "Url for the account", CommandOptionType.SingleValue);
             CommandOption configOption = commandLineApplication.Option("--config <configurationfilename>", "Export the work items based on this configuration file", CommandOptionType.SingleValue);
+            CommandOption linkOption = commandLineApplication.Option("--linkAzure", "Links Azure issues to Jira issues. Takes a value of the Azure url. (this must be run after doing wi-import)", CommandOptionType.SingleValue);
             CommandOption forceOption = commandLineApplication.Option("--force", "Forces execution from start (instead of continuing from previous run)", CommandOptionType.NoValue);
             CommandOption continueOnCriticalOption = commandLineApplication.Option("--continue", "Continue execution upon a critical error", CommandOptionType.SingleValue);
 
@@ -50,7 +51,11 @@ namespace JiraExport
             {
                 bool forceFresh = forceOption.HasValue();
 
-                if (configOption.HasValue())
+                if (linkOption.Value() != null)
+                {
+                    ExecuteConnection(userOption, passwordOption, urlOption, configOption, linkOption, continueOnCriticalOption);
+                }
+                else if (configOption.HasValue())
                 {
                     ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
@@ -182,6 +187,65 @@ namespace JiraExport
                     { "item-count", itemsCount.ToString() },
                     { "system-version", jiraVersion.Version },
                     { "hosting-type", jiraVersion.DeploymentType } });
+        }
+
+        private void ExecuteConnection(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, CommandOption linkAzure, CommandOption continueOnCritical)
+        {
+            try
+            {
+                string configFileName = configFile.Value();
+                ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
+                var config = configReaderJson.Deserialize();
+
+                InitSession(config, continueOnCritical.Value());
+
+                // Migration session level settings
+                // where the logs and journal will be saved, logs aid debugging, journal is for recovery of interupted process
+                string migrationWorkspace = config.Workspace;
+
+                var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
+                {
+                    BatchSize = config.BatchSize,
+                    UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
+                    AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
+                    JQL = config.Query,
+                    UsingJiraCloud = config.UsingJiraCloud
+                };
+                JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
+
+                var file = System.IO.File.ReadAllLines($"{migrationWorkspace}\\itemsJournal.txt");
+                foreach (var line in file)
+                {
+                    var items = line.Split(';');
+                    var jiraWorkItem = items[0];
+                    var azureWorkItem = items[1];
+                    var revisionNumber = -1;
+                    int.TryParse(items[2], out revisionNumber);
+
+                    if (revisionNumber == 0)
+                    {
+                        var link = CommonFunctions.ValidateUrl(linkAzure.Value(), new Regex(@"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+/~#=]{1,256}\/_workitems\/edit\/"));
+                        if (link != null)
+                        {
+                            jiraProvider.PostAzureUrl(jiraWorkItem, $"{link}{azureWorkItem}", $"Azure WI #{azureWorkItem}");
+                            Logger.Log(LogLevel.Info, $"Adding link from Jira item {jiraWorkItem} to Azure item {azureWorkItem}");
+                        }
+                    }
+                }
+
+            }
+            catch (CommandParsingException e)
+            {
+                Logger.Log(LogLevel.Error, $"Invalid command line option(s): {e}");
+            }
+            catch (FileNotFoundException e)
+            {
+                Logger.Log(LogLevel.Error, $"itemsJournal.txt file not found. Make sure you run wi-import before trying to link Jira work items to Azure work items.");
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e, $"Unexpected migration error.");
+            }
         }
 
         private static void EndSession(int itemsCount, Stopwatch sw)

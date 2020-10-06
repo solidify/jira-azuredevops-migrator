@@ -885,16 +885,11 @@ namespace WorkItemImport
 
         public bool LinkBackToJiraWi(string linkBack, string id, WorkItem wi)
         {
-            Regex regex = new Regex(@"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.atlassian\.net\/browse\/");
-            if (!regex.IsMatch(linkBack))
+            linkBack = CommonFunctions.ValidateUrl(linkBack, new Regex(@"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\/browse\/"));
+            if (linkBack == null)
             {
-                string unmodifiedLink = linkBack;
-                linkBack += '/';
-                if (!regex.IsMatch(linkBack))
-                {
-                    Logger.Log(LogLevel.Error, $"{unmodifiedLink}/{id} is not a valid Jira work item url");
-                    return false;
-                }
+                Logger.Log(LogLevel.Error, $"{linkBack} is not a valid Jira work item url");
+                return false;
             }
 
             if (!wi.IsOpen)
