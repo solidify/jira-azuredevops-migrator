@@ -9,7 +9,7 @@ using Atlassian.Jira;
 
 using Migration.Common;
 using Migration.Common.Log;
-
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using RestSharp;
@@ -388,6 +388,14 @@ namespace JiraExport
                 }
             }
             return customId;
+        }
+
+        public void PostAzureUrl(string jiraWorkItem, string azureLink, string title)
+        {
+            string str = "{ 'object': { 'url': "+$"'{azureLink}'"+", 'title': "+$"'{title}'"+" } }";
+            System.Web.Script.Serialization.JavaScriptSerializer j = new System.Web.Script.Serialization.JavaScriptSerializer();
+            object obj = j.Deserialize(str, typeof(object));
+            var response = Jira.RestClient.ExecuteRequestAsync(Method.POST, $"{JiraApiV2}/issue/{jiraWorkItem}/remotelink", obj).Result;
         }
     }
 }
