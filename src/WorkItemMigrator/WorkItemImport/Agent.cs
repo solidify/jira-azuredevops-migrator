@@ -885,7 +885,7 @@ namespace WorkItemImport
 
         public bool LinkBackToJiraWi(string linkBack, string id, WorkItem wi)
         {
-            Regex regex = new Regex(@"https ?:\/\/ (www\.)?[-a - zA - Z0 - 9@:%._\+~#=]{1,256}\/browse\/");
+            Regex regex = new Regex(@"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\/browse\/");
             if (!regex.IsMatch(linkBack))
             {
                 string unmodifiedLink = linkBack;
