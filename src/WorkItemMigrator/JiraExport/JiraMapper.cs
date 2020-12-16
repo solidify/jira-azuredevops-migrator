@@ -503,7 +503,7 @@ namespace JiraExport
             }
             else
             {
-                var field = _jiraProvider.Fields.Where(x => x.Name == itemSource).SingleOrDefault();
+                var field = _jiraProvider.Fields.SingleOrDefault(x => x.Name == itemSource);
                 if (field == null)
                 {
                     Logger.Log(LogLevel.Debug, $"Cold not find field '{itemSource}' for item type '{r.Type}'.");
