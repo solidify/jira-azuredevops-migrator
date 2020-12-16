@@ -506,12 +506,12 @@ namespace JiraExport
                 var field = _jiraProvider.Fields.Where(x => x.Name == itemSource).SingleOrDefault();
                 if (field == null)
                 {
-                    Logger.Log(LogLevel.Warning, $"Cold not find field '{itemSource}' for item type '{r.Type}'.");
+                    Logger.Log(LogLevel.Debug, $"Cold not find field '{itemSource}' for item type '{r.Type}'.");
                     return (false, null);
                 }
                 else
                 {
-                    Logger.Log(LogLevel.Warning, $"Instead of name '{field.Name}' trying to get value by id '{field.Id}' for item type '{r.Type}'.");
+                    Logger.Log(LogLevel.Debug, $"Instead of name '{field.Name}' trying to get value by id '{field.Id}' for item type '{r.Type}'.");
                     return MapValue(r, field.Id);
                 }
                     
