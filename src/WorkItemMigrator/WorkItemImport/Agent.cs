@@ -855,7 +855,8 @@ namespace WorkItemImport
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
                 var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                if (textField.Contains(fileName))
+                var splitfileName = fileName.Split(' ');
+                if (textField.Contains(fileName) || textField.Contains(string.Join("+", splitfileName)))
                 {
                     var tfsAtt = IdentifyAttachment(att, wi);
 
