@@ -133,9 +133,27 @@ namespace JiraExport
             return comments.Select((c, i) =>
             {
                 var rc = renderedFields.SelectToken($"$.[{i}].body");
+
+                var theAuthor = "NoAuthorDefined";
+                if (c.AuthorUser is null)
+                {
+                    Logger.Log(LogLevel.Warning, $"c.AuthorUser is null in comment revision for jiraItem.Key: '{ jiraItem.Key}'. Using NoAuthorDefined as author. ");
+                }
+                else
+                {
+                    if (c.AuthorUser.Username is null)
+                    {
+                        theAuthor = GetAuthorIdentityOrDefault(c.AuthorUser.AccountId);
+                    }
+                    else
+                    {
+                        theAuthor = c.AuthorUser.Username;
+                    }
+                }
+
                 return new JiraRevision(jiraItem)
                 {
-                    Author = c.AuthorUser.Username ?? GetAuthorIdentityOrDefault(c.AuthorUser.AccountId),
+                    Author = theAuthor,
                     Time = c.CreatedDate.Value,
                     Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", rc.Value<string>() } },
                     AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
