@@ -14,6 +14,7 @@ namespace JiraExport
         public string AttachmentsDir { get; internal set; }
         public string JQL { get; internal set; }
         public bool UsingJiraCloud { get; internal set; }
+        public int MaxIssueCount { get; internal set; }
 
         public JiraSettings(string userID, string pass, string url, string project)
         {

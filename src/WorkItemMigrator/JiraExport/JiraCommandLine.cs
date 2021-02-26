@@ -90,7 +90,8 @@ namespace JiraExport
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
                     JQL = config.Query,
-                    UsingJiraCloud = config.UsingJiraCloud
+                    UsingJiraCloud = config.UsingJiraCloud,
+                    MaxIssueCount = config.MaxIssueCount
                 };
 
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
@@ -115,7 +116,7 @@ namespace JiraExport
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));
                 var skips = forceFresh ? new HashSet<string>(Enumerable.Empty<string>()) : exportedKeys;
 
-                var issues = jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions);
+                var issues = jiraProvider.EnumerateIssues(jiraSettings, skips, downloadOptions);
 
                 foreach (var issue in issues)
                 {
@@ -158,7 +159,11 @@ namespace JiraExport
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
             var jiraVersion = jiraProvider.GetJiraVersion();
 
-            Logger.Log(LogLevel.Info, $"Export started. Exporting {itemsCount} items.");
+            var itemCountNote = (config.MaxIssueCount > 0) 
+                ? $"Found {itemsCount} items. Exporting up to {config.MaxIssueCount.ToString()} items." 
+                : $"Exporting {itemsCount} items.";
+
+            Logger.Log(LogLevel.Info, "Export started. " + itemCountNote);
 
             Logger.StartSession("Jira Export",
                 "jira-export-started",
@@ -188,11 +193,12 @@ namespace JiraExport
         {
             sw.Stop();
 
-            Logger.Log(LogLevel.Info, $"Export complete. Exported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+            Logger.Log(LogLevel.Info, $"Export complete. Exported {Logger.NumberOfIssuesExported} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
             Logger.EndSession("jira-export-completed",
                 new Dictionary<string, string>() {
                     { "item-count", itemsCount.ToString() },
+                    { "items-exported", Logger.NumberOfIssuesExported.ToString() },
                     { "error-count", Logger.Errors.ToString() },
                     { "warning-count", Logger.Warnings.ToString() },
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) }});
