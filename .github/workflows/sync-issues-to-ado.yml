@@ -19,6 +19,6 @@ jobs:
           ado_iteration_path: "Internal"
           ado_wit: "Product Backlog Item"
           ado_new_state: "New"
-          ado_active_state: "Commited"
+          ado_active_state: "Committed"
           ado_close_state: "Done"
           ado_bypassrules: true
