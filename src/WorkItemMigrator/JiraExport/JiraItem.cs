@@ -143,14 +143,15 @@ namespace JiraExport
                 && (currentComponents.Any()))
             {
                 var mergedFields = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
-                var componentList = string.Join(" ", currentComponents);
+
+                var componentList = string.Join(";", currentComponents);
                 if (string.IsNullOrWhiteSpace(currentLabels))
                 {
                     mergedFields["labels"] = componentList;
                 }
                 else
                 {
-                    mergedFields["labels"] = currentLabels + " " + componentList;
+                    mergedFields["labels"] = currentLabels + ";" + componentList;
                 }
 
                 var mergeRevision = new JiraRevision(jiraItem)
@@ -375,7 +376,7 @@ namespace JiraExport
                 _fieldExtractionMapping = new Dictionary<string, Func<JToken, object>>()
                     {
                         { "priority", extractName },
-                        { "labels", t => t.Values<string>().Any() ? string.Join(" ", t.Values<string>()) : null },
+                        { "labels", t => t.Values<string>().Any() ? string.Join(";", t.Values<string>()) : null },
                         { "components", t => t.Values().Any() ? t.SelectTokens("$..name", false).Select(x => (string)x) : null },
                         { "assignee", extractAccountIdOrUsername },
                         { "creator", extractAccountIdOrUsername },

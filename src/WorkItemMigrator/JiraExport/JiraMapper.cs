@@ -549,11 +549,7 @@ namespace JiraExport
             if (string.IsNullOrWhiteSpace(labels))
                 return null;
 
-            var tags = labels.Split(' ');
-            if (!tags.Any())
-                return null;
-            else
-                return string.Join(";", tags);
+            return labels;
         }
 
         private object MapArray(string field)
