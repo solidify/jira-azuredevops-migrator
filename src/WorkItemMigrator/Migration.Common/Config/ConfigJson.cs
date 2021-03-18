@@ -66,5 +66,11 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "using-jira-cloud")]
         public bool UsingJiraCloud { get; set; } = true;
+
+        [JsonProperty(PropertyName = "max-issue-count")]
+        public int MaxIssueCount { get; set; } = 0;
+
+        [JsonProperty(PropertyName = "merge-labels-and-components")]
+        public bool MergeLabelsAndComponents { get; set; } = false;
     }
 }

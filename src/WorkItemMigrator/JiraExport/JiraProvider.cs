@@ -168,7 +168,7 @@ namespace JiraExport
             Directory.CreateDirectory(dir);
         }
 
-        public IEnumerable<JiraItem> EnumerateIssues(string jql, HashSet<string> skipList, DownloadOptions downloadOptions)
+        public IEnumerable<JiraItem> EnumerateIssues(JiraSettings jiraSettings, HashSet<string> skipList, DownloadOptions downloadOptions)
         {
             var currentStart = 0;
             IEnumerable<string> remoteIssueBatch = null;
@@ -181,7 +181,7 @@ namespace JiraExport
                 JToken response = null;
                 try
                 {
-                    response = Jira.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
+                    response = Jira.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jiraSettings.JQL}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
                 }
                 catch (Exception e)
                 {
@@ -195,7 +195,7 @@ namespace JiraExport
 
                     if (remoteIssueBatch == null)
                     {
-                        Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                        Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jiraSettings.JQL}");
                         break;
                     }
 
@@ -220,6 +220,11 @@ namespace JiraExport
 
                         yield return issue;
                         index++;
+
+                        if ((jiraSettings.MaxIssueCount > 0) && (index >= jiraSettings.MaxIssueCount))
+                        {
+                            break;
+                        }
 
                         if (downloadOptions.HasFlag(DownloadOptions.IncludeParentEpics) && (issue.EpicParent != null) && !skipList.Contains(issue.EpicParent))
                         {
@@ -250,7 +255,10 @@ namespace JiraExport
                     }
                 }
             }
-            while (remoteIssueBatch != null && remoteIssueBatch.Any());
+            while ((remoteIssueBatch != null) && remoteIssueBatch.Any()
+                && ((jiraSettings.MaxIssueCount == 0) || (index < jiraSettings.MaxIssueCount)));
+
+            Logger.NumberOfIssuesExported = index;
         }
 
         public struct JiraVersion

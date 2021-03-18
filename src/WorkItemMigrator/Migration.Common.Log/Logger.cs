@@ -26,6 +26,7 @@ namespace Migration.Common.Log
         private static List<string> _warnings = new List<string>();
         private static TelemetryClient _telemetryClient = null;
         private static bool? _continueOnCritical;
+        public static int NumberOfIssuesExported { get; set; }
 
         static Logger()
         {
