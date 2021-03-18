@@ -91,7 +91,8 @@ namespace JiraExport
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
                     JQL = config.Query,
                     UsingJiraCloud = config.UsingJiraCloud,
-                    MaxIssueCount = config.MaxIssueCount
+                    MaxIssueCount = config.MaxIssueCount,
+                    MergeLabelsAndComponents = config.MergeLabelsAndComponents
                 };
 
                 JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);

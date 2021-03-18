@@ -37,6 +37,7 @@ The migration configuration file is defined in a json file with the properties d
 |**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
 |**max-issue-count**|False|integer|Maximum overall number of items to retrieve. 0 indicates all items.  Default = 0.|
+|**merge-labels-and-components**|False|boolean|Set to True if issues' label and component values should be merged.  Default = False.|
 
 ## Download options
 This option allows the tool to download related issues to cover cases where these are not included in the section query (like a parent issue).

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Atlassian.Jira;
@@ -46,6 +47,10 @@ namespace JiraExport
             var createdOn = fields.TryGetValue("created", out object crdate) ? (DateTime)crdate : default(DateTime);
             if (createdOn == DateTime.MinValue)
                 Logger.Log(LogLevel.Debug, "created key was not found, using DateTime default value");
+            string currentLabels = fields.TryGetValue("labels", out object labelsValue)
+                ? (string)labelsValue : (string)null;
+            IEnumerable<string> currentComponents = fields.TryGetValue("components", out object componentsValue)
+                ? (IEnumerable<string>)componentsValue : (IEnumerable<string>)null;
 
 
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
@@ -107,6 +112,9 @@ namespace JiraExport
                 revisions.Push(revision);
             }
 
+            // if merging labels and components values, create a revision for that
+            CreateRevisionToMergeLabelsAndComponents(jiraItem, jiraProvider, currentLabels, currentComponents, revisions);
+
             // what is left after undoing all changes is first revision
             var attActions = attachments.Select(a => new RevisionAction<JiraAttachment>() { ChangeType = RevisionChangeType.Added, Value = a }).ToList();
             var linkActions = links.Select(l => new RevisionAction<JiraLink>() { ChangeType = RevisionChangeType.Added, Value = l }).ToList();
@@ -124,6 +132,37 @@ namespace JiraExport
                 revAndI.Item1.Index = revAndI.Item2;
 
             return listOfRevisions;
+        }
+
+        private static void CreateRevisionToMergeLabelsAndComponents(
+            JiraItem jiraItem, JiraProvider jiraProvider, string currentLabels, IEnumerable<string> currentComponents, 
+            Stack<JiraRevision> revisions)
+        {
+            if (jiraProvider.Settings.MergeLabelsAndComponents
+                && (currentComponents != null)
+                && (currentComponents.Any()))
+            {
+                var mergedFields = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
+                var componentList = string.Join(" ", currentComponents);
+                if (string.IsNullOrWhiteSpace(currentLabels))
+                {
+                    mergedFields["labels"] = componentList;
+                }
+                else
+                {
+                    mergedFields["labels"] = currentLabels + " " + componentList;
+                }
+
+                var mergeRevision = new JiraRevision(jiraItem)
+                {
+                    Time = DateTime.Now,
+                    Author = Thread.CurrentPrincipal.Identity.Name,
+                    AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
+                    LinkActions = new List<RevisionAction<JiraLink>>(),
+                    Fields = mergedFields
+                };
+                revisions.Push(mergeRevision);
+            }
         }
 
         private static List<JiraRevision> BuildCommentRevisions(JiraItem jiraItem, JiraProvider jiraProvider)
@@ -337,6 +376,7 @@ namespace JiraExport
                     {
                         { "priority", extractName },
                         { "labels", t => t.Values<string>().Any() ? string.Join(" ", t.Values<string>()) : null },
+                        { "components", t => t.Values().Any() ? t.SelectTokens("$..name", false).Select(x => (string)x) : null },
                         { "assignee", extractAccountIdOrUsername },
                         { "creator", extractAccountIdOrUsername },
                         { "reporter", extractAccountIdOrUsername},
