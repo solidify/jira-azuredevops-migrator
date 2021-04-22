@@ -44,6 +44,7 @@ namespace WorkItemImport
 
             CommandOption tokenOption = commandLineApplication.Option("--token <accesstoken>", "Personal access token to use for authentication", CommandOptionType.SingleValue);
             CommandOption urlOption = commandLineApplication.Option("--url <accounturl>", "Url for the account", CommandOptionType.SingleValue);
+            CommandOption linkBackOption = commandLineApplication.Option("--linkbackurl <jirabrowseurl>", "Url to link back to the jira work item", CommandOptionType.SingleValue);
             CommandOption configOption = commandLineApplication.Option("--config <configurationfilename>", "Import the work items based on the configuration file", CommandOptionType.SingleValue);
             CommandOption forceOption = commandLineApplication.Option("--force", "Forces execution from start (instead of continuing from previous run)", CommandOptionType.NoValue);
             CommandOption continueOnCriticalOption = commandLineApplication.Option("--continue", "Continue execution upon a critical error", CommandOptionType.SingleValue);
@@ -55,7 +56,7 @@ namespace WorkItemImport
 
                 if (configOption.HasValue())
                 {
-                    ExecuteMigration(tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
+                    ExecuteMigration(tokenOption, urlOption, linkBackOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
@@ -66,7 +67,7 @@ namespace WorkItemImport
             });
         }
 
-        private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption linkBack, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             ConfigJson config = null;
             var itemCount = 0;
@@ -126,7 +127,7 @@ namespace WorkItemImport
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
-                        agent.ImportRevision(executionItem.Revision, wi);
+                        agent.ImportRevision(executionItem.Revision, wi, linkBack.Value());
                         importedItems++;
                     }
                     catch (AbortMigrationException)
