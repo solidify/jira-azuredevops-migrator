@@ -328,7 +328,7 @@ namespace JiraExport
 
                     if (item.Mapping?.Values != null)
                     {
-                        value = r => MapValue(r, item.Source);
+                        value = r => MapValue(r, item.Source, item.Target);
                     }
                     else if (!string.IsNullOrWhiteSpace(item.Mapper))
                     {
@@ -479,7 +479,7 @@ namespace JiraExport
                 return (false, null);
         }
 
-        private (bool, object) MapValue(JiraRevision r, string itemSource)
+        private (bool, object) MapValue(JiraRevision r, string itemSource, string itemTarget)
         {
             var targetWit = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
@@ -487,7 +487,7 @@ namespace JiraExport
             {
                 foreach (var item in _config.FieldMap.Fields)
                 {
-                    if (((item.Source == itemSource && (item.For.Contains(targetWit) || item.For == "All")) ||
+                    if ((((item.Source == itemSource && item.Target == itemTarget) && (item.For.Contains(targetWit) || item.For == "All")) ||
                           item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
                           item.Mapping?.Values != null)
                     {
