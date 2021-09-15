@@ -1,0 +1,292 @@
+{
+    "source-project": "SourceProject",
+    "target-project": "TargetProject",
+    "query": "project=SourceProject ORDER BY Rank ASC",
+    "using-jira-cloud": false,
+    "workspace": "C:\\Temp\\JiraExport\\",
+    "epic-link-field": "Epic Link",
+    "sprint-field": "Sprint",
+    "download-options": 7,
+    "batch-size": 20,
+    "log-level": "Info",
+    "attachment-folder": "Attachments",
+    "user-mapping-file": "users.txt",
+    "base-area-path": "SourceProject_Migrated",
+    "base-iteration-path": "SourceProject_Migrated",
+    "ignore-failed-links": true,
+    "process-template": "CMMI",
+    "link-map": {
+        "link": [
+            {
+                "source": "Epic",
+                "target": "System.LinkTypes.Hierarchy-Reverse"
+            },
+            {
+                "source": "Parent",
+                "target": "System.LinkTypes.Hierarchy-Reverse"
+            },
+            {
+                "source": "Child",
+                "target": "System.LinkTypes.Hierarchy-Forward"
+            },
+            {
+                "source": "Relates",
+                "target": "System.LinkTypes.Related"
+            },
+            {
+                "source": "Duplicate",
+                "target": "System.LinkTypes.Duplicate-Forward"
+            }
+        ]
+    },
+    "type-map": {
+        "type": [
+            {
+                "source": "Epic",
+                "target": "Epic"
+            },
+            {
+                "source": "Story",
+                "target": "Requirement"
+            },
+            {
+                "source": "Bug",
+                "target": "Bug"
+            },
+            {
+                "source": "Task",
+                "target": "Task"
+            },
+            {
+                "source": "Sub-task",
+                "target": "Task"
+            },
+            {
+                "source": "Technical task",
+                "target": "Task"
+            },
+            {
+                "source": "Improvement",
+                "target": "Requirement"
+            },
+            {
+                "source": "Support",
+                "target": "Issue"
+            },
+            {
+                "source": "Bug Task",
+                "target": "Task"
+            },
+            {
+                "source": "Test Task",
+                "target": "Task"
+            },
+            {
+                "source": "Spec Write",
+                "target": "Task"
+            }
+        ]
+    },
+    "field-map": {
+        "field": [
+            {
+                "source": "summary",
+                "target": "System.Title",
+                "mapper": "MapTitle"
+            },
+            {
+                "source": "assignee",
+                "target": "System.AssignedTo",
+                "mapper": "MapUser"
+            },
+            {
+                "source": "description",
+                "target": "System.Description",
+                "mapper": "MapRendered"
+            },
+            {
+                "source": "priority",
+                "target": "Microsoft.VSTS.Common.Priority",
+                "mapping": {
+                    "values": [
+                        {
+                            "source": "E",
+                            "target": "1"
+                        },
+                        {
+                            "source": "P1",
+                            "target": "1"
+                        },
+                        {
+                            "source": "P2",
+                            "target": "2"
+                        },
+                        {
+                            "source": "P3",
+                            "target": "3"
+                        },
+                        {
+                            "source": "P4",
+                            "target": "3"
+                        },
+                        {
+                            "source": "P5",
+                            "target": "4"
+                        },
+                        {
+                            "source": "Critical",
+                            "target": "1"
+                        },
+                        {
+                            "source": "Major",
+                            "target": "2"
+                        },
+                        {
+                            "source": "Minor",
+                            "target": "3"
+                        }
+                    ]
+                }
+            },
+            {
+                "source": "labels",
+                "target": "System.Tags",
+                "mapper": "MapTags"
+            },
+            {
+                "source": "comment",
+                "target": "System.History",
+                "mapper": "MapRendered"
+            },
+            {
+                "source": "status",
+                "target": "System.State",
+                "for": "Feature,Requirement,Bug",
+                "mapping": {
+                    "values": [
+                        {
+                            "source": "Open",
+                            "target": "Proposed"
+                        },
+                        {
+                            "source": "To Do",
+                            "target": "Proposed"
+                        },
+                        {
+                            "source": "In Progress",
+                            "target": "Active"
+                        },
+                        {
+                            "source": "Development",
+                            "target": "Active"
+                        },
+                        {
+                            "source": "Review",
+                            "target": "Resolved"
+                        },
+                        {
+                            "source": "Done",
+                            "target": "Resolved"
+                        },
+                        {
+                            "source": "Confirm",
+                            "target": "Resolved"
+                        },
+                        {
+                            "source": "Done",
+                            "target": "Closed"
+                        },
+                        {
+                            "source": "Closed",
+                            "target": "Closed"
+                        },
+                        {
+                            "source": "Removed",
+                            "target": "Removed"
+                        },
+                        {
+                            "source": "Reconsider",
+                            "target": "Proposed"
+                        },
+                        {
+                            "source": "Need Info",
+                            "target": "Proposed"
+                        }
+                    ]
+                }
+            },
+            {
+                "source": "status",
+                "target": "System.State",
+                "for": "Task",
+                "mapping": {
+                    "values": [
+                        {
+                            "source": "Open",
+                            "target": "Proposed"
+                        },
+                        {
+                            "source": "Pending Triage",
+                            "target": "Proposed"
+                        },
+                        {
+                            "source": "To Do",
+                            "target": "Proposed"
+                        },
+                        {
+                            "source": "Review",
+                            "target": "Proposed"
+                        },
+                        {
+                            "source": "Development",
+                            "target": "Active"
+                        },
+                        {
+                            "source": "In Progress",
+                            "target": "Active"
+                        },
+                        {
+                            "source": "Confirm",
+                            "target": "Resolved"
+                        },
+                        {
+                            "source": "Closed",
+                            "target": "Closed"
+                        },
+                        {
+                            "source": "Done",
+                            "target": "Closed"
+                        },
+                        {
+                            "source": "Removed",
+                            "target": "Removed"
+                        }
+                    ]
+                }
+            },
+            {
+                "source": "Story Points",
+                "source-type": "name",
+                "target": "Microsoft.VSTS.Scheduling.Effort",
+                "not-for": "Task"
+            },
+            {
+                "source": "timeestimate",
+                "target": "Microsoft.VSTS.Scheduling.RemainingWork",
+                "mapper": "MapRemainingWork",
+                "for": "Bug,Task"
+            },
+            {
+                "source": "description",
+                "target": "Microsoft.VSTS.TCM.ReproSteps",
+                "for": "Bug"
+            },
+            {
+                "source": "environment",
+                "source-type": "name",
+                "target": "Microsoft.VSTS.TCM.SystemInfo",
+                "for": "Bug,Feature"
+            }
+        ]
+    }
+}
