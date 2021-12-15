@@ -183,6 +183,7 @@
       {
         "source": "description",
         "target": "Microsoft.VSTS.TCM.ReproSteps",
+        "mapper": "MapRendered",
         "for": "Bug"
       },
       {
