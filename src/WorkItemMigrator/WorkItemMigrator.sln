@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32106.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.WIContract", "Migration.WIContract\Migration.WIContract.csproj", "{19B3AF60-8BE6-47FC-9911-7829455B3557}"
 EndProject
@@ -12,6 +12,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wi-import", "WorkItemImport\wi-import.csproj", "{FE3852EF-A2A8-45B7-8598-CA9400D7F60B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common.Log", "Migration.Common.Log\Migration.Common.Log.csproj", "{87DF777C-D3CB-4B0B-8552-159247B1F022}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{EBEF05DA-E3C1-49DA-A411-2669F8C34BDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Tests", "Migration.Tests\Migration.Tests.csproj", "{D2341031-34EA-4981-9BC1-06F991962F39}"
+	ProjectSection(ProjectDependencies) = postProject
+		{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C} = {600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,9 +46,16 @@ Global
 		{87DF777C-D3CB-4B0B-8552-159247B1F022}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87DF777C-D3CB-4B0B-8552-159247B1F022}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87DF777C-D3CB-4B0B-8552-159247B1F022}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2341031-34EA-4981-9BC1-06F991962F39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2341031-34EA-4981-9BC1-06F991962F39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2341031-34EA-4981-9BC1-06F991962F39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2341031-34EA-4981-9BC1-06F991962F39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D2341031-34EA-4981-9BC1-06F991962F39} = {EBEF05DA-E3C1-49DA-A411-2669F8C34BDC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C79F9C98-4D90-4590-A3F5-1D49EEAE40C0}
