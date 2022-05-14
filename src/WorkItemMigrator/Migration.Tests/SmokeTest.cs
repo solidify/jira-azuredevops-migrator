@@ -30,7 +30,7 @@ namespace Migration.Tests
                 "-p",
                 "XXXXXXXXXXXXXXXXXXXXXXXXX",
                 "--url",
-                "https://XXX.atlassian.net",
+                "https://solidifydemo.atlassian.net",
                 "--config",
                 "C:\\dev\\jira-azuredevops-migrator\\src\\WorkItemMigrator\\Migration.Tests\\test-config-export.json"
             };
@@ -43,7 +43,7 @@ namespace Migration.Tests
                 "-p",
                 "password",
                 "--url",
-                "https://dev.azure.com/alexanderhjelmsolidify",
+                "https://dev.azure.com/solidifydemo",
                 "--config",
                 "C:\\dev\\jira-azuredevops-migrator\\src\\WorkItemMigrator\\Migration.Tests\\test-config-export.json"
             };
