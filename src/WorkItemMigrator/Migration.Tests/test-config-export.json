@@ -1,228 +1,228 @@
 {
-  "source-project": "SCRUM",
-  "target-project": "Scrum-Demo-From-Jira",
-  "query": "project = SCRUM ORDER BY Rank ASC",
-  "using-jira-cloud": true,
-  "workspace": "C:\\Temp\\JiraExport\\",
-  "epic-link-field": "Epic Link",
-  "sprint-field": "Sprint",
-  "download-options": 7,
-  "batch-size": 20,
-  "log-level": "Debug",
-  "attachment-folder": "Attachments",
-  "user-mapping-file": "users.txt",
-  "base-area-path": "Migrated",
-  "base-iteration-path": "Migrated",
-  "ignore-failed-links": true,
-  "process-template": "Scrum",
-  "link-map": {
-    "link": [
-      {
-        "source": "Epic",
-        "target": "System.LinkTypes.Hierarchy-Reverse"
-      },
-      {
-        "source": "Parent",
-        "target": "System.LinkTypes.Hierarchy-Reverse"
-      },
-      {
-        "source": "Relates",
-        "target": "System.LinkTypes.Related"
-      },
-      {
-        "source": "Duplicate",
-        "target": "System.LinkTypes.Duplicate-Forward"
-      }
-    ]
-  },
-  "type-map":{
-    "type": [
-      {
-        "source": "Feature",
-        "target": "Feature"
-      },
-      {
-        "source": "Epic",
-        "target": "Epic"
-      },
-      {
-        "source": "Story",
-        "target": "Product Backlog Item"
-      },
-      {
-        "source": "Bug",
-        "target": "Bug"
-      },
-      {
-        "source": "Task",
-        "target": "Product Backlog Item"
-      },
-      {
-        "source": "Sub-task",
-        "target": "Task"
-      }
-    ]
-  },
-  "field-map": {
-    "field": [
-      {
-        "source": "summary",
-        "target": "System.Title",
-        "mapper": "MapTitle"
-      },
-      {
-        "source": "assignee",
-        "target": "System.AssignedTo",
-        "mapper": "MapUser"
-      },
-      {
-        "source": "description",
-        "target": "System.Description",
-		"mapper":"MapRendered"
-      },
-      {
-        "source": "priority",
-        "target": "Microsoft.VSTS.Common.Priority",
-        "mapping": {
-          "values": [
+    "source-project": "Scrum-Demo",
+    "target-project": "Scrum-Demo-Jira-Migrator-Smoke-Tests",
+    "query": "project = Scrum-Demo ORDER BY Rank ASC",
+    "using-jira-cloud": true,
+    "workspace": "C:\\Temp\\JiraExportSmokeTests\\",
+    "epic-link-field": "Epic Link",
+    "sprint-field": "Sprint",
+    "download-options": 7,
+    "batch-size": 20,
+    "log-level": "Debug",
+    "attachment-folder": "Attachments",
+    "user-mapping-file": "users.txt",
+    "base-area-path": "Migrated",
+    "base-iteration-path": "Migrated",
+    "ignore-failed-links": true,
+    "process-template": "Scrum",
+    "link-map": {
+        "link": [
             {
-              "source": "Blocker",
-              "target": "1"
+                "source": "Epic",
+                "target": "System.LinkTypes.Hierarchy-Reverse"
             },
             {
-              "source": "Critical",
-              "target": "1"
+                "source": "Parent",
+                "target": "System.LinkTypes.Hierarchy-Reverse"
             },
             {
-              "source": "Highest",
-              "target": "1"
+                "source": "Relates",
+                "target": "System.LinkTypes.Related"
             },
             {
-              "source": "Major",
-              "target": "2"
-            },
-            {
-              "source": "High",
-              "target": "2"
-            },
-            {
-              "source": "Medium",
-              "target": "3"
-            },
-            {
-              "source": "Low",
-              "target": "3"
-            },
-            {
-              "source": "Lowest",
-              "target": "4"
-            },
-            {
-              "source": "Minor",
-              "target": "4"
-            },
-            {
-              "source": "Trivial",
-              "target": "4"
+                "source": "Duplicate",
+                "target": "System.LinkTypes.Duplicate-Forward"
             }
-          ]
-        }
-      },
-      {
-        "source": "Sprint",
-        "source-type": "name",
-        "target": "System.IterationPath",
-        "mapper": "MapSprint"
-      },
-      {
-        "source": "labels",
-        "target": "System.Tags",
-        "mapper": "MapTags"
-      },
-      {
-        "source": "comment",
-        "target": "System.History",
-		"mapper":"MapRendered"
-      },
-      {
-        "source": "status",
-        "target": "System.State",
-        "for": "Task",
-        "mapping": {
-          "values": [
+        ]
+    },
+    "type-map": {
+        "type": [
             {
-              "source": "To Do",
-              "target": "To Do"
+                "source": "Feature",
+                "target": "Feature"
             },
             {
-              "source": "Done",
-              "target": "Done"
+                "source": "Epic",
+                "target": "Epic"
             },
             {
-              "source": "In Progress",
-              "target": "In Progress"
+                "source": "Story",
+                "target": "Product Backlog Item"
+            },
+            {
+                "source": "Bug",
+                "target": "Bug"
+            },
+            {
+                "source": "Task",
+                "target": "Product Backlog Item"
+            },
+            {
+                "source": "Sub-task",
+                "target": "Task"
             }
-          ]
-        }
-      },
-      {
-        "source": "status",
-        "target": "System.State",
-        "for": "Bug,Product Backlog Item",
-        "mapping": {
-          "values": [
+        ]
+    },
+    "field-map": {
+        "field": [
             {
-              "source": "To Do",
-              "target": "New"
+                "source": "summary",
+                "target": "System.Title",
+                "mapper": "MapTitle"
             },
             {
-              "source": "Done",
-              "target": "Done"
+                "source": "assignee",
+                "target": "System.AssignedTo",
+                "mapper": "MapUser"
             },
             {
-              "source": "In Progress",
-              "target": "Committed"
+                "source": "description",
+                "target": "System.Description",
+                "mapper": "MapRendered"
+            },
+            {
+                "source": "priority",
+                "target": "Microsoft.VSTS.Common.Priority",
+                "mapping": {
+                    "values": [
+                        {
+                            "source": "Blocker",
+                            "target": "1"
+                        },
+                        {
+                            "source": "Critical",
+                            "target": "1"
+                        },
+                        {
+                            "source": "Highest",
+                            "target": "1"
+                        },
+                        {
+                            "source": "Major",
+                            "target": "2"
+                        },
+                        {
+                            "source": "High",
+                            "target": "2"
+                        },
+                        {
+                            "source": "Medium",
+                            "target": "3"
+                        },
+                        {
+                            "source": "Low",
+                            "target": "3"
+                        },
+                        {
+                            "source": "Lowest",
+                            "target": "4"
+                        },
+                        {
+                            "source": "Minor",
+                            "target": "4"
+                        },
+                        {
+                            "source": "Trivial",
+                            "target": "4"
+                        }
+                    ]
+                }
+            },
+            {
+                "source": "Sprint",
+                "source-type": "name",
+                "target": "System.IterationPath",
+                "mapper": "MapSprint"
+            },
+            {
+                "source": "labels",
+                "target": "System.Tags",
+                "mapper": "MapTags"
+            },
+            {
+                "source": "comment",
+                "target": "System.History",
+                "mapper": "MapRendered"
+            },
+            {
+                "source": "status",
+                "target": "System.State",
+                "for": "Task",
+                "mapping": {
+                    "values": [
+                        {
+                            "source": "To Do",
+                            "target": "To Do"
+                        },
+                        {
+                            "source": "Done",
+                            "target": "Done"
+                        },
+                        {
+                            "source": "In Progress",
+                            "target": "In Progress"
+                        }
+                    ]
+                }
+            },
+            {
+                "source": "status",
+                "target": "System.State",
+                "for": "Bug,Product Backlog Item",
+                "mapping": {
+                    "values": [
+                        {
+                            "source": "To Do",
+                            "target": "New"
+                        },
+                        {
+                            "source": "Done",
+                            "target": "Done"
+                        },
+                        {
+                            "source": "In Progress",
+                            "target": "Committed"
+                        }
+                    ]
+                }
+            },
+            {
+                "source": "status",
+                "target": "System.State",
+                "for": "Epic,Feature",
+                "mapping": {
+                    "values": [
+                        {
+                            "source": "To Do",
+                            "target": "New"
+                        },
+                        {
+                            "source": "Done",
+                            "target": "Done"
+                        },
+                        {
+                            "source": "In Progress",
+                            "target": "In Progress"
+                        }
+                    ]
+                }
+            },
+            {
+                "source": "Story Points",
+                "source-type": "name",
+                "target": "Microsoft.VSTS.Scheduling.Effort",
+                "not-for": "Task"
+            },
+            {
+                "source": "remainingEstimate",
+                "target": "Microsoft.VSTS.Scheduling.RemainingWork",
+                "for": "Bug,Task"
+            },
+            {
+                "source": "description",
+                "target": "Microsoft.VSTS.TCM.ReproSteps",
+                "for": "Bug"
             }
-          ]
-        }
-      },
-      {
-        "source": "status",
-        "target": "System.State",
-        "for": "Epic,Feature",
-        "mapping": {
-          "values": [
-            {
-              "source": "To Do",
-              "target": "New"
-            },
-            {
-              "source": "Done",
-              "target": "Done"
-            },
-            {
-              "source": "In Progress",
-              "target": "In Progress"
-            }
-          ]
-        }
-      },
-      {
-        "source": "Story Points",
-        "source-type": "name",
-        "target": "Microsoft.VSTS.Scheduling.Effort",
-        "not-for": "Task"
-      },
-      {
-        "source": "remainingEstimate",
-        "target": "Microsoft.VSTS.Scheduling.RemainingWork",
-        "for": "Bug,Task"
-      },
-      {
-        "source": "description",
-        "target": "Microsoft.VSTS.TCM.ReproSteps",
-        "for": "Bug"
-      }
-    ]
-  }
+        ]
+    }
 }
