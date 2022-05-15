@@ -16,12 +16,12 @@ namespace Migration.Tests
         }
 
         [Test]
-        public void Test1()
+        public void DummyTest()
         {
             Assert.Pass();
         }
 
-        [Test]
+        [Test, Order(1)]
         public void JiraExportTest()
         {
             string[] argsExport = new string[] {
@@ -34,21 +34,23 @@ namespace Migration.Tests
                 "--config",
                 "C:\\dev\\jira-azuredevops-migrator\\src\\WorkItemMigrator\\Migration.Tests\\test-config-export.json"
             };
-            var cmdExport = new JiraCommandLine(argsExport);
+            JiraCommandLine cmdExport = new JiraCommandLine(argsExport);
             cmdExport.Run();
+        }
 
+        [Test, Order(2)]
+        public void AzDOImportTest()
+        {
             string[] argsImport = new string[] {
-                "-u",
-                "username",
-                "-p",
-                "password",
+                "--token",
+                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                 "--url",
                 "https://dev.azure.com/solidifydemo",
                 "--config",
                 "C:\\dev\\jira-azuredevops-migrator\\src\\WorkItemMigrator\\Migration.Tests\\test-config-export.json"
             };
-            //var cmdImport = new ImportCommandLine(argsImport);
-            //cmdImport.Run();
+            ImportCommandLine cmdImport = new ImportCommandLine(argsImport);
+            cmdImport.Run();
         }
     }
 }
