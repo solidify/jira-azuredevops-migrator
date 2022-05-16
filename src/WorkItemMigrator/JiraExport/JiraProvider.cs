@@ -16,7 +16,7 @@ using RestSharp;
 
 namespace JiraExport
 {
-    public class JiraProvider
+    public class JiraProvider : IJiraProvider
     {
         [Flags]
         public enum DownloadOptions
@@ -37,32 +37,59 @@ namespace JiraExport
 
         public IEnumerable<IssueLinkType> LinkTypes { get; private set; }
 
-        private JiraProvider()
+        public JiraProvider()
         {
         }
 
-        public static JiraProvider Initialize(JiraSettings settings)
+        public void Initialize(JiraSettings settings)
         {
-            var provider = new JiraProvider();
-            provider.Jira = ConnectToJira(settings);
-            provider.Settings = settings;
+            Jira = ConnectToJira(settings);
+            Settings = settings;
 
             Logger.Log(LogLevel.Info, "Retrieving Jira fields...");
-            provider.Jira.Fields.GetCustomFieldsAsync().Wait();
+            Jira.Fields.GetCustomFieldsAsync().Wait();
             Logger.Log(LogLevel.Info, "Retrieving Jira link types...");
             try
             {
-                provider.LinkTypes = provider.Jira.Links.GetLinkTypesAsync().Result;
+                LinkTypes = Jira.Links.GetLinkTypesAsync().Result;
             }
 
             catch (Exception e)
             {
                 Logger.Log(e, "Failed to retrive linktypes from Jira");
             }
-            return provider;
         }
 
-        private static Jira ConnectToJira(JiraSettings jiraSettings)
+        public JiraSettings GetSettings()
+        {
+            return Settings;
+        }
+
+        public IssueLinkType GetLinkType(string linkTypeString, string targetItemKey)
+        {
+            return LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Outward + " " + targetItemKey));
+        }
+
+        public IEnumerable<Comment> GetCommentsByItemKey(string itemKey)
+        {
+            return Jira.Issues.GetCommentsAsync(itemKey).Result;
+        }
+
+        public bool GetCustomField(string fieldName, out CustomField customField)
+        {
+            bool found = Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out CustomField cF);
+            customField = cF;
+            return found;
+        }
+
+        public bool GetCustomFieldSerializer(string customType, out ICustomFieldValueSerializer serializer)
+        {
+            bool found = Jira.RestClient.Settings.CustomFieldSerializers.TryGetValue(customType, out ICustomFieldValueSerializer s);
+            serializer = s;
+            return found;
+        }
+
+        private Jira ConnectToJira(JiraSettings jiraSettings)
         {
             Jira jira = null;
 
