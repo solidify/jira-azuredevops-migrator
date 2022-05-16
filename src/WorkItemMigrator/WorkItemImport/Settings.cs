@@ -1,4 +1,9 @@
-﻿namespace WorkItemImport
+﻿using System.Collections.Generic;
+using Migration.Common;
+using Migration.Common.Config;
+
+
+namespace WorkItemImport
 {
     public class Settings
     {
@@ -16,5 +21,6 @@
         public string BaseIterationPath { get; internal set; }
         public bool IgnoreFailedLinks { get; internal set; }
         public string ProcessTemplate { get; internal set; }
+        public List<CharField> CharReplaceMap { get; internal set; }
     }
 }

@@ -13,7 +13,9 @@ using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
 
 using Migration.Common;
+using Migration.Common.Config;
 using Migration.Common.Log;
+
 using Migration.WIContract;
 
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
@@ -322,6 +324,24 @@ namespace WorkItemImport
                     CreateClasificationCacheRec(node, agg, fullName);
             }
         }
+        
+        private string ReplaceAzdoInvalidChar(string iterationPath) 
+        {
+            if (Settings.CharReplaceMap.Count > 0)
+            {
+                foreach (CharField element in Settings.CharReplaceMap)
+                {
+                    iterationPath = iterationPath.Replace(element.Source, element.Target);
+                }
+            }
+            else
+            {
+                iterationPath = Regex.Replace(iterationPath, "[/$?*:\"&<>#%|+]", "");
+            }
+
+            return iterationPath;
+        }
+
 
         public int? EnsureClasification(string fullName, WebModel.TreeStructureGroup structureGroup = WebModel.TreeStructureGroup.Iterations)
         {
@@ -395,14 +415,17 @@ namespace WorkItemImport
 
                             if (!string.IsNullOrWhiteSpace((string)fieldValue))
                             {
+                                
                                 if (string.IsNullOrWhiteSpace(iterationPath))
                                     iterationPath = (string)fieldValue;
                                 else
                                     iterationPath = string.Join("/", iterationPath, (string)fieldValue);
-                            }
 
+                            
+                            }
                             if (!string.IsNullOrWhiteSpace(iterationPath))
                             {
+                                iterationPath= ReplaceAzdoInvalidChar(iterationPath);
                                 EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
                                 wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
                             }
@@ -426,7 +449,8 @@ namespace WorkItemImport
                             }
 
                             if (!string.IsNullOrWhiteSpace(areaPath))
-                            {
+                            {    
+                                areaPath = ReplaceAzdoInvalidChar(areaPath);
                                 EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
                                 wi.AreaPath = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
                             }

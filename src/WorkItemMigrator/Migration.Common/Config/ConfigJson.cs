@@ -1,5 +1,5 @@
 ﻿using Migration.Common.Config;
-
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Common.Config
@@ -66,5 +66,8 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "using-jira-cloud")]
         public bool UsingJiraCloud { get; set; } = true;
+
+        [JsonProperty(PropertyName = "char_replace")]
+        public List<CharField> CharReplaceMap { get; set; }
     }
 }
