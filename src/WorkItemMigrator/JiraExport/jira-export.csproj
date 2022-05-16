@@ -121,6 +121,8 @@
     <Compile Include="JiraProvider.cs" />
     <Compile Include="JiraRevision.cs" />
     <Compile Include="JiraSettings.cs" />
+    <Compile Include="RevisionUtils\FieldMapperUtils.cs" />
+    <Compile Include="RevisionUtils\LinkMapperUtils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebClientWrapper.cs" />
