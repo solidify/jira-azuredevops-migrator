@@ -386,6 +386,16 @@ namespace JiraExport
                     var idField = (JValue)item.SelectToken("id");
                     customId = idField.Value.ToString();
                 }
+
+                if (string.IsNullOrEmpty(customId))
+                {
+                    var keyField = (JValue)item.SelectToken("key");
+                    if (keyField.Value.ToString().ToLower() == propertyName.ToLower())
+                    {
+                        var idField = (JValue)item.SelectToken("id");
+                        customId = idField.Value.ToString();
+                    }
+                }
             }
             return customId;
         }

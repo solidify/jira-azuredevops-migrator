@@ -7,9 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0"/>
+	  <PackageReference Include="AutoFixture" Version="4.11.0" />
+	  <PackageReference Include="AutoFixture.AutoNSubstitute" Version="4.11.0" />
+	  <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
+	  <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+	  <PackageReference Include="NSubstitute" Version="4.2.1" />
+	  <PackageReference Include="NUnit" Version="3.12.0" />
+	  <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
+	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -22,6 +27,12 @@
 			<Project>{19b3af60-8be6-47fc-9911-7829455b3557}</Project>
 			<Name>wi-import</Name>
 		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="test-config-export.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>
