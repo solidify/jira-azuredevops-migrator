@@ -139,6 +139,11 @@ namespace JiraExport
         {
             var htmlValue = value.ToString();
 
+            if(String.IsNullOrWhiteSpace(htmlValue))
+            {
+                throw new ArgumentException(nameof(value));
+            }
+
             foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
             {
                 if (!string.IsNullOrWhiteSpace(att.Url) && htmlValue.Contains(att.Url))
@@ -161,10 +166,16 @@ namespace JiraExport
         {
             var assembly = Assembly.GetEntryAssembly();
 
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                return reader.ReadToEnd();
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
+            } catch (ArgumentNullException e)
+            {
+                return "";
             }
         }
     }
