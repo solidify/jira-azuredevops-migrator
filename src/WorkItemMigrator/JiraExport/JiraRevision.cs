@@ -33,7 +33,7 @@ namespace JiraExport
 
         public List<RevisionAction<JiraAttachment>> AttachmentActions { get; set; }
         public JiraItem ParentItem { get; private set; }
-        public int Index { get; internal set; }
+        public int Index { get; set; }
 
         public string OriginId => ParentItem.Key;
 
