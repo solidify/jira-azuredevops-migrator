@@ -225,6 +225,41 @@ namespace Migration.Tests
             Assert.That(() => LinkMapperUtils.MapEpicChildLink(revision, new List<WiLink>(), "", "", new ConfigJson()), Throws.InstanceOf<ArgumentException>());
         }
 
+        [Test]
+        public void When_calling_map_epic_child_link_with_valid_field_Then_a_link_is_added()
+        {
+            // issueKey must be > targetId for a link to be generated
+            string issueKey = "9";
+            string targetId = "8";
+            string summary = "My Summary";
+            string targetWiType = "Target_Wi_Type";
+            string child = "Child";
+            string epicChild = "epic child";
+
+            JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
+
+            Link link = new Link();
+            link.Source = child;
+            link.Target = targetWiType;
+
+            ConfigJson configJson = new ConfigJson();
+
+            configJson.LinkMap = new LinkMap();
+            configJson.LinkMap.Links = new List<Link>();
+            configJson.LinkMap.Links.Add(link);
+
+            List<WiLink> links = new List<WiLink>();
+
+            revision.Fields[epicChild] = targetId;
+
+            LinkMapperUtils.MapEpicChildLink(revision, links, epicChild, child, configJson);
+
+            Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
+            Assert.AreEqual(links[0].SourceOriginId, issueKey);
+            Assert.AreEqual(links[0].TargetOriginId, targetId);
+            Assert.AreEqual(links[0].WiType, targetWiType);
+        }
+
 
     }
 }
