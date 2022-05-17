@@ -93,7 +93,8 @@ namespace JiraExport
                     UsingJiraCloud = config.UsingJiraCloud
                 };
 
-                JiraProvider jiraProvider = JiraProvider.Initialize(jiraSettings);
+                JiraProvider jiraProvider = new JiraProvider();
+                jiraProvider.Initialize(jiraSettings);
 
                 itemsCount = jiraProvider.GetItemCount(jiraSettings.JQL);
 
