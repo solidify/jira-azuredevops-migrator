@@ -9,6 +9,10 @@ using Microsoft.Extensions.CommandLineUtils;
 using Migration.Common.Config;
 using NSubstitute;
 using Common.Config;
+using System.IO;
+using System.IO.Abstractions;
+using Migration.Common;
+using System.Collections.Generic;
 
 namespace Migration.Tests
 {
@@ -58,6 +62,25 @@ namespace Migration.Tests
             Assert.That(() => sut.Run(), Throws.InstanceOf<NullReferenceException>());
         }
 
-       
+
+        [Test]
+        public void When_calling_ParseUserMappings_with_non_exisiting_file_Return_empty_Dictionary()
+        {
+            //Assign
+
+            var fileSystem = _fixture.Freeze<IFileSystem>();
+            fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+
+            var expected = new Dictionary<string,string>();
+          
+            //Act
+            var actualResult = UserMapper.ParseUserMappings(Arg.Any<string>());
+
+            //Assert
+            Assert.That(actualResult.Count, Is.EqualTo(expected.Count));
+
+
+        }
+
     }
 }
