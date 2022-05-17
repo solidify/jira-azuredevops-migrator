@@ -13,6 +13,16 @@ namespace JiraExport
 
         public static void MapEpicChildLink(JiraRevision r, List<WiLink> links, string field, string type, ConfigJson config)
         {
+            if (String.IsNullOrWhiteSpace(field))
+            {
+                throw new ArgumentException(nameof(field));
+            }
+
+            if (String.IsNullOrWhiteSpace(type))
+            {
+                throw new ArgumentException(nameof(type));
+            }
+
             if (r.Fields.TryGetValue(field, out object value))
             {
                 var parentKeyStr = r.OriginId.Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
@@ -36,6 +46,16 @@ namespace JiraExport
         /// <returns>True if link is added, false if it's not</returns>
         public static void AddRemoveSingleLink(JiraRevision r, List<WiLink> links, string field, string type, ConfigJson config)
         {
+            if (String.IsNullOrWhiteSpace(field))
+            {
+                throw new ArgumentException(nameof(field));
+            }
+
+            if (String.IsNullOrWhiteSpace(type))
+            {
+                throw new ArgumentException(nameof(type));
+            }
+
             if (r.Fields.TryGetValue(field, out object value))
             {
                 var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
@@ -77,10 +97,19 @@ namespace JiraExport
             }
         }
 
-        // TODO: LinkMapper, AttachmentMapper, FieldMappers (title, sprint, etc...)
-        // TODO: Move revision helper functions to RevisionUtility.cs
         public static void AddSingleLink(JiraRevision r, List<WiLink> links, string field, string type, ConfigJson config)
         {
+            if (String.IsNullOrWhiteSpace(field))
+            {
+                throw new ArgumentException(nameof(field));
+            }
+
+            if (String.IsNullOrWhiteSpace(type))
+            {
+                throw new ArgumentException(nameof(type));
+            }
+
+
             if (r.Fields.TryGetValue(field, out object value))
             {
                 var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
