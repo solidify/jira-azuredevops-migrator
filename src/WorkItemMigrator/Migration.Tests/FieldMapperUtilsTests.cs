@@ -109,7 +109,7 @@ namespace Migration.Tests
         }
 
         [Test]
-        public void When_calling_map_title_without_key_with_empty_args_Then_null_is_returnedt()
+        public void When_calling_map_title_without_key_with_empty_args_Then_null_is_returned()
         {
             (bool, object) expected = (false, null);
             var provider = _fixture.Freeze<IJiraProvider>();
@@ -122,7 +122,7 @@ namespace Migration.Tests
         }
 
         [Test]
-        public void When_calling_map_tags_with_empty_string_arg_Then_null_is_returnedt()
+        public void When_calling_map_tags_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapTags("");
             Assert.AreEqual(output, null);
@@ -137,7 +137,7 @@ namespace Migration.Tests
         }
 
         [Test]
-        public void When_calling_map_array_with_empty_string_arg_Then_null_is_returnedt()
+        public void When_calling_map_array_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapArray("");
             Assert.AreEqual(output, null);
@@ -241,6 +241,43 @@ namespace Migration.Tests
                 Assert.That(actualOutput.Item2, Is.Null);
                 
             });
+        }
+
+        [Test]
+        public void When_calling_correct_rendered_html_value_with_empty_string_arg_Then_an_exception_is_thrown()
+        {
+            var provider = _fixture.Freeze<IJiraProvider>();
+            provider.DownloadIssue(default).Returns(new JObject());
+            var revision = _fixture.Freeze<JiraRevision>();
+
+            Assert.That(() => FieldMapperUtils.CorrectRenderedHtmlvalue("", revision), Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_correct_rendered_html_value_with_valid_args_Then_expected_output_is_returned()
+        {
+            string issueKey = "issue_key";
+            string summary = "My Summary";
+
+            JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
+
+            RevisionAction<JiraAttachment> revisionAction = new RevisionAction<JiraAttachment>();
+            JiraAttachment attachment = new JiraAttachment();
+            attachment.Url = "https://example.com";
+            revisionAction.Value = attachment;
+
+            revision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
+            revision.AttachmentActions.Add(revisionAction);
+
+            string output = FieldMapperUtils.CorrectRenderedHtmlvalue("" +
+                "<h>https://example.com</h>" +
+                "<span class=\"image-wrap\">span_text<img https://abc.com />image_alt</span>" +
+                "<a href=https://123.com class=\"user-hover\" link_meta>link_text</a>",
+                revision);
+            string expected = "<h>https://example.com</h>" +
+                "<img https://abc.com />" +
+                "link_text";
+            Assert.AreEqual(output, expected);
         }
 
 
