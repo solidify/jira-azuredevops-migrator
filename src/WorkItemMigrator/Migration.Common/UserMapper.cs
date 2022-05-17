@@ -5,7 +5,7 @@ using Migration.Common.Log;
 
 namespace Migration.Common
 {
-    internal static class UserMapper
+    public static class UserMapper
     {
         public static Dictionary<string, string> ParseUserMappings(string userMappingPath)
         {

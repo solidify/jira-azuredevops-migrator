@@ -9,6 +9,7 @@ using Microsoft.Extensions.CommandLineUtils;
 using Migration.Common.Config;
 using NSubstitute;
 using Common.Config;
+using System.IO;
 
 namespace Migration.Tests
 {
@@ -44,8 +45,6 @@ namespace Migration.Tests
             string[] args = null;
 
             var x = _fixture.Freeze<CommandLineApplication>();
-
-
 
             var configReader = _fixture.Freeze<ConfigReaderJson>();
             configReader.LoadFromFile(Arg.Any<string>());

@@ -28,7 +28,7 @@ namespace Migration.Tests
                 "-u",
                 "alexander.hjelm@solidify.dev",
                 "-p",
-                "XXXXXXXXXXXXXXXXXXXXXXXXX",
+                "WhDrzDMUevV8NqqANpXT446E",
                 "--url",
                 "https://solidifydemo.atlassian.net",
                 "--config",
