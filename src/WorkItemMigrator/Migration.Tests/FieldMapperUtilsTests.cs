@@ -1,19 +1,14 @@
 ﻿using NUnit.Framework;
 
 using JiraExport;
-using WorkItemImport;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture;
 using System;
-using Microsoft.Extensions.CommandLineUtils;
-using Migration.Common.Config;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
-<<<<<<< Updated upstream
 using Common.Config;
-=======
 using System.Collections.Generic;
 using System.Linq;
->>>>>>> Stashed changes
 
 namespace Migration.Tests
 {
@@ -22,6 +17,29 @@ namespace Migration.Tests
     {
         // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
+
+        private JiraRevision MockRevisionWithParentItem(string issueKey, string revisionSummary)
+        {
+            var provider = _fixture.Freeze<IJiraProvider>();
+
+            JObject remoteIssue = new JObject();
+            remoteIssue.Add("fields", new JObject());
+            remoteIssue.Add("renderedFields", new JObject());
+            remoteIssue.Add("key", issueKey);
+
+            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
+            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
+            settings.SprintField = "SprintField";
+            provider.GetSettings().ReturnsForAnyArgs(settings);
+
+            JiraItem item = JiraItem.CreateFromRest(issueKey, provider);
+
+            var revision = new JiraRevision(item);
+            revision.Fields = new Dictionary<string, object>();
+            revision.Fields["summary"] = revisionSummary;
+
+            return revision;
+        }
 
         [SetUp]
         public void Setup()
@@ -36,9 +54,6 @@ namespace Migration.Tests
             object output = FieldMapperUtils.MapRemainingWork("36000");
             Assert.AreEqual (output, 10);
         }
-<<<<<<< Updated upstream
-       
-=======
 
         [Test]
         public void When_calling_map_title_with_empty_args_Then_null_is_returnedt()
@@ -135,6 +150,5 @@ namespace Migration.Tests
             Assert.AreEqual(output, sprintPath[sprintPath.Length-1]);
         }
 
->>>>>>> Stashed changes
     }
 }
