@@ -10,6 +10,9 @@ using Migration.Common.Config;
 using NSubstitute;
 using Common.Config;
 using System.IO;
+using System.Collections.Generic;
+using System.IO.Abstractions;
+using Migration.Common;
 
 namespace Migration.Tests
 {

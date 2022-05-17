@@ -9,6 +9,7 @@ using NSubstitute;
 using Common.Config;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace Migration.Tests
 {
@@ -22,10 +23,13 @@ namespace Migration.Tests
         {
             var provider = _fixture.Freeze<IJiraProvider>();
 
-            JObject remoteIssue = new JObject();
-            remoteIssue.Add("fields", new JObject());
-            remoteIssue.Add("renderedFields", new JObject());
-            remoteIssue.Add("key", issueKey);
+            var issueType = @"{ issuetype: {'name': 'Story'}}";
+            JObject remoteIssue = new JObject
+            {
+                { "fields", JObject.Parse(issueType) },
+                { "renderedFields", new JObject() },
+                { "key", issueKey }
+            };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
@@ -33,10 +37,13 @@ namespace Migration.Tests
             provider.GetSettings().ReturnsForAnyArgs(settings);
 
             JiraItem item = JiraItem.CreateFromRest(issueKey, provider);
-
             var revision = new JiraRevision(item);
+
             revision.Fields = new Dictionary<string, object>();
             revision.Fields["summary"] = revisionSummary;
+            revision.Fields["priority"] = "High";
+            revision.Fields["status"] = "Done";
+            revision.Fields["issuetype"] = JObject.Parse(issueType);
 
             return revision;
         }
@@ -45,25 +52,29 @@ namespace Migration.Tests
         public void Setup()
         {
             _fixture = new Fixture();
-            _fixture.Customize(new AutoNSubstituteCustomization() { });
+            _fixture.Customize(new AutoNSubstituteCustomization());
         }
 
         [Test]
         public void When_calling_map_remaining_work_with_valid_args_Then_expected_output_is_returned()
         {
             object output = FieldMapperUtils.MapRemainingWork("36000");
-            Assert.AreEqual (output, 10);
+
+            Assert.AreEqual(output, 10);
         }
 
         [Test]
-        public void When_calling_map_title_with_empty_args_Then_null_is_returnedt()
+        public void When_calling_map_title_with_empty_args_Then_null_is_returned()
         {
+            (bool, object) expected = (false, null);
             var provider = _fixture.Freeze<IJiraProvider>();
             provider.DownloadIssue(default).Returns(new JObject());
+
             var revision = _fixture.Freeze<JiraRevision>();
 
+
             (bool, object) output = FieldMapperUtils.MapTitle(revision);
-            (bool, object) expected = (false, null);
+
             Assert.AreEqual(output, expected);
         }
 
@@ -74,9 +85,10 @@ namespace Migration.Tests
             string summary = "My Summary";
 
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
+            (bool, object) expected = (true, String.Format("[{0}] {1}", issueKey, summary));
 
             (bool, object) output = FieldMapperUtils.MapTitle(revision);
-            (bool, object) expected = (true, String.Format("[{0}] {1}", issueKey, summary));
+
             Assert.AreEqual(output, expected);
         }
 
@@ -88,20 +100,24 @@ namespace Migration.Tests
 
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
 
-            (bool, object) output = FieldMapperUtils.MapTitleWithoutKey(revision);
+
             (bool, object) expected = (true, summary);
+
+            (bool, object) output = FieldMapperUtils.MapTitleWithoutKey(revision);
+
             Assert.AreEqual(output, expected);
         }
 
         [Test]
         public void When_calling_map_title_without_key_with_empty_args_Then_null_is_returnedt()
         {
+            (bool, object) expected = (false, null);
             var provider = _fixture.Freeze<IJiraProvider>();
             provider.DownloadIssue(default).Returns(new JObject());
             var revision = _fixture.Freeze<JiraRevision>();
 
             (bool, object) output = FieldMapperUtils.MapTitleWithoutKey(revision);
-            (bool, object) expected = (false, null);
+
             Assert.AreEqual(output, expected);
         }
 
@@ -147,8 +163,86 @@ namespace Migration.Tests
         {
             string[] sprintPath = { "Base", "Segment", "Sprint" };
             object output = FieldMapperUtils.MapSprint(string.Join(",", sprintPath));
-            Assert.AreEqual(output, sprintPath[sprintPath.Length-1]);
+            Assert.AreEqual(output, sprintPath[sprintPath.Length - 1]);
         }
+
+
+        [Test]
+        public void When_calling_map_value_with_valid_args_Then_expected_output_is_returned()
+        {
+            
+            var configJson = _fixture.Create<ConfigJson>();
+
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>()
+            {
+                new Common.Config.Field()
+            {
+                Source = "priority", Target = "Microsoft.VSTS.Common.Priority",
+                Mapping = new Common.Config.Mapping
+                {
+                    Values = new List<Common.Config.Value>
+                    {
+                        new Common.Config.Value
+                    {
+                        Source = "High", Target = "1"
+                        }
+                    }
+                    }
+                }
+            };
+
+            var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
+
+
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "priority", configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.True);
+                Assert.That(actualOutput.Item2, Is.EqualTo("1"));
+
+            });
+        }
+
+        [Test]
+        public void When_calling_map_value_with_missing_args_Then_false_and_null_is_returned()
+        {
+
+            var configJson = _fixture.Create<ConfigJson>();
+
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>()
+            {
+                new Common.Config.Field()
+            {
+                Source = "Whatever", Target = "Microsoft.VSTS.Common.Priority",
+                Mapping = new Common.Config.Mapping
+                {
+                    Values = new List<Common.Config.Value>
+                    {
+                        new Common.Config.Value
+                    {
+                        Source = "High", Target = "1"
+                        }
+                    }
+                    }
+                }
+            };
+
+            var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
+
+
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "emtpy", configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.False);
+                Assert.That(actualOutput.Item2, Is.Null);
+                
+            });
+        }
+
 
     }
 }
