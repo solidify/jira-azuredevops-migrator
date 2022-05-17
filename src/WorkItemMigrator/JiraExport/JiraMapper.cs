@@ -24,6 +24,7 @@ namespace JiraExport
             _config = config;
             _targetTypes = InitializeTypeMappings();
             _fieldMappingsPerType = InitializeFieldMappings();
+
         }
 
         private List<string> GetWorkItemTypes(params string[] notFor)
