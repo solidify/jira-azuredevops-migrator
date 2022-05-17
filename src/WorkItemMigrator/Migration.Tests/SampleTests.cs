@@ -58,6 +58,8 @@ namespace Migration.Tests
 
 
             Assert.That(() => sut.Run(), Throws.InstanceOf<NullReferenceException>());
+
+
         }
 
 
