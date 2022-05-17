@@ -4,6 +4,8 @@ using AutoFixture.AutoNSubstitute;
 using AutoFixture;
 using Migration.Common;
 using System.Collections.Generic;
+using NSubstitute;
+using System.IO.Abstractions;
 
 namespace Migration.Tests
 {
@@ -35,6 +37,23 @@ namespace Migration.Tests
                 Assert.Contains(source, generatedUserMap.Keys);
                 Assert.AreEqual(generatedUserMap[source], target);
             }
+        }
+
+        [Test]
+        public void When_calling_ParseUserMappings_with_non_exisiting_file_Return_empty_Dictionary()
+        {
+            //Assign
+
+            var fileSystem = _fixture.Freeze<IFileSystem>();
+            fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+
+            var expected = new Dictionary<string, string>();
+
+            //Act
+            var actualResult = UserMapper.ParseUserMappings(Arg.Any<string>());
+
+            //Assert
+            Assert.That(actualResult.Count, Is.EqualTo(expected.Count));
         }
 
     }
