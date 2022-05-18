@@ -173,7 +173,7 @@ namespace JiraExport
                 {
                     return reader.ReadToEnd();
                 }
-            } catch (ArgumentNullException e)
+            } catch (ArgumentNullException)
             {
                 return "";
             }
