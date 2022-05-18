@@ -89,10 +89,15 @@ namespace Migration.Tests
 
             LinkMapperUtils.AddSingleLink(revision, links, epicChild, child, configJson);
 
-            Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
-            Assert.AreEqual(links[0].SourceOriginId, issueKey);
-            Assert.AreEqual(links[0].TargetOriginId, targetId);
-            Assert.AreEqual(links[0].WiType, targetWiType);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
+                Assert.AreEqual(links[0].SourceOriginId, issueKey);
+                Assert.AreEqual(links[0].TargetOriginId, targetId);
+                Assert.AreEqual(links[0].WiType, targetWiType);
+            });
+
+          
         }
 
         [Test]
@@ -125,7 +130,7 @@ namespace Migration.Tests
             Assert.IsEmpty(links);
         }
 
-        
+
         [Test]
         public void When_calling_add_remove_single_link_with_empty_string_arg_Then_an_exception_is_thrown()
         {
@@ -164,10 +169,16 @@ namespace Migration.Tests
 
             LinkMapperUtils.AddRemoveSingleLink(revision, links, epicChild, child, configJson);
 
-            Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
-            Assert.AreEqual(links[0].SourceOriginId, issueKey);
-            Assert.AreEqual(links[0].TargetOriginId, targetId);
-            Assert.AreEqual(links[0].WiType, targetWiType);
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
+                Assert.AreEqual(links[0].SourceOriginId, issueKey);
+                Assert.AreEqual(links[0].TargetOriginId, targetId);
+                Assert.AreEqual(links[0].WiType, targetWiType);
+            });
+
+
         }
 
         [Test]
@@ -206,10 +217,15 @@ namespace Migration.Tests
 
             LinkMapperUtils.AddRemoveSingleLink(revision, links, epicChild, child, configJson);
 
-            Assert.AreEqual(links[0].Change, ReferenceChangeType.Removed);
-            Assert.AreEqual(links[0].SourceOriginId, issueKey);
-            Assert.AreEqual(links[0].TargetOriginId, targetId);
-            Assert.AreEqual(links[0].WiType, targetWiType);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(links[0].Change, ReferenceChangeType.Removed);
+                Assert.AreEqual(links[0].SourceOriginId, issueKey);
+                Assert.AreEqual(links[0].TargetOriginId, targetId);
+                Assert.AreEqual(links[0].WiType, targetWiType);
+            });
+
+
         }
 
         // public static void MapEpicChildLink(JiraRevision r, List<WiLink> links, string field, string type, ConfigJson config)
@@ -253,10 +269,15 @@ namespace Migration.Tests
 
             LinkMapperUtils.MapEpicChildLink(revision, links, epicChild, child, configJson);
 
-            Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
-            Assert.AreEqual(links[0].SourceOriginId, issueKey);
-            Assert.AreEqual(links[0].TargetOriginId, targetId);
-            Assert.AreEqual(links[0].WiType, targetWiType);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
+                Assert.AreEqual(links[0].SourceOriginId, issueKey);
+                Assert.AreEqual(links[0].TargetOriginId, targetId);
+                Assert.AreEqual(links[0].WiType, targetWiType);
+            });
+
+
         }
 
 

@@ -21,11 +21,12 @@ namespace Migration.Tests
         {
             var provider = _fixture.Freeze<IJiraProvider>();
 
-            var issueType = @"{ issuetype: {'name': 'Story'}}";
+            var issueType = JObject.Parse(@"{ 'issuetype': {'name': 'Story'}}");
+            var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
             JObject remoteIssue = new JObject
             {
-                { "fields", JObject.Parse(issueType) },
-                { "renderedFields", new JObject() },
+                { "fields", issueType },
+                { "renderedFields", renderedFields },
                 { "key", issueKey }
             };
 
@@ -41,7 +42,9 @@ namespace Migration.Tests
             revision.Fields["summary"] = revisionSummary;
             revision.Fields["priority"] = "High";
             revision.Fields["status"] = "Done";
-            revision.Fields["issuetype"] = JObject.Parse(issueType);
+            revision.Fields["issuetype"] = issueType;
+            revision.Fields["custom_field_name$Rendered"] = "RenderedValueHere";
+            revision.Fields["description$Rendered"] = "<h>https://example.com</h><span class=\"image-wrap\">span_text<img https://abc.com />image_alt</span><a href=https://123.com class=\"user-hover\" link_meta>link_text</a>";
 
             return revision;
         }
@@ -237,7 +240,6 @@ namespace Migration.Tests
             {
                 Assert.That(actualOutput.Item1, Is.False);
                 Assert.That(actualOutput.Item2, Is.Null);
-                
             });
         }
 
@@ -276,6 +278,76 @@ namespace Migration.Tests
                 "<img https://abc.com />" +
                 "link_text";
             Assert.AreEqual(output, expected);
+        }
+
+        [Test]
+        public void When_calling_map_rendered_value_with_valid_input_Then_expected_output_is_returned()
+        {
+            
+            var sourceField = "description";
+            var customFieldName = "custom_field_name";
+            var configJson = _fixture.Create<ConfigJson>();
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>()
+            {
+                new Common.Config.Field()
+            {
+                Source = sourceField, Target = "System.Description",
+                Mapper = "MapRendered"
+                
+                }
+            };
+
+            var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
+
+            RevisionAction<JiraAttachment> revisionAction = new RevisionAction<JiraAttachment>();
+            JiraAttachment attachment = new JiraAttachment();
+            attachment.Url = "https://example.com";
+            revisionAction.Value = attachment;
+
+            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
+            jiraRevision.AttachmentActions.Add(revisionAction);
+
+
+            var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName,configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.True);
+                Assert.That(actualOutput.Item2, Is.Not.Empty);
+            });
+
+        }
+
+        [Test]
+        public void When_calling_map_rendered_value_with_invalid_input_Then_expected_false_and_null_is_returned()
+        {
+
+            var sourceField = "non_existing_field";
+            var customFieldName = "custom_field_name";
+            var configJson = _fixture.Create<ConfigJson>();
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>(){ new Common.Config.Field() };
+
+            var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
+
+            RevisionAction<JiraAttachment> revisionAction = new RevisionAction<JiraAttachment>();
+            JiraAttachment attachment = new JiraAttachment();
+            attachment.Url = "https://example.com";
+            revisionAction.Value = attachment;
+
+            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
+            jiraRevision.AttachmentActions.Add(revisionAction);
+            
+
+            var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName, configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.False);
+                Assert.That(actualOutput.Item2, Is.Null);
+            });
+
         }
 
 
