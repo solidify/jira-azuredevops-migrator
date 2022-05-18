@@ -10,6 +10,7 @@
 	  <PackageReference Include="Atlassian.SDK" Version="12.1.0" />
 	  <PackageReference Include="AutoFixture" Version="4.11.0" />
 	  <PackageReference Include="AutoFixture.AutoNSubstitute" Version="4.11.0" />
+	  <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
 	  <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 	  <PackageReference Include="NSubstitute" Version="4.2.1" />
 	  <PackageReference Include="NUnit" Version="3.12.0" />
@@ -20,12 +21,9 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\JiraExport\jira-export.csproj">
-			<Project>{19b3af60-8be6-47fc-9911-7829455b3557}</Project>
-			<Name>jira-export</Name>
-		</ProjectReference>
+	
 
-		<ProjectReference Include="..\WorkItemImport\wi-import.csproj">
+		<ProjectReference Include="..\..\WorkItemImport\wi-import.csproj">
 			<Project>{19b3af60-8be6-47fc-9911-7829455b3557}</Project>
 			<Name>wi-import</Name>
 		</ProjectReference>

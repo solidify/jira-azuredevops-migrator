@@ -34,6 +34,7 @@ namespace Migration.Tests
         [Test]
         public void When_calling_execute_with_args_Then_run_is_executed()
         {
+
             string[] args = new string[] {
                 "--token",
                 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -46,6 +47,8 @@ namespace Migration.Tests
             var sut = new ImportCommandLine(args);
 
             Assert.That(() => sut.Run(), !Throws.InstanceOf<Exception>());
+
+
         }
     }
 }
