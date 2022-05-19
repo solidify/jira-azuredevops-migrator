@@ -64,39 +64,36 @@ namespace JiraExport
 
         public static (bool, object) MapRenderedValue(JiraRevision r, string sourceField, bool isCustomField, string customFieldName, ConfigJson config)
         {
-            if (isCustomField)
-            {
-                sourceField = customFieldName;
-            }
+            sourceField = SetCustomFieldName(sourceField, isCustomField, customFieldName);
+            
             var fieldName = sourceField + "$Rendered";
 
             var targetWit = (from t in config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
-            if (r.Fields.TryGetValue(fieldName, out object value))
-            {
-                foreach (var item in config.FieldMap.Fields)
-                {
-                    if (((item.Source == fieldName && (item.For.Contains(targetWit) || item.For == "All")) ||
-                          item.Source == fieldName && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
-                          item.Mapping?.Values != null)
-                    {
-                        var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
-                        if (string.IsNullOrEmpty(mappedValue))
-                        {
-                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{fieldName}'.");
-                        }
-                        return (true, mappedValue);
-                    }
-                }
-                value = CorrectRenderedHtmlvalue(value, r);
-
-                return (true, value);
-            }
-            else
-            {
+            var hasFieldValue = r.Fields.TryGetValue(fieldName, out object value);
+            if (!hasFieldValue)
                 return (false, null);
+
+            foreach (var item in config.FieldMap.Fields)
+            {
+                if (((item.Source == fieldName && (item.For.Contains(targetWit) || item.For == "All")) ||
+                      item.Source == fieldName && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
+                      item.Mapping?.Values != null)
+                {
+                    var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
+                    if (string.IsNullOrEmpty(mappedValue))
+                    {
+                        Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{fieldName}'.");
+                    }
+                    return (true, mappedValue);
+                }
             }
+            value = CorrectRenderedHtmlvalue(value, r);
+
+            return (true, value);
         }
+
+       
 
         public static object MapTags(string labels)
         {
@@ -177,6 +174,15 @@ namespace JiraExport
             {
                 return "";
             }
+        }
+        private static string SetCustomFieldName(string sourceField, bool isCustomField, string customFieldName)
+        {
+            if (isCustomField)
+            {
+                sourceField = customFieldName;
+            }
+
+            return sourceField;
         }
     }
 
