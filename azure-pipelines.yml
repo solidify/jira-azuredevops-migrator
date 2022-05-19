@@ -55,6 +55,13 @@ steps:
   inputs:
     pollingTimeoutSec: '300'
 
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: '**/*tests/*.tests.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
+
 - task: TfxInstaller@3
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   inputs:
