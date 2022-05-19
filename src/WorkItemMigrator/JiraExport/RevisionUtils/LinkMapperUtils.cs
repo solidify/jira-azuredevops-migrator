@@ -28,11 +28,8 @@ namespace JiraExport
                 var parentKeyStr = r.OriginId.Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
                 var childKeyStr = value?.ToString().Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
 
-                if (int.TryParse(parentKeyStr, out var parentKey) && int.TryParse(childKeyStr, out var childKey))
-                {
-                    if (parentKey > childKey)
-                        AddSingleLink(r, links, field, type, config);
-                }
+                if (int.TryParse(parentKeyStr, out var parentKey) && int.TryParse(childKeyStr, out var childKey) && parentKey > childKey)
+                    AddSingleLink(r, links, field, type, config);
             }
         }
 
