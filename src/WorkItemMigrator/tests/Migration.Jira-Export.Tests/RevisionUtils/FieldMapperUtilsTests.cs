@@ -61,7 +61,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             object output = FieldMapperUtils.MapRemainingWork("36000");
 
-            Assert.AreEqual(output, 10);
+            Assert.AreEqual(10, output);
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             (bool, object) output = FieldMapperUtils.MapTitle(revision);
 
-            Assert.AreEqual(output, expected);
+            Assert.AreEqual(expected, output);
         }
 
         [Test]
@@ -90,7 +90,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             (bool, object) output = FieldMapperUtils.MapTitle(revision);
 
-            Assert.AreEqual(output, expected);
+            Assert.AreEqual(expected, output);
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             (bool, object) output = FieldMapperUtils.MapTitleWithoutKey(revision);
 
-            Assert.AreEqual(output, expected);
+            Assert.AreEqual(expected, output);
         }
 
         [Test]
@@ -119,14 +119,14 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             (bool, object) output = FieldMapperUtils.MapTitleWithoutKey(revision);
 
-            Assert.AreEqual(output, expected);
+            Assert.AreEqual(expected, output);
         }
 
         [Test]
         public void When_calling_map_tags_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapTags("");
-            Assert.AreEqual(output, null);
+            Assert.AreEqual(null, output);
         }
 
         [Test]
@@ -134,14 +134,14 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             string[] tags = { "TAG_A", "TAG_B", "TAG_C" };
             object output = FieldMapperUtils.MapTags(string.Join(" ", tags));
-            Assert.AreEqual(output, string.Join(";", tags));
+            Assert.AreEqual(string.Join(";", tags), output);
         }
 
         [Test]
         public void When_calling_map_array_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapArray("");
-            Assert.AreEqual(output, null);
+            Assert.AreEqual(null, output);
         }
 
         [Test]
@@ -149,14 +149,14 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             string[] tags = { "ELEM_A", "ELEM_B", "ELEM_C" };
             object output = FieldMapperUtils.MapArray(string.Join(",", tags));
-            Assert.AreEqual(output, string.Join(";", tags));
+            Assert.AreEqual(string.Join(";", tags), output);
         }
 
         [Test]
         public void When_calling_map_sprint_with_empty_string_arg_Then_null_is_returnedt()
         {
             object output = FieldMapperUtils.MapSprint("");
-            Assert.AreEqual(output, null);
+            Assert.AreEqual(null, output);
         }
 
         [Test]
@@ -164,7 +164,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             string[] sprintPath = { "Base", "Segment", "Sprint" };
             object output = FieldMapperUtils.MapSprint(string.Join(",", sprintPath));
-            Assert.AreEqual(output, sprintPath[sprintPath.Length - 1]);
+            Assert.AreEqual(sprintPath[sprintPath.Length - 1], output);
         }
 
 
@@ -277,7 +277,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             string expected = "<h>https://example.com</h>" +
                 "<img https://abc.com />" +
                 "link_text";
-            Assert.AreEqual(output, expected);
+            Assert.AreEqual(expected, output);
         }
 
         [Test]
