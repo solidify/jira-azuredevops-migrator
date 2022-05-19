@@ -6,10 +6,10 @@ using AutoFixture;
 using System;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
-using Common.Config;
 using System.Collections.Generic;
 using Migration.WIContract;
 using Migration.Common.Config;
+using Common.Config;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
