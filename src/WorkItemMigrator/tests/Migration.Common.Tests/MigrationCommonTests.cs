@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using NSubstitute;
 using System.IO.Abstractions;
 
-namespace Migration.Tests
+namespace Migration.Common.Tests
 {
     [TestFixture]
     public class MigrationCommonTests

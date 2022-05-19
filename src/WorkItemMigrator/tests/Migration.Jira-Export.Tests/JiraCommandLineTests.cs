@@ -5,7 +5,7 @@ using AutoFixture.AutoNSubstitute;
 using AutoFixture;
 using System;
 
-namespace Migration.Tests
+namespace Migration.Jira_Export.Tests
 {
     [TestFixture]
     public class JiraCommandLineTests

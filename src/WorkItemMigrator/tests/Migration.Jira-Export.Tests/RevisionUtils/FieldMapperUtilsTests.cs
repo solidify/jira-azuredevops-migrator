@@ -9,7 +9,7 @@ using NSubstitute;
 using Common.Config;
 using System.Collections.Generic;
 
-namespace Migration.Tests
+namespace Migration.Jira_Export.Tests.RevisionUtils
 {
     [TestFixture]
     public class FieldMapperUtilsTests
@@ -86,7 +86,7 @@ namespace Migration.Tests
             string summary = "My Summary";
 
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
-            (bool, object) expected = (true, String.Format("[{0}] {1}", issueKey, summary));
+            (bool, object) expected = (true, string.Format("[{0}] {1}", issueKey, summary));
 
             (bool, object) output = FieldMapperUtils.MapTitle(revision);
 
@@ -171,7 +171,7 @@ namespace Migration.Tests
         [Test]
         public void When_calling_map_value_with_valid_args_Then_expected_output_is_returned()
         {
-            
+
             var configJson = _fixture.Create<ConfigJson>();
 
             configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
@@ -283,7 +283,7 @@ namespace Migration.Tests
         [Test]
         public void When_calling_map_rendered_value_with_valid_input_Then_expected_output_is_returned()
         {
-            
+
             var sourceField = "description";
             var customFieldName = "custom_field_name";
             var configJson = _fixture.Create<ConfigJson>();
@@ -294,7 +294,7 @@ namespace Migration.Tests
             {
                 Source = sourceField, Target = "System.Description",
                 Mapper = "MapRendered"
-                
+
                 }
             };
 
@@ -309,7 +309,7 @@ namespace Migration.Tests
             jiraRevision.AttachmentActions.Add(revisionAction);
 
 
-            var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName,configJson);
+            var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName, configJson);
 
             Assert.Multiple(() =>
             {
@@ -327,7 +327,7 @@ namespace Migration.Tests
             var customFieldName = "custom_field_name";
             var configJson = _fixture.Create<ConfigJson>();
             configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
-            configJson.FieldMap.Fields = new List<Common.Config.Field>(){ new Common.Config.Field() };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>() { new Common.Config.Field() };
 
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
 
@@ -338,7 +338,7 @@ namespace Migration.Tests
 
             jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
             jiraRevision.AttachmentActions.Add(revisionAction);
-            
+
 
             var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName, configJson);
 

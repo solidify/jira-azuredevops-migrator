@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Migration.WIContract;
 using Migration.Common.Config;
 
-namespace Migration.Tests
+namespace Migration.Jira_Export.Tests.RevisionUtils
 {
     [TestFixture]
     public class LinkMapperUtilsTests
@@ -97,7 +97,7 @@ namespace Migration.Tests
                 Assert.AreEqual(links[0].WiType, targetWiType);
             });
 
-          
+
         }
 
         [Test]

@@ -15,14 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common.Log", "Mig
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{EBEF05DA-E3C1-49DA-A411-2669F8C34BDC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migration.WI-Import.Tests", "tests\Migration.WI-Import.Tests\Migration.WI-Import.Tests.csproj", "{D2341031-34EA-4981-9BC1-06F991962F39}"
-	ProjectSection(ProjectDependencies) = postProject
-		{600E6ED8-49FD-46F0-8498-ADEADAEBDF6C} = {600E6ED8-49FD-46F0-8498-ADEADAEBDF6C}
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migration.Jira-Export.Tests", "tests\Migration.Jira-Export.Tests\Migration.Jira-Export.Tests.csproj", "{2624FD33-9DDD-4954-952D-1ABEDA9ADA99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Jira-Export.Tests", "tests\Migration.Jira-Export.Tests\Migration.Jira-Export.Tests.csproj", "{2624FD33-9DDD-4954-952D-1ABEDA9ADA99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migration.Common.Tests", "tests\Migration.Common.Tests\Migration.Common.Tests.csproj", "{14911A7A-198D-43AD-8E93-D79A3DBBB15E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Common.Tests", "tests\Migration.Common.Tests\Migration.Common.Tests.csproj", "{14911A7A-198D-43AD-8E93-D79A3DBBB15E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration.Wi-Import.Tests", "tests\Migration.Wi-Import.Testss\Migration.Wi-Import.Tests.csproj", "{C6099BD7-3590-4E7E-9A7B-5889E33532D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,10 +47,6 @@ Global
 		{87DF777C-D3CB-4B0B-8552-159247B1F022}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87DF777C-D3CB-4B0B-8552-159247B1F022}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87DF777C-D3CB-4B0B-8552-159247B1F022}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D2341031-34EA-4981-9BC1-06F991962F39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D2341031-34EA-4981-9BC1-06F991962F39}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D2341031-34EA-4981-9BC1-06F991962F39}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D2341031-34EA-4981-9BC1-06F991962F39}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2624FD33-9DDD-4954-952D-1ABEDA9ADA99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2624FD33-9DDD-4954-952D-1ABEDA9ADA99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2624FD33-9DDD-4954-952D-1ABEDA9ADA99}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -62,14 +55,18 @@ Global
 		{14911A7A-198D-43AD-8E93-D79A3DBBB15E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14911A7A-198D-43AD-8E93-D79A3DBBB15E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14911A7A-198D-43AD-8E93-D79A3DBBB15E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6099BD7-3590-4E7E-9A7B-5889E33532D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6099BD7-3590-4E7E-9A7B-5889E33532D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6099BD7-3590-4E7E-9A7B-5889E33532D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6099BD7-3590-4E7E-9A7B-5889E33532D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{D2341031-34EA-4981-9BC1-06F991962F39} = {EBEF05DA-E3C1-49DA-A411-2669F8C34BDC}
 		{2624FD33-9DDD-4954-952D-1ABEDA9ADA99} = {EBEF05DA-E3C1-49DA-A411-2669F8C34BDC}
 		{14911A7A-198D-43AD-8E93-D79A3DBBB15E} = {EBEF05DA-E3C1-49DA-A411-2669F8C34BDC}
+		{C6099BD7-3590-4E7E-9A7B-5889E33532D3} = {EBEF05DA-E3C1-49DA-A411-2669F8C34BDC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C79F9C98-4D90-4590-A3F5-1D49EEAE40C0}

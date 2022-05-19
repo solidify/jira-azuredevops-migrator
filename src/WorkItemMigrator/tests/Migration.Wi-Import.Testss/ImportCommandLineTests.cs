@@ -5,7 +5,7 @@ using AutoFixture;
 using System;
 using WorkItemImport;
 
-namespace Migration.Tests
+namespace Migration.Wi_Import.Testss
 {
     [TestFixture]
     public class ImportCommandLineTests
