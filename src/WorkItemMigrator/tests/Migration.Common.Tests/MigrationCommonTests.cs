@@ -34,7 +34,7 @@ namespace Migration.Common.Tests
                 string target = splitLine[1];
 
                 Assert.Contains(source, generatedUserMap.Keys);
-                Assert.AreEqual(generatedUserMap[source], target);
+                Assert.AreEqual(target, generatedUserMap[source]);
             }
         }
 

@@ -91,10 +91,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
-                Assert.AreEqual(links[0].SourceOriginId, issueKey);
-                Assert.AreEqual(links[0].TargetOriginId, targetId);
-                Assert.AreEqual(links[0].WiType, targetWiType);
+                Assert.AreEqual(ReferenceChangeType.Added, links[0].Change);
+                Assert.AreEqual(issueKey, links[0].SourceOriginId);
+                Assert.AreEqual(targetId, links[0].TargetOriginId);
+                Assert.AreEqual(targetWiType, links[0].WiType);
             });
 
 
@@ -172,10 +172,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
-                Assert.AreEqual(links[0].SourceOriginId, issueKey);
-                Assert.AreEqual(links[0].TargetOriginId, targetId);
-                Assert.AreEqual(links[0].WiType, targetWiType);
+                Assert.AreEqual(ReferenceChangeType.Added, links[0].Change);
+                Assert.AreEqual(issueKey, links[0].SourceOriginId);
+                Assert.AreEqual(targetId, links[0].TargetOriginId);
+                Assert.AreEqual(targetWiType, links[0].WiType);
             });
 
 
@@ -219,10 +219,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(links[0].Change, ReferenceChangeType.Removed);
-                Assert.AreEqual(links[0].SourceOriginId, issueKey);
-                Assert.AreEqual(links[0].TargetOriginId, targetId);
-                Assert.AreEqual(links[0].WiType, targetWiType);
+                Assert.AreEqual(ReferenceChangeType.Added, links[0].Change);
+                Assert.AreEqual(issueKey, links[0].SourceOriginId);
+                Assert.AreEqual(targetId, links[0].TargetOriginId);
+                Assert.AreEqual(targetWiType, links[0].WiType);
             });
 
 
@@ -271,10 +271,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(links[0].Change, ReferenceChangeType.Added);
-                Assert.AreEqual(links[0].SourceOriginId, issueKey);
-                Assert.AreEqual(links[0].TargetOriginId, targetId);
-                Assert.AreEqual(links[0].WiType, targetWiType);
+                Assert.AreEqual(ReferenceChangeType.Added, links[0].Change);
+                Assert.AreEqual(issueKey, links[0].SourceOriginId);
+                Assert.AreEqual(targetId, links[0].TargetOriginId);
+                Assert.AreEqual(targetWiType, links[0].WiType);
             });
 
 

@@ -111,7 +111,6 @@ namespace JiraExport
                     Logger.Log(LogLevel.Warning, $"Sprint link field missing for config field '{config.SprintField}'.");
                 }
 
-                // TODO: Unit test JiraMapper
                 var mapper = new JiraMapper(jiraProvider, config);
                 var localProvider = new WiItemProvider(migrationWorkspace);
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));
