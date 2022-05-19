@@ -126,12 +126,8 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         public void When_calling_map_tags_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapTags("");
-<<<<<<< HEAD
-            Assert.AreEqual(null, output);
-=======
 
             Assert.That(output, Is.Null);
->>>>>>> 570df3219e92929e99d4f76065997ac7dd4da71a
         }
 
         [Test]
@@ -145,14 +141,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         [Test]
         public void When_calling_map_array_with_empty_string_arg_Then_null_is_returned()
         {
-<<<<<<< HEAD
-            object output = FieldMapperUtils.MapArray("");
-            Assert.AreEqual(null, output);
-=======
             object actualResult = FieldMapperUtils.MapArray("");
             
             Assert.That(actualResult, Is.Null);
->>>>>>> 570df3219e92929e99d4f76065997ac7dd4da71a
+
         }
 
         [Test]
@@ -166,14 +158,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         [Test]
         public void When_calling_map_sprint_with_empty_string_arg_Then_null_is_returned()
         {
-<<<<<<< HEAD
-            object output = FieldMapperUtils.MapSprint("");
-            Assert.AreEqual(null, output);
-=======
             object actualResult = FieldMapperUtils.MapSprint("");
             
             Assert.That(actualResult, Is.Null);
->>>>>>> 570df3219e92929e99d4f76065997ac7dd4da71a
+
         }
 
         [Test]
@@ -304,6 +292,9 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             var sourceField = "description";
             var customFieldName = "custom_field_name";
             var configJson = _fixture.Create<ConfigJson>();
+
+            var expectedOutput = "<h>https://example.com</h><img https://abc.com />link_text";
+            
             configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
             configJson.FieldMap.Fields = new List<Common.Config.Field>()
             {
@@ -332,6 +323,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             {
                 Assert.That(actualOutput.Item1, Is.True);
                 Assert.That(actualOutput.Item2, Is.Not.Empty);
+                Assert.That(actualOutput.Item2, Is.EqualTo(expectedOutput));
             });
 
         }
