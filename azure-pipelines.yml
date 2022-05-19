@@ -1,12 +1,8 @@
 resources:
 - repo: self
 
-queue:
-  name: windows-2019
-  demands: 
-  - msbuild
-  - visualstudio
-  - npm
+pool:
+  vmimage: windows-2019
 
 variables:
   BuildPlatform: 'any cpu'
