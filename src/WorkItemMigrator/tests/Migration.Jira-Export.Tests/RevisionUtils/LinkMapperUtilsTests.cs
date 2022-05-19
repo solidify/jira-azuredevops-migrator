@@ -219,7 +219,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(ReferenceChangeType.Added, links[0].Change);
+                Assert.AreEqual(ReferenceChangeType.Removed, links[0].Change);
                 Assert.AreEqual(issueKey, links[0].SourceOriginId);
                 Assert.AreEqual(targetId, links[0].TargetOriginId);
                 Assert.AreEqual(targetWiType, links[0].WiType);
@@ -228,7 +228,6 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
         }
 
-        // public static void MapEpicChildLink(JiraRevision r, List<WiLink> links, string field, string type, ConfigJson config)
 
         [Test]
         public void When_calling_map_epic_child_link_with_empty_string_arg_Then_an_exception_is_thrown()
