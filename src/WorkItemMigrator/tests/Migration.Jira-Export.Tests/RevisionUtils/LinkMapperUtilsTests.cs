@@ -1,15 +1,15 @@
 ﻿using NUnit.Framework;
 
-using JiraExport;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture;
 using System;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using System.Collections.Generic;
+using JiraExport;
 using Migration.WIContract;
-using Migration.Common.Config;
 using Common.Config;
+using Migration.Common.Config;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
