@@ -126,7 +126,8 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         public void When_calling_map_tags_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapTags("");
-            Assert.AreEqual(output, null);
+
+            Assert.That(output, Is.Null);
         }
 
         [Test]
@@ -140,8 +141,9 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         [Test]
         public void When_calling_map_array_with_empty_string_arg_Then_null_is_returned()
         {
-            object output = FieldMapperUtils.MapArray("");
-            Assert.AreEqual(output, null);
+            object actualResult = FieldMapperUtils.MapArray("");
+            
+            Assert.That(actualResult, Is.Null);
         }
 
         [Test]
@@ -153,10 +155,11 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
-        public void When_calling_map_sprint_with_empty_string_arg_Then_null_is_returnedt()
+        public void When_calling_map_sprint_with_empty_string_arg_Then_null_is_returned()
         {
-            object output = FieldMapperUtils.MapSprint("");
-            Assert.AreEqual(output, null);
+            object actualResult = FieldMapperUtils.MapSprint("");
+            
+            Assert.That(actualResult, Is.Null);
         }
 
         [Test]
