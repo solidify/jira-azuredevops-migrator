@@ -57,6 +57,7 @@ steps:
 
 
 - task: DotNetCoreCLI@2
+  displayName: 'Run Tests'
   inputs:
     command: test
     projects: '**/*tests/*.tests.csproj'
