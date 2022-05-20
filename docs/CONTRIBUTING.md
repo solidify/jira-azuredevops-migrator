@@ -9,6 +9,8 @@ There are many ways to contribute: logging bugs, creating suggestions and submit
 # Did you write a patch that fixes a bug or adds a new feature?  
 - Open a new GitHub pull request with the patch/new feature.
 - Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
+- Esnure that the CI build runs to completion, uncluding the unit tests.
+- Ensure that your patch is covered by the unit tests. We strive to only merged tested code.
 
 # Contributing to code
 After you have cloned the repo and built the project successfully on you local computer you're ready to start contributing!
@@ -38,6 +40,18 @@ To debug the tools, simply put the command line arguments used for a migration i
 References:
 * [Tutorial: Learn to debug C# code using Visual Studio](https://docs.microsoft.com/en-us/visualstudio/get-started/csharp/tutorial-debugger)
 * [Project settings, debug tab](https://docs.microsoft.com/en-us/visualstudio/debugger/project-settings-for-csharp-debug-configurations?view=vs-2019#debug-tab)
+
+## Testing
+
+Include unit tests when you contribute new features, as they help to
+- prove that your code works correctly
+- guard against future breaking changes to lower the maintenance cost.
+
+We use [NUnit](https://nunit.org/) and [AutoFixture](https://autofixture.github.io/#) for testing, and the unit tests are located under **src/WorkItemMigrator/tests**.
+
+Unit testing guidelines:
+- Each test should verify an isolated feature (ideally a single method) with a specific set of parameters.
+- Ensure that you also test your method for cases where the input is null.
 
 ## CI builds
 
