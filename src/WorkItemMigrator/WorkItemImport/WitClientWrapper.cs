@@ -17,7 +17,7 @@ using Migration.WIContract;
 
 namespace WorkItemImport
 {
-    public class WITClientWrapper
+    public class WitClientWrapper
     {
         private WorkItemTrackingHttpClient WitClient { get; }
         private ProjectHttpClient ProjectClient { get; }
@@ -28,7 +28,7 @@ namespace WorkItemImport
         private WorkItemTypeCategory DefaultWorkItemTypeCategory { get; }
         private WorkItemTypeReference DefaultWorkItemType { get; }
 
-        public WITClientWrapper(string collectionUri, string project)
+        public WitClientWrapper(string collectionUri, string project)
         {
             Connection = new VssConnection(new Uri(collectionUri), new VssClientCredentials());
             WitClient = Connection.GetClient<WorkItemTrackingHttpClient>();
@@ -106,7 +106,7 @@ namespace WorkItemImport
                     relatedLink.Url = targetWorkItem.Url;
 
                     relatedLink = await ResolveCyclicalLinks(relatedLink, wi);
-                    if (!IsDuplicateWorkItemLink(wi.Links, relatedLink))
+                    if (!IsDuplicateWorkItemLink(wi.Relations, relatedLink))
                     {
                         wi.Relations.Add(relatedLink);
                         return true;
@@ -253,7 +253,7 @@ namespace WorkItemImport
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.IterationPath, Value = "" });
         }
 
-        public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, AttachmentReference> attachmentMap, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<Guid, AttachmentReference> attachmentMap, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
         {
             var success = true;
 
@@ -300,7 +300,7 @@ namespace WorkItemImport
             return success;
         }
 
-        public void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
         {
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
@@ -332,7 +332,7 @@ namespace WorkItemImport
             }
         }
 
-        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
         {
             string description = wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug" ? wi.Fields[WiFieldReference.ReproSteps].ToString() : wi.Fields[WiFieldReference.Description].ToString();
             if (string.IsNullOrWhiteSpace(description))
@@ -357,7 +357,7 @@ namespace WorkItemImport
             return descUpdated;
         }
 
-        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
         {
             string currentComment = wi.Fields[WiFieldReference.History].ToString();
             bool commentUpdated = false;
@@ -424,10 +424,10 @@ namespace WorkItemImport
             return LinkTypeOut;
         }
 
-        private AttachmentReference IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        private AttachmentReference IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
         {
             //if (context.Journal.IsAttachmentMigrated(att.AttOriginId, out int attWiId))
-            if (isAttachmentMigratedDelegate(att.AttOriginId, out int attWiId))
+            if (isAttachmentMigratedDelegate(att.AttOriginId, out Guid attWiId))
                 return wi.Attachments.Cast<AttachmentReference>().SingleOrDefault(a => a.Id == attWiId);
             return null;
         }

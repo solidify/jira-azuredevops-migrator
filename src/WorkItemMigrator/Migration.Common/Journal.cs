@@ -29,21 +29,25 @@ namespace Migration.Common
         {
             if (File.Exists(journal.ItemsPath))
             {
-                var revLines = File.ReadAllLines(journal.ItemsPath);
-                foreach (var rev in revLines)
+                string[] revLines = File.ReadAllLines(journal.ItemsPath);
+                foreach (string rev in revLines)
                 {
-                    var props = rev.Split(';');
+                    string[] props = rev.Split(';');
                     journal.ProcessedRevisions[props[0]] = (Convert.ToInt32(props[1]), Convert.ToInt32(props[2]));
                 }
             }
 
             if (File.Exists(journal.AttachmentsPath))
             {
-                var attLines = File.ReadAllLines(journal.AttachmentsPath);
-                foreach (var att in attLines)
+                string[] attLines = File.ReadAllLines(journal.AttachmentsPath);
+                foreach (string att in attLines)
                 {
-                    var props = att.Split(';');
-                    journal.ProcessedAttachments[props[0]] = Convert.ToInt32(props[1]);
+                    string[] props = att.Split(';');
+                    Guid guid0;
+                    Guid.TryParse(props[0], out guid0);
+                    Guid guid1;
+                    Guid.TryParse(props[1], out guid1);
+                    journal.ProcessedAttachments[guid0] = guid1;
                 }
             }
 
@@ -54,7 +58,7 @@ namespace Migration.Common
 
         public Dictionary<string, (int, int)> ProcessedRevisions { get; private set; } = new Dictionary<string, (int, int)>();
 
-        public Dictionary<string, int> ProcessedAttachments { get; private set; } = new Dictionary<string, int>();
+        public Dictionary<Guid, Guid> ProcessedAttachments { get; private set; } = new Dictionary<Guid, Guid>();
         public string ItemsPath { get; private set; }
         public string AttachmentsPath { get; private set; }
 
@@ -76,13 +80,13 @@ namespace Migration.Common
             File.AppendAllText(ItemsPath, $"{originId};{wiId};{rev}" + Environment.NewLine);
         }
 
-        public void MarkAttachmentAsProcessed(string attOriginId, int attWiId)
+        public void MarkAttachmentAsProcessed(Guid attOriginId, Guid attWiId)
         {
             ProcessedAttachments.Add(attOriginId, attWiId);
             WriteAttachment(attOriginId, attWiId);
         }
 
-        private void WriteAttachment(string attOriginId, int attWiId)
+        private void WriteAttachment(Guid attOriginId, Guid attWiId)
         {
             File.AppendAllText(AttachmentsPath, $"{attOriginId};{attWiId}" + Environment.NewLine);
         }
@@ -104,7 +108,7 @@ namespace Migration.Common
             return wiId;
         }
 
-        public bool IsAttachmentMigrated(string attOriginId, out int attWiId)
+        public bool IsAttachmentMigrated(Guid attOriginId, out Guid attWiId)
         {
             return ProcessedAttachments.TryGetValue(attOriginId, out attWiId);
         }

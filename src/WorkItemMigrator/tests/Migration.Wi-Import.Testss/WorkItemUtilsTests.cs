@@ -54,7 +54,7 @@ namespace Migration.Wi_Import.Testss
         [Test]
         public void When_calling_ensure_author_fields_with_empty_args_Then_an_exception_is_thrown()
         {
-            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             Assert.That(
                 () => wiUtils.EnsureAuthorFields(null),
                 Throws.InstanceOf<ArgumentException>());
@@ -68,7 +68,7 @@ namespace Migration.Wi_Import.Testss
             rev.Index = 0;
             rev.Author = "Firstname Lastname";
 
-            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             wiUtils.EnsureAuthorFields(rev);
 
             Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedBy));
@@ -82,7 +82,7 @@ namespace Migration.Wi_Import.Testss
             rev.Fields = new List<WiField>();
             rev.Index = 1;
             rev.Author = "Firstname Lastname";
-            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             wiUtils.EnsureAuthorFields(rev);
 
             Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.ChangedBy));
@@ -92,7 +92,7 @@ namespace Migration.Wi_Import.Testss
         [Test]
         public void When_calling_ensure_classification_fields_with_empty_args_Then_an_exception_is_thrown()
         {
-            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             Assert.That(
                 () => wiUtils.EnsureClassificationFields(null),
                 Throws.InstanceOf<ArgumentException>());
@@ -104,7 +104,7 @@ namespace Migration.Wi_Import.Testss
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
 
-            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             wiUtils.EnsureClassificationFields(rev);
 
             List<WiField> filteredForAreaPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.AreaPath && f.Value == "");
@@ -117,7 +117,7 @@ namespace Migration.Wi_Import.Testss
         [Test]
         public void When_calling_is_duplicate_work_item_link_with_empty_args_Then_an_exception_is_thrown()
         {
-            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             Assert.That(
                 () => wiUtils.IsDuplicateWorkItemLink(null, null),
                 Throws.InstanceOf<ArgumentException>());
@@ -129,7 +129,7 @@ namespace Migration.Wi_Import.Testss
             WorkItemRelation[] links = new WorkItemRelation[0];
             WorkItemRelation relatedLink = new WorkItemRelation();
 
-            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             bool isDuplicate = wiUtils.IsDuplicateWorkItemLink(links, relatedLink);
 
             var WitClient = _fixture.Freeze<WorkItemTrackingHttpClient>();
