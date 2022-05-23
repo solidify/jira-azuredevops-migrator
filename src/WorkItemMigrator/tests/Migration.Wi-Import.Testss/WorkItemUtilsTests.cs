@@ -6,7 +6,7 @@ using System;
 using WorkItemImport;
 using Migration.WIContract;
 using System.Collections.Generic;
-//using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Migration.Wi_Import.Testss
 {
@@ -50,8 +50,9 @@ namespace Migration.Wi_Import.Testss
         [Test]
         public void When_calling_ensure_author_fields_with_empty_args_Then_an_exception_is_thrown()
         {
+            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
             Assert.That(
-                () => WorkItemUtils.EnsureAuthorFields(null),
+                () => wiUtils.EnsureAuthorFields(null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -63,7 +64,8 @@ namespace Migration.Wi_Import.Testss
             rev.Index = 0;
             rev.Author = "Firstname Lastname";
 
-            WorkItemUtils.EnsureAuthorFields(rev);
+            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            wiUtils.EnsureAuthorFields(rev);
 
             Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedBy));
             Assert.That(rev.Fields[0].Value, Is.EqualTo(rev.Author));
@@ -76,8 +78,8 @@ namespace Migration.Wi_Import.Testss
             rev.Fields = new List<WiField>();
             rev.Index = 1;
             rev.Author = "Firstname Lastname";
-
-            WorkItemUtils.EnsureAuthorFields(rev);
+            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            wiUtils.EnsureAuthorFields(rev);
 
             Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.ChangedBy));
             Assert.That(rev.Fields[0].Value, Is.EqualTo(rev.Author));
@@ -86,8 +88,9 @@ namespace Migration.Wi_Import.Testss
         [Test]
         public void When_calling_ensure_classification_fields_with_empty_args_Then_an_exception_is_thrown()
         {
+            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
             Assert.That(
-                () => WorkItemUtils.EnsureClassificationFields(null),
+                () => wiUtils.EnsureClassificationFields(null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -97,7 +100,8 @@ namespace Migration.Wi_Import.Testss
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
 
-            WorkItemUtils.EnsureClassificationFields(rev);
+            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            wiUtils.EnsureClassificationFields(rev);
 
             List<WiField> filteredForAreaPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.AreaPath && f.Value == "");
             List<WiField> filteredForIterationPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.IterationPath && f.Value == "");
@@ -106,26 +110,25 @@ namespace Migration.Wi_Import.Testss
             Assert.That(filteredForIterationPath.Count, Is.EqualTo(1));
         }
 
-        /*
         [Test]
         public void When_calling_is_duplicate_work_item_link_with_empty_args_Then_an_exception_is_thrown()
         {
+            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
             Assert.That(
-                () => WorkItemUtils.IsDuplicateWorkItemLink(null, null),
+                () => wiUtils.IsDuplicateWorkItemLink(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
         [Test]
         public void When_calling_is_duplicate_work_item_link_with_containing_link_Then_true_is_returned()
         {
-            LinkCollection links = new LinkCollection();
-            RelatedLink relatedLink = new RelatedLink();
-            links.Add(relatedLink);
+            ReferenceLinks links = new ReferenceLinks();
+            ReferenceLink relatedLink = new ReferenceLink();
 
-            bool isDuplicate = WorkItemUtils.IsDuplicateWorkItemLink(links, relatedLink);
+            WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
+            bool isDuplicate = wiUtils.IsDuplicateWorkItemLink(links, relatedLink);
 
             Assert.That(isDuplicate, Is.EqualTo(true));
         }
-        */
     }
 }

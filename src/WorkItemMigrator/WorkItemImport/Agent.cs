@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Core.WebApi;
-using Microsoft.TeamFoundation.WorkItemTracking.Client;
+//using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
 
@@ -20,6 +20,7 @@ using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 using static WorkItemImport.WorkItemUtils;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 namespace WorkItemImport
 {
@@ -32,7 +33,7 @@ namespace WorkItemImport
         {
             get; private set;
         }
-
+        /*
         private WorkItemStore _store;
         public WorkItemStore Store
         {
@@ -44,6 +45,7 @@ namespace WorkItemImport
                 return _store;
             }
         }
+        */
 
         public VsWebApi.VssConnection RestConnection { get; private set; }
         public Dictionary<string, int> IterationCache { get; private set; } = new Dictionary<string, int>();
@@ -113,18 +115,6 @@ namespace WorkItemImport
             agent.RootArea = rootArea;
 
             return agent;
-        }
-
-        internal WorkItem CreateWI(string type)
-        {
-            var project = Store.Projects[Settings.Project];
-            var wiType = project.WorkItemTypes[type];
-            return wiType.NewWorkItem();
-        }
-
-        internal WorkItem GetWorkItem(int wiId)
-        {
-            return Store.GetWorkItem(wiId);
         }
 
         private static VsWebApi.VssConnection EstablishRestConnection(Settings settings)
@@ -376,9 +366,6 @@ namespace WorkItemImport
         private bool UpdateWIFields(IEnumerable<WiField> fields, WorkItem wi)
         {
             var success = true;
-
-            if (!wi.IsOpen || !wi.IsPartialOpen)
-                wi.PartialOpen();
 
             foreach (var fieldRev in fields)
             {
