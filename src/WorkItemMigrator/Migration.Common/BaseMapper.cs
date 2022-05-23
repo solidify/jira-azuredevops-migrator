@@ -37,17 +37,6 @@ namespace Migration.Common
             }
         }
 
-        protected string ReadEmbeddedFile(string resourceName)
-        {
-            var assembly = Assembly.GetEntryAssembly();
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                return reader.ReadToEnd();
-            }
-        }
-
         protected FieldMapping<TRevision> MergeMapping(params FieldMapping<TRevision>[] mappings)
         {
             var merged = new FieldMapping<TRevision>();

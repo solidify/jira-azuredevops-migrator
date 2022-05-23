@@ -24,88 +24,7 @@ namespace JiraExport
             _config = config;
             _targetTypes = InitializeTypeMappings();
             _fieldMappingsPerType = InitializeFieldMappings();
-        }
 
-        /// <summary>
-        /// Add or remove single link
-        /// </summary>
-        /// <param name="r"></param>
-        /// <param name="links"></param>
-        /// <param name="field"></param>
-        /// <param name="type"></param>
-        /// <returns>True if link is added, false if it's not</returns>
-        private void AddRemoveSingleLink(JiraRevision r, List<WiLink> links, string field, string type)
-        {
-            if (r.Fields.TryGetValue(field, out object value))
-            {
-                var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
-                var linkType = (from t in _config.LinkMap.Links where t.Source == type select t.Target).FirstOrDefault();
-
-                // regardless if action is add or remove, as there can be only one, we remove previous epic link if it exists
-                if (r.Index != 0)
-                {
-                    var prevLinkValue = r.ParentItem.Revisions[r.Index - 1].GetFieldValue(field);
-                    // if previous value is not null, add removal of previous link
-                    if (!string.IsNullOrWhiteSpace(prevLinkValue))
-                    {
-                        var removeLink = new WiLink()
-                        {
-                            Change = ReferenceChangeType.Removed,
-                            SourceOriginId = r.ParentItem.Key,
-                            TargetOriginId = prevLinkValue,
-                            WiType = linkType
-                        };
-
-                        links.Add(removeLink);
-                    }
-                }
-
-                if (changeType == ReferenceChangeType.Added)
-                {
-                    string linkedItemKey = (string)value;
-
-                    var link = new WiLink()
-                    {
-                        Change = changeType,
-                        SourceOriginId = r.ParentItem.Key,
-                        TargetOriginId = linkedItemKey,
-                        WiType = linkType,
-                    };
-
-                    links.Add(link);
-                }
-            }
-        }
-
-        private void AddSingleLink(JiraRevision r, List<WiLink> links, string field, string type)
-        {
-            if (r.Fields.TryGetValue(field, out object value))
-            {
-                var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
-                var linkType = (from t in _config.LinkMap.Links where t.Source == type select t.Target).FirstOrDefault();
-
-
-                if (changeType == ReferenceChangeType.Added)
-                {
-                    string linkedItemKey = (string)value;
-
-                    if (string.IsNullOrEmpty(linkType))
-                    {
-                        Logger.Log(LogLevel.Warning, $"Cannot add 'Child' {linkedItemKey} link to 'Parent' {r.ParentItem.Key}, 'Child' link-map configuration missing.");
-                        return;
-                    }
-
-                    var link = new WiLink()
-                    {
-                        Change = changeType,
-                        SourceOriginId = r.ParentItem.Key,
-                        TargetOriginId = linkedItemKey,
-                        WiType = linkType,
-                    };
-
-                    links.Add(link);
-                }
-            }
         }
 
         private List<string> GetWorkItemTypes(params string[] notFor)
@@ -145,15 +64,6 @@ namespace JiraExport
             };
         }
 
-        protected override string MapUser(string sourceUser)
-        {
-            if (string.IsNullOrWhiteSpace(sourceUser))
-                return null;
-
-            var email = _jiraProvider.GetUserEmail(sourceUser);
-            return base.MapUser(email);
-        }
-
         internal WiItem Map(JiraItem issue)
         {
             var wiItem = new WiItem();
@@ -178,7 +88,7 @@ namespace JiraExport
             return wiItem;
         }
 
-        private List<WiLink> MapLinks(JiraRevision r)
+        public List<WiLink> MapLinks(JiraRevision r)
         {
             var links = new List<WiLink>();
             if (r.LinkActions == null)
@@ -208,35 +118,19 @@ namespace JiraExport
             }
 
             // map epic link
-            AddRemoveSingleLink(r, links, _jiraProvider.Settings.EpicLinkField, "Epic");
+            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.Settings.EpicLinkField, "Epic", _config);
 
             // map parent
-            AddRemoveSingleLink(r, links, "parent", "Parent");
+            LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
 
             // map epic child
-            MapEpicChildLink(r, links, "epic child", "Child");
+            LinkMapperUtils.MapEpicChildLink(r, links, "epic child", "Child", _config);
 
 
             return links;
         }
 
-        private void MapEpicChildLink(JiraRevision r, List<WiLink> links, string field, string type)
-        {
-            if (r.Fields.TryGetValue(field, out object value))
-            {
-                var parentKeyStr = r.OriginId.Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
-                var childKeyStr = value?.ToString().Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
-
-                if (int.TryParse(parentKeyStr, out var parentKey) && int.TryParse(childKeyStr, out var childKey))
-                {
-                    if (parentKey > childKey)
-                        AddSingleLink(r, links, field, type);
-                }
-            }
-        }
-
-
-        private List<WiAttachment> MapAttachments(JiraRevision rev)
+        public List<WiAttachment> MapAttachments(JiraRevision rev)
         {
             var attachments = new List<WiAttachment>();
             if (rev.AttachmentActions == null)
@@ -261,7 +155,7 @@ namespace JiraExport
             return attachments;
         }
 
-        private List<WiField> MapFields(JiraRevision r)
+        public List<WiField> MapFields(JiraRevision r)
         {
             var fields = new List<WiField>();
 
@@ -328,35 +222,35 @@ namespace JiraExport
 
                     if (item.Mapping?.Values != null)
                     {
-                        value = r => MapValue(r, item.Source);
+                        value = r => FieldMapperUtils.MapValue(r, item.Source, _config);
                     }
                     else if (!string.IsNullOrWhiteSpace(item.Mapper))
                     {
                         switch (item.Mapper)
                         {
                             case "MapTitle":
-                                value = r => MapTitle(r);
+                                value = r => FieldMapperUtils.MapTitle(r);
                                 break;
                             case "MapTitleWithoutKey":
-                                value = r => MapTitleWithoutKey(r);
+                                value = r => FieldMapperUtils.MapTitleWithoutKey(r);
                                 break;
                             case "MapUser":
                                 value = IfChanged<string>(item.Source, isCustomField, MapUser);
                                 break;
                             case "MapSprint":
-                                value = IfChanged<string>(item.Source, isCustomField, MapSprint);
+                                value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapSprint);
                                 break;
                             case "MapTags":
-                                value = IfChanged<string>(item.Source, isCustomField, MapTags);
+                                value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapTags);
                                 break;
                             case "MapArray":
-                                value = IfChanged<string>(item.Source, isCustomField, MapArray);
+                                value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapArray);
                                 break;
                             case "MapRemainingWork":
-                                value = IfChanged<string>(item.Source, isCustomField, MapRemainingWork);
+                                value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapRemainingWork);
                                 break;
                             case "MapRendered":
-                                value = r => MapRenderedValue(r, item.Source, isCustomField);
+                                value = r => FieldMapperUtils.MapRenderedValue(r, item.Source, isCustomField, _jiraProvider.GetCustomId(item.Source), _config);
                                 break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
@@ -428,14 +322,6 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
-
-
-        private object MapRemainingWork(string seconds)
-        {
-            var secs = Convert.ToDouble(seconds);
-            return TimeSpan.FromSeconds(secs).TotalHours;
-        }
-
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
             if (isCustomField)
@@ -464,143 +350,13 @@ namespace JiraExport
             };
         }
 
-        private (bool, object) MapTitle(JiraRevision r)
+        protected override string MapUser(string sourceUser)
         {
-            if (r.Fields.TryGetValue("summary", out object summary))
-                return (true, $"[{r.ParentItem.Key}] {summary}");
-            else
-                return (false, null);
-        }
-        private (bool, object) MapTitleWithoutKey(JiraRevision r)
-        {
-            if (r.Fields.TryGetValue("summary", out object summary))
-                return (true, summary);
-            else
-                return (false, null);
-        }
-
-        private (bool, object) MapValue(JiraRevision r, string itemSource)
-        {
-            var targetWit = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
-
-            if (r.Fields.TryGetValue(itemSource, out object value))
-            {
-                foreach (var item in _config.FieldMap.Fields)
-                {
-                    if (((item.Source == itemSource && (item.For.Contains(targetWit) || item.For == "All")) ||
-                          item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
-                          item.Mapping?.Values != null)
-                    {
-                        var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
-                        if (string.IsNullOrEmpty(mappedValue))
-                        {
-                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}' for item type '{r.Type}'.");
-                        }
-                        return (true, mappedValue);
-                    }
-                }
-                return (true, value);
-            }
-            else
-            {
-                return (false, null);
-            }
-        }
-
-        private (bool, object) MapRenderedValue(JiraRevision r, string sourceField, bool isCustomField)
-        {
-            if (isCustomField)
-            {
-                var customFieldName = _jiraProvider.GetCustomId(sourceField);
-                sourceField = customFieldName;
-            }
-            var fieldName = sourceField + "$Rendered";
-
-            var targetWit = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
-
-            if (r.Fields.TryGetValue(fieldName, out object value))
-            {
-                foreach (var item in _config.FieldMap.Fields)
-                {
-                    if (((item.Source == fieldName && (item.For.Contains(targetWit) || item.For == "All")) ||
-                          item.Source == fieldName && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
-                          item.Mapping?.Values != null)
-                    {
-                        var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
-                        if (string.IsNullOrEmpty(mappedValue))
-                        {
-                            Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{fieldName}'.");
-                        }
-                        return (true, mappedValue);
-                    }
-                }
-                value = CorrectRenderedHtmlvalue(value, r);
-
-                return (true, value);
-            }
-            else
-            {
-                return (false, null);
-            }
-        }
-
-        private object MapTags(string labels)
-        {
-            if (string.IsNullOrWhiteSpace(labels))
+            if (string.IsNullOrWhiteSpace(sourceUser))
                 return null;
 
-            var tags = labels.Split(' ');
-            if (!tags.Any())
-                return null;
-            else
-                return string.Join(";", tags);
-        }
-
-        private object MapArray(string field)
-        {
-            if (string.IsNullOrWhiteSpace(field))
-                return null;
-
-            var values = field.Split(',');
-            if (!values.Any())
-                return null;
-            else
-                return string.Join(";", values);
-        }
-
-        private object MapSprint(string iterationPathsString)
-        {
-            if (string.IsNullOrWhiteSpace(iterationPathsString))
-                return null;
-
-            var iterationPaths = iterationPathsString.Split(',').AsEnumerable();
-            iterationPaths = iterationPaths.Select(ip => ip.Trim());
-
-            var iterationPath = iterationPaths.Last();
-
-            return iterationPath;
-        }
-
-        private string CorrectRenderedHtmlvalue(object value, JiraRevision revision)
-        {
-            var htmlValue = value.ToString();
-
-            foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
-            {
-                if (!string.IsNullOrWhiteSpace(att.Url) && htmlValue.Contains(att.Url))
-                    htmlValue = htmlValue.Replace(att.Url, att.Url);
-            }
-
-            htmlValue = RevisionUtility.ReplaceHtmlElements(htmlValue);
-
-            string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
-            if (string.IsNullOrWhiteSpace(css))
-                Logger.Log(LogLevel.Warning, $"Could not read css styles for rendered field in {revision.OriginId}.");
-            else
-                htmlValue = "<style>" + css + "</style>" + htmlValue;
-
-            return htmlValue;
-
+            var email = _jiraProvider.GetUserEmail(sourceUser);
+            return base.MapUser(email);
         }
 
         #endregion
