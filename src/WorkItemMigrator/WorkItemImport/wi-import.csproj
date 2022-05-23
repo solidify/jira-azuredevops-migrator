@@ -250,6 +250,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="WorkItemUtils.cs" />
     <Compile Include="ExecutionPlan.cs" />
     <Compile Include="ExecutionPlanBuilder.cs" />
     <Compile Include="ImportCommandLine.cs" />
