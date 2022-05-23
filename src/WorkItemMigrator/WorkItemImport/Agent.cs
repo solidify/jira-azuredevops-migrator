@@ -38,7 +38,7 @@ namespace WorkItemImport
         public Dictionary<string, int> AreaCache { get; private set; } = new Dictionary<string, int>();
         public int RootArea { get; private set; }
 
-        private WorkItemUtils workItemUtils;
+        private WitClientWrapper witClientWrapper;
         private WebApi.WorkItemTrackingHttpClient _wiClient;
         public WebApi.WorkItemTrackingHttpClient WiClient
         {
@@ -61,12 +61,12 @@ namespace WorkItemImport
 
         public async Task<WorkItem> GetWorkItem(int wiId)
         {
-            return await workItemUtils.GetWorkItem(wiId);
+            return await witClientWrapper.GetWorkItem(wiId);
         }
 
         public async Task<WorkItem> CreateWI(string type)
         {
-            return await workItemUtils.CreateWorkItem(type);
+            return await witClientWrapper.CreateWorkItem(type);
         }
 
         public async Task<bool> ImportRevision(WiRevision rev, WorkItem wi)
@@ -75,15 +75,15 @@ namespace WorkItemImport
             try
             {
                 if (rev.Index == 0)
-                    workItemUtils.EnsureClassificationFields(rev);
+                    witClientWrapper.EnsureClassificationFields(rev);
 
-                workItemUtils.EnsureDateFields(rev, wi);
-                workItemUtils.EnsureAuthorFields(rev);
-                workItemUtils.EnsureAssigneeField(rev, wi);
-                workItemUtils.EnsureFieldsOnStateChange(rev, wi);
+                witClientWrapper.EnsureDateFields(rev, wi);
+                witClientWrapper.EnsureAuthorFields(rev);
+                witClientWrapper.EnsureAssigneeField(rev, wi);
+                witClientWrapper.EnsureFieldsOnStateChange(rev, wi);
 
                 var attachmentMap = new Dictionary<string, AttachmentReference>();
-                if (rev.Attachments.Any() && !workItemUtils.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
+                if (rev.Attachments.Any() && !witClientWrapper.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
                     incomplete = true;
 
                 if (rev.Fields.Any() && !UpdateWIFields(rev.Fields, wi))
@@ -98,15 +98,15 @@ namespace WorkItemImport
                 if (rev.Attachments.All(a => a.Change != ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
-                    workItemUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    witClientWrapper.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
                 if (!string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
-                    workItemUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    witClientWrapper.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                await workItemUtils.SaveWorkItem(rev, wi);
+                await witClientWrapper.SaveWorkItem(rev, wi);
 
                 foreach (var wiAtt in rev.Attachments)
                 {
@@ -120,8 +120,8 @@ namespace WorkItemImport
 
                     try
                     {
-                        if (workItemUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
-                            await workItemUtils.SaveWorkItem(rev, wi);
+                        if (witClientWrapper.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
+                            await witClientWrapper.SaveWorkItem(rev, wi);
                     }
                     catch (Exception ex)
                     {
@@ -159,7 +159,7 @@ namespace WorkItemImport
 
             var agent = new Agent(context, settings, restConnection, soapConnection);
 
-            agent.workItemUtils = new WorkItemUtils(settings.Account, settings.Project);
+            agent.witClientWrapper = new WitClientWrapper(settings.Account, settings.Project);
 
             // check if projects exists, if not create it
             var project = agent.GetOrCreateProjectAsync().Result;
@@ -507,12 +507,12 @@ namespace WorkItemImport
                             s.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                             s.Equals(WiFieldReference.Tags, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null:
 
-                            workItemUtils.SetFieldValue(wi, fieldRef, fieldValue);
+                            witClientWrapper.SetFieldValue(wi, fieldRef, fieldValue);
                             break;
                         default:
                             if (fieldValue != null)
                             {
-                                workItemUtils.SetFieldValue(wi, fieldRef, fieldValue);
+                                witClientWrapper.SetFieldValue(wi, fieldRef, fieldValue);
                             }
                             break;
                     }
@@ -549,11 +549,11 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !(await workItemUtils.AddLink(link, wi)))
+                    if (link.Change == ReferenceChangeType.Added && !(await witClientWrapper.AddLink(link, wi)))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !workItemUtils.RemoveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !witClientWrapper.RemoveLink(link, wi))
                     {
                         success = false;
                     }

@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-//using Microsoft.TeamFoundation.WorkItemTracking.Client;
 
 using Migration.Common;
 using Migration.Common.Log;
@@ -18,7 +17,7 @@ using Migration.WIContract;
 
 namespace WorkItemImport
 {
-    public class WorkItemUtils
+    public class WITClientWrapper
     {
         private WorkItemTrackingHttpClient WitClient { get; }
         private ProjectHttpClient ProjectClient { get; }
@@ -29,7 +28,7 @@ namespace WorkItemImport
         private WorkItemTypeCategory DefaultWorkItemTypeCategory { get; }
         private WorkItemTypeReference DefaultWorkItemType { get; }
 
-        public WorkItemUtils(string collectionUri, string project)
+        public WITClientWrapper(string collectionUri, string project)
         {
             Connection = new VssConnection(new Uri(collectionUri), new VssClientCredentials());
             WitClient = Connection.GetClient<WorkItemTrackingHttpClient>();
