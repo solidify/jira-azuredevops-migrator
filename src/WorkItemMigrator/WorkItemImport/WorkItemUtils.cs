@@ -38,6 +38,16 @@ namespace WorkItemImport
 
         public static bool IsDuplicateWorkItemLink(LinkCollection links, RelatedLink relatedLink)
         {
+            if (links == null)
+            {
+                throw new ArgumentException(nameof(links));
+            }
+
+            if (relatedLink == null)
+            {
+                throw new ArgumentException(nameof(relatedLink));
+            }
+
             var containsRelatedLink = links.Contains(relatedLink);
             var hasSameRelatedWorkItemId = links.OfType<RelatedLink>()
                 .Any(l => l.RelatedWorkItemId == relatedLink.RelatedWorkItemId);
@@ -88,6 +98,16 @@ namespace WorkItemImport
 
         public static void EnsureAuthorFields(WiRevision rev)
         {
+            if(rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            if (rev.Fields == null)
+            {
+                throw new ArgumentException(nameof(rev.Fields));
+            }
+
             if (rev.Index == 0 && !rev.Fields.HasAnyByRefName(WiFieldReference.CreatedBy))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.CreatedBy, Value = rev.Author });
@@ -154,6 +174,16 @@ namespace WorkItemImport
 
         public static void EnsureClassificationFields(WiRevision rev)
         {
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            if (rev.Fields == null)
+            {
+                throw new ArgumentException(nameof(rev.Fields));
+            }
+
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.AreaPath))
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AreaPath, Value = "" });
 
