@@ -443,7 +443,7 @@ namespace WorkItemImport
             return success;
         }
 
-        private bool ApplyLinks(WiRevision rev, WorkItem wi)
+        private async Task<bool> ApplyLinks(WiRevision rev, WorkItem wi)
         {
             bool success = true;
 
@@ -465,7 +465,7 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !AddLink(link, wi))
+                    if (link.Change == ReferenceChangeType.Added && !(await AddLink(link, wi)))
                     {
                         success = false;
                     }
@@ -482,26 +482,31 @@ namespace WorkItemImport
             }
 
             if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
-                wi.Fields[CoreField.History].Value = $"Removed link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Removed link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
             else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
-                wi.Fields[CoreField.History].Value = $"Added link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Added link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
 
             return success;
         }
 
-        private bool AddLink(WiLink link, WorkItem wi)
+        private async Task<bool> AddLink(WiLink link, WorkItem wi)
         {
-            var linkEnd = workItemUtils.ParseLinkEnd(link, wi);
+            var linkEnd = await workItemUtils.ParseLinkEnd(link, wi);
 
             if (linkEnd != null)
             {
                 try
                 {
-                    var relatedLink = new ReferenceLink(linkEnd, link.TargetWiId);
-                    relatedLink = ResolveCiclycalLinks(relatedLink, wi);
+                    WorkItem targetWorkItem = await workItemUtils.GetWorkItem(link.TargetWiId);
+
+                    WorkItemRelation relatedLink = new WorkItemRelation();
+                    relatedLink.Rel = linkEnd.ReferenceName;
+                    relatedLink.Url = targetWorkItem.Url;
+
+                    relatedLink = await ResolveCyclicalLinks(relatedLink, wi);
                     if (!workItemUtils.IsDuplicateWorkItemLink(wi.Links, relatedLink))
                     {
-                        wi.Links.Add(relatedLink);
+                        wi.Relations.Add(relatedLink);
                         return true;
                     }
                     return false;
@@ -519,21 +524,33 @@ namespace WorkItemImport
 
         }
 
-        private ReferenceLink ResolveCiclycalLinks(ReferenceLink link, WorkItem wi)
+        private async Task<WorkItemRelation> ResolveCyclicalLinks(WorkItemRelation link, WorkItem wi)
         {
-            if (link.LinkTypeEnd.LinkType.IsNonCircular && DetectCycle(wi, link))
-                return new ReferenceLink(link.LinkTypeEnd.OppositeEnd, workItemUtils.GetRelatedWorkItemIdFromLink(link));
+            if (await DetectCycle(wi, link))
+            {
+                WorkItemRelation reverseLink = new WorkItemRelation();
+                if(link.Rel.Contains("Forward"))
+                {
+                    reverseLink.Rel = link.Rel.Replace("Forward", "Reverse");
+                }
+                else
+                {
+                    reverseLink.Rel = link.Rel.Replace("Reverse", "Forward");
+                }
+                reverseLink.Url = reverseLink.Url.Replace(reverseLink.Url.Split('/')[reverseLink.Url.Split('/').Length-1], workItemUtils.GetRelatedWorkItemIdFromLink(link).ToString());
+                return reverseLink;
+            }
 
             return link;
         }
 
-        private async bool DetectCycle(WorkItem startingWi, ReferenceLink startingLink)
+        private async Task<bool> DetectCycle(WorkItem startingWi, WorkItemRelation startingLink)
         {
             var nextWiLink = startingLink;
             do
             {
                 var nextWi = await workItemUtils.GetWorkItem(workItemUtils.GetRelatedWorkItemIdFromLink(nextWiLink));
-                nextWiLink = nextWi.Links.Links.OfType<ReferenceLink>().FirstOrDefault(rl => rl.LinkTypeEnd.Id == startingLink.LinkTypeEnd.Id);
+                nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().FirstOrDefault(rl => workItemUtils.GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
 
                 if (nextWiLink != null && workItemUtils.GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
                     return true;
@@ -543,14 +560,8 @@ namespace WorkItemImport
             return false;
         }
 
-        private void SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
+        private async Task SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
         {
-            if (!newWorkItem.IsValid())
-            {
-                var reasons = newWorkItem.Validate();
-                foreach (Microsoft.TeamFoundation.WorkItemTracking.Client.Field reason in reasons)
-                    Logger.Log(LogLevel.Info, $"Field: '{reason.Name}', Status: '{reason.Status}', Value: '{reason.Value}'");
-            }
             try
             {
                 newWorkItem.Save(SaveFlags.MergeAll);
@@ -560,14 +571,14 @@ namespace WorkItemImport
                 Logger.Log(faex,
                     $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
                 newWorkItem.Attachments.Remove(faex.SourceAttachment);
-                SaveWorkItem(rev, newWorkItem);
+                await SaveWorkItem(rev, newWorkItem);
             }
             catch (WorkItemLinkValidationException wilve)
             {
                 Logger.Log(wilve, $"[{wilve.GetType()}] {wilve.Message}. Link Source: {wilve.LinkInfo.SourceId}, Target: {wilve.LinkInfo.TargetId} in {rev} will be skipped.");
-                var exceedsLinkLimit = RemoveLinksFromWiThatExceedsLimit(newWorkItem);
+                var exceedsLinkLimit = await RemoveLinksFromWiThatExceedsLimit(newWorkItem);
                 if (exceedsLinkLimit)
-                    SaveWorkItem(rev, newWorkItem);
+                    await SaveWorkItem(rev, newWorkItem);
             }
         }
 
@@ -589,7 +600,7 @@ namespace WorkItemImport
             return result;
         }
 
-        public bool ImportRevision(WiRevision rev, WorkItem wi)
+        public async Task<bool> ImportRevision(WiRevision rev, WorkItem wi)
         {
             var incomplete = false;
             try
@@ -603,13 +614,13 @@ namespace WorkItemImport
                 workItemUtils.EnsureFieldsOnStateChange(rev, wi);
 
                 var attachmentMap = new Dictionary<string, AttachmentReference>();
-                if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
+                if (rev.Attachments.Any() && !workItemUtils.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
                     incomplete = true;
 
                 if (rev.Fields.Any() && !UpdateWIFields(rev.Fields, wi))
                     incomplete = true;
 
-                if (rev.Links.Any() && !ApplyLinks(rev, wi))
+                if (rev.Links.Any() && !(await ApplyLinks(rev, wi)))
                     incomplete = true;
 
                 if (incomplete)
@@ -620,13 +631,13 @@ namespace WorkItemImport
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
                     workItemUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
-                if (!string.IsNullOrEmpty(wi.History))
+                if (!string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
                     workItemUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                SaveWorkItem(rev, wi);
+                await SaveWorkItem(rev, wi);
 
                 foreach (var wiAtt in rev.Attachments)
                 {
@@ -649,7 +660,7 @@ namespace WorkItemImport
                     }
                 }
 
-                _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id, rev.Index);
+                _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
 
                 Logger.Log(LogLevel.Debug, $"Imported revision.");
 

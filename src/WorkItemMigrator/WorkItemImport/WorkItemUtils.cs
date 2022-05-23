@@ -98,7 +98,7 @@ namespace WorkItemImport
             }
         }
 
-        public bool IsDuplicateWorkItemLink(ReferenceLinks links, ReferenceLink relatedLink)
+        public bool IsDuplicateWorkItemLink(ReferenceLinks links, WorkItemRelation relatedLink)
         {
             if (links == null)
             {
@@ -121,17 +121,18 @@ namespace WorkItemImport
             return true;
         }
 
-        public WorkItemLinkTypeEnd ParseLinkEnd(WiLink link, WorkItem wi)
+        public async Task<WorkItemRelationType> ParseLinkEnd(WiLink link, WorkItem wi)
         {
             var props = link.WiType?.Split('-');
-            var linkType = GetProjectFromWorkItem(wi).Store.WorkItemLinkTypes.SingleOrDefault(lt => lt.ReferenceName == props?[0]);
+            var linkType = (await WitClient.GetRelationTypesAsync()).SingleOrDefault(lt => lt.ReferenceName == props?[0]);
+            
             if (linkType == null)
             {
                 Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({props?[0]}) does not exist in project");
                 return null;
             }
 
-            WorkItemLinkTypeEnd linkEnd = null;
+            WorkItemRelationType linkEnd = null;
 
             if (linkType.IsDirectional)
             {
@@ -146,20 +147,22 @@ namespace WorkItemImport
             return linkEnd;
         }
 
+        private bool IsLinkDirectional
+
         private TeamProject GetProjectFromWorkItem(WorkItem wi)
         {
             string projectName = wi.Fields[WiFieldReference.TeamProject].ToString();
             return ProjectClient.GetProject(projectName).Result;
         }
 
-        public int GetRelatedWorkItemIdFromLink(ReferenceLink link)
+        public int GetRelatedWorkItemIdFromLink(WorkItemRelation link)
         {
-            return int.Parse(link.Href.Split('/')[link.Href.Split('/').Length - 1]);
+            return int.Parse(link.Url.Split('/')[link.Url.Split('/').Length - 1]);
         }
 
         public bool RemoveLink(WiLink link, WorkItem wi)
         {
-            var linkToRemove = wi.Links.Links.OfType<ReferenceLink>().SingleOrDefault(
+            WorkItemRelation linkToRemove = wi.Links.Links.OfType<WorkItemRelation>().SingleOrDefault(
                 rl =>
                     rl.GetType().FullName == link.WiType
                     && GetRelatedWorkItemIdFromLink(rl) == link.TargetWiId);
@@ -168,7 +171,7 @@ namespace WorkItemImport
                 Logger.Log(LogLevel.Warning, $"{link.ToString()} - cannot identify link to remove for '{wi.Id}'.");
                 return false;
             }
-            wi.Links.Links.Remove(linkToRemove);
+            wi.Relations.Remove(linkToRemove);
             return true;
         }
 
@@ -309,7 +312,7 @@ namespace WorkItemImport
             }
 
             if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Removed))
-                wi.Fields[CoreField.History].Value = $"Removed attachments(s): { string.Join(";", rev.Attachments.Where(a => a.Change == ReferenceChangeType.Removed).Select(a => a.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Removed attachments(s): { string.Join(";", rev.Attachments.Where(a => a.Change == ReferenceChangeType.Removed).Select(a => a.ToString()))}";
 
             return success;
         }
@@ -381,12 +384,12 @@ namespace WorkItemImport
 
         public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
         {
-            var currentComment = wi.History;
-            var commentUpdated = false;
+            string currentComment = wi.Fields[WiFieldReference.History].ToString();
+            bool commentUpdated = false;
             CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated, isAttachmentMigratedDelegate);
 
             if (commentUpdated)
-                wi.Fields[CoreField.History].Value = currentComment;
+                wi.Fields[WiFieldReference.History] = currentComment;
         }
     }
 }

@@ -30,6 +30,7 @@
         public static string Tags => "System.Tags";
         public static string TeamProject => "System.TeamProject";
         public static string WorkItemType => "System.WorkItemType";
+        public static string History => "System.History";
 
     }
 }
