@@ -6,7 +6,7 @@ using System.Linq;
 using Common.Config;
 
 using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 using Migration.Common;
 using Migration.Common.Config;
@@ -66,7 +66,7 @@ namespace WorkItemImport
             });
         }
 
-        private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private async void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             ConfigJson config = null;
             var itemCount = 0;
@@ -120,13 +120,13 @@ namespace WorkItemImport
                         WorkItem wi = null;
 
                         if (executionItem.WiId > 0)
-                            wi = agent.GetWorkItem(executionItem.WiId);
+                            wi = await agent.GetWorkItem(executionItem.WiId);
                         else
-                            wi = agent.CreateWI(executionItem.WiType);
+                            wi = await agent.CreateWI(executionItem.WiType);
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
-                        agent.ImportRevision(executionItem.Revision, wi);
+                        await agent.ImportRevision(executionItem.Revision, wi);
                         importedItems++;
                     }
                     catch (AbortMigrationException)

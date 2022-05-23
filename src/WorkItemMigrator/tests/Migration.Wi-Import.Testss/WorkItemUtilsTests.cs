@@ -126,8 +126,8 @@ namespace Migration.Wi_Import.Testss
         [Test]
         public void When_calling_is_duplicate_work_item_link_with_containing_link_Then_true_is_returned()
         {
-            ReferenceLinks links = new ReferenceLinks();
-            ReferenceLink relatedLink = new ReferenceLink();
+            WorkItemRelation[] links = new WorkItemRelation[0];
+            WorkItemRelation relatedLink = new WorkItemRelation();
 
             WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
             bool isDuplicate = wiUtils.IsDuplicateWorkItemLink(links, relatedLink);

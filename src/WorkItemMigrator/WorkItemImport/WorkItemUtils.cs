@@ -20,30 +20,6 @@ namespace WorkItemImport
 {
     public class WorkItemUtils
     {
-        /*
-         * Wrapper classes for dotnet core 3.1
-         *
-        public class WorkItemWrapper
-        {
-            Dictionary<string, object> Fields { get; set; }
-            Dictionary<string, object> Links { get; set; }
-            string WIType { get; set; }
-            public WorkItem ToWorkItem()
-            {
-                Microsoft.TeamFoundation.WorkItemTracking.Client.WorkItemType wiType = null;
-                switch (WIType)
-                {
-                    case "Bug":
-                        wiType = new Microsoft.TeamFoundation.WorkItemTracking.Client.WorkItemType();
-                        break;
-                }
-                WorkItem wi = new WorkItem(wiType);
-                wi.
-                return wi;
-            }
-        }
-        */
-
         private WorkItemTrackingHttpClient WitClient { get; }
         private ProjectHttpClient ProjectClient { get; }
         private VssConnection Connection { get; }
@@ -66,14 +42,9 @@ namespace WorkItemImport
 
         public delegate V IsAttachmentMigratedDelegate<T, U, V>(T input, out U output);
 
-        public async Task<WorkItem> CreateWI(string type)
+        public async Task<WorkItem> CreateWorkItem(string type)
         {
             return await WitClient.CreateWorkItemAsync(null, TeamProject.Id, type);
-        }
-
-        public async Task<WorkItem> GetWorkItem(int wiId)
-        {
-            return await WitClient.GetWorkItemAsync(wiId);
         }
 
         public void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
@@ -98,7 +69,7 @@ namespace WorkItemImport
             }
         }
 
-        public bool IsDuplicateWorkItemLink(ReferenceLinks links, WorkItemRelation relatedLink)
+        public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)
         {
             if (links == null)
             {
@@ -110,54 +81,50 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(relatedLink));
             }
 
-            var containsRelatedLink = links.Links.Values.Contains(relatedLink);
-            var hasSameRelatedWorkItemId = links.Links.Values.OfType<ReferenceLink>()
-                .Any(l => l.Href == relatedLink.Href);
+            var containsRelatedLink = links.Contains(relatedLink);
+            var hasSameRelatedWorkItemId = links.OfType<WorkItemRelation>()
+                .Any(l => l.Url == relatedLink.Url);
 
             if (!containsRelatedLink && !hasSameRelatedWorkItemId)
                 return false;
 
-            Logger.Log(LogLevel.Warning, $"Duplicate work item link detected to related workitem id: {relatedLink.Href}, Skipping link");
+            Logger.Log(LogLevel.Warning, $"Duplicate work item link detected to related workitem id: {relatedLink.Url}, Skipping link");
             return true;
         }
 
-        public async Task<WorkItemRelationType> ParseLinkEnd(WiLink link, WorkItem wi)
+        public async Task<bool> AddLink(WiLink link, WorkItem wi)
         {
-            var props = link.WiType?.Split('-');
-            var linkType = (await WitClient.GetRelationTypesAsync()).SingleOrDefault(lt => lt.ReferenceName == props?[0]);
-            
-            if (linkType == null)
-            {
-                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({props?[0]}) does not exist in project");
-                return null;
-            }
+            var linkEnd = await ParseLinkEnd(link, wi);
 
-            WorkItemRelationType linkEnd = null;
-
-            if (linkType.IsDirectional)
+            if (linkEnd != null)
             {
-                if (props?.Length > 1)
-                    linkEnd = props[1] == "Forward" ? linkType.ForwardEnd : linkType.ReverseEnd;
-                else
-                    Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link direction not provided for '{wi.Id}'.");
+                try
+                {
+                    WorkItem targetWorkItem = await GetWorkItem(link.TargetWiId);
+
+                    WorkItemRelation relatedLink = new WorkItemRelation();
+                    relatedLink.Rel = linkEnd.ReferenceName;
+                    relatedLink.Url = targetWorkItem.Url;
+
+                    relatedLink = await ResolveCyclicalLinks(relatedLink, wi);
+                    if (!IsDuplicateWorkItemLink(wi.Links, relatedLink))
+                    {
+                        wi.Relations.Add(relatedLink);
+                        return true;
+                    }
+                    return false;
+                }
+
+                catch (Exception ex)
+                {
+
+                    Logger.Log(LogLevel.Error, ex.Message);
+                    return false;
+                }
             }
             else
-                linkEnd = linkType.ForwardEnd;
+                return false;
 
-            return linkEnd;
-        }
-
-        private bool IsLinkDirectional
-
-        private TeamProject GetProjectFromWorkItem(WorkItem wi)
-        {
-            string projectName = wi.Fields[WiFieldReference.TeamProject].ToString();
-            return ProjectClient.GetProject(projectName).Result;
-        }
-
-        public int GetRelatedWorkItemIdFromLink(WorkItemRelation link)
-        {
-            return int.Parse(link.Url.Split('/')[link.Url.Split('/').Length - 1]);
         }
 
         public bool RemoveLink(WiLink link, WorkItem wi)
@@ -173,6 +140,23 @@ namespace WorkItemImport
             }
             wi.Relations.Remove(linkToRemove);
             return true;
+        }
+        public async Task<bool> RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
+        {
+            List<WorkItemRelation> links = newWorkItem.Relations.OfType<WorkItemRelation>().ToList();
+            bool result = false;
+            foreach (var link in links)
+            {
+                WorkItem relatedWorkItem = await GetWorkItem(GetRelatedWorkItemIdFromLink(link));
+                int relatedLinkCount = relatedWorkItem.Relations.Count;
+                if (relatedLinkCount != 1000)
+                    continue;
+
+                newWorkItem.Relations.Remove(link);
+                result = true;
+            }
+
+            return result;
         }
 
         public void EnsureAuthorFields(WiRevision rev)
@@ -317,14 +301,6 @@ namespace WorkItemImport
             return success;
         }
 
-        public AttachmentReference IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
-        {
-            //if (context.Journal.IsAttachmentMigrated(att.AttOriginId, out int attWiId))
-            if (isAttachmentMigratedDelegate(att.AttOriginId, out int attWiId))
-                return wi.Attachments.Cast<AttachmentReference>().SingleOrDefault(a => a.Id == attWiId);
-            return null;
-        }
-
         public void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
         {
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
@@ -390,6 +366,124 @@ namespace WorkItemImport
 
             if (commentUpdated)
                 wi.Fields[WiFieldReference.History] = currentComment;
+        }
+
+        public async Task<WorkItem> GetWorkItem(int wiId)
+        {
+            return await WitClient.GetWorkItemAsync(wiId);
+        }
+
+        public async Task SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
+        {
+            try
+            {
+                newWorkItem.Save(SaveFlags.MergeAll);
+            }
+            catch (FileAttachmentException faex)
+            {
+                Logger.Log(faex,
+                    $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
+                newWorkItem.Attachments.Remove(faex.SourceAttachment);
+                await SaveWorkItem(rev, newWorkItem);
+            }
+            catch (WorkItemLinkValidationException wilve)
+            {
+                Logger.Log(wilve, $"[{wilve.GetType()}] {wilve.Message}. Link Source: {wilve.LinkInfo.SourceId}, Target: {wilve.LinkInfo.TargetId} in {rev} will be skipped.");
+                var exceedsLinkLimit = await RemoveLinksFromWiThatExceedsLimit(newWorkItem);
+                if (exceedsLinkLimit)
+                    await SaveWorkItem(rev, newWorkItem);
+            }
+        }
+
+        private async Task<WorkItemRelationType> ParseLinkEnd(WiLink link, WorkItem wi)
+        {
+            string[] props = link.WiType?.Split('-');
+
+            List<WorkItemRelationType> linkTypes = (await WitClient.GetRelationTypesAsync());
+            WorkItemRelationType linkType = linkTypes.SingleOrDefault(lt => lt.ReferenceName == props?[0]);
+
+            if (linkType == null)
+            {
+                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({props?[0]}) does not exist in project");
+                return null;
+            }
+
+            WorkItemRelationType LinkTypeOut = new WorkItemRelationType();
+
+            // Is link directional?
+            if (linkType.ReferenceName.EndsWith("Forward") || linkType.ReferenceName.EndsWith("Reverse"))
+            {
+                string reverseLinkTypeName = GetReverseLinkTypeReferenceName(linkType.ReferenceName);
+                if (props?.Length > 1)
+                    LinkTypeOut = props[1] == "Forward" ? linkType : linkTypes.Where(e => e.ReferenceName == reverseLinkTypeName).SingleOrDefault();
+                else
+                    Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link direction not provided for '{wi.Id}'.");
+            }
+            else
+                LinkTypeOut = linkType;
+
+            return LinkTypeOut;
+        }
+
+        private AttachmentReference IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        {
+            //if (context.Journal.IsAttachmentMigrated(att.AttOriginId, out int attWiId))
+            if (isAttachmentMigratedDelegate(att.AttOriginId, out int attWiId))
+                return wi.Attachments.Cast<AttachmentReference>().SingleOrDefault(a => a.Id == attWiId);
+            return null;
+        }
+
+        private async Task<WorkItemRelation> ResolveCyclicalLinks(WorkItemRelation link, WorkItem wi)
+        {
+            if (await DetectCycle(wi, link))
+            {
+                WorkItemRelation reverseLink = new WorkItemRelation();
+                string reverseLinkTypeName = GetReverseLinkTypeReferenceName(link.Rel);
+                reverseLink.Rel = reverseLinkTypeName;
+                reverseLink.Url = reverseLink.Url.Replace(reverseLink.Url.Split('/')[reverseLink.Url.Split('/').Length - 1], GetRelatedWorkItemIdFromLink(link).ToString());
+                return reverseLink;
+            }
+
+            return link;
+        }
+
+        private async Task<bool> DetectCycle(WorkItem startingWi, WorkItemRelation startingLink)
+        {
+            var nextWiLink = startingLink;
+            do
+            {
+                var nextWi = await GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
+                nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
+
+                if (nextWiLink != null && GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
+                    return true;
+
+            } while (nextWiLink != null);
+
+            return false;
+        }
+
+        private string GetReverseLinkTypeReferenceName(string referenceName)
+        {
+            if (referenceName.Contains("Forward"))
+            {
+                return referenceName.Replace("Forward", "Reverse");
+            }
+            else
+            {
+                return referenceName.Replace("Reverse", "Forward");
+            }
+        }
+
+        private TeamProject GetProjectFromWorkItem(WorkItem wi)
+        {
+            string projectName = wi.Fields[WiFieldReference.TeamProject].ToString();
+            return ProjectClient.GetProject(projectName).Result;
+        }
+
+        private int GetRelatedWorkItemIdFromLink(WorkItemRelation link)
+        {
+            return int.Parse(link.Url.Split('/')[link.Url.Split('/').Length - 1]);
         }
     }
 }
