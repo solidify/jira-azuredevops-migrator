@@ -7,6 +7,10 @@ using WorkItemImport;
 using Migration.WIContract;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
+using System.Threading.Tasks;
+using NSubstitute;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 namespace Migration.Wi_Import.Testss
 {
@@ -127,6 +131,12 @@ namespace Migration.Wi_Import.Testss
 
             WorkItemUtils wiUtils = new WorkItemUtils("https://dev.azure.com/solidify", "testproject");
             bool isDuplicate = wiUtils.IsDuplicateWorkItemLink(links, relatedLink);
+
+            var WitClient = _fixture.Freeze<WorkItemTrackingHttpClient>();
+
+            // Mock WITClient
+            WitClient.GetWorkItemAsync("", 0).Returns(Task.FromResult(new WorkItem()));
+
 
             Assert.That(isDuplicate, Is.EqualTo(true));
         }

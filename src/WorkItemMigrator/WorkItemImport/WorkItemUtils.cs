@@ -152,12 +152,17 @@ namespace WorkItemImport
             return ProjectClient.GetProject(projectName).Result;
         }
 
+        public int GetRelatedWorkItemIdFromLink(ReferenceLink link)
+        {
+            return int.Parse(link.Href.Split('/')[link.Href.Split('/').Length - 1]);
+        }
+
         public bool RemoveLink(WiLink link, WorkItem wi)
         {
             var linkToRemove = wi.Links.Links.OfType<ReferenceLink>().SingleOrDefault(
                 rl =>
                     rl.GetType().FullName == link.WiType
-                    && int.Parse(rl.Href.Split('/')[rl.Href.Split('/').Length-1]) == link.TargetWiId);
+                    && GetRelatedWorkItemIdFromLink(rl) == link.TargetWiId);
             if (linkToRemove == null)
             {
                 Logger.Log(LogLevel.Warning, $"{link.ToString()} - cannot identify link to remove for '{wi.Id}'.");
@@ -309,7 +314,7 @@ namespace WorkItemImport
             return success;
         }
 
-        public static AttachmentReference IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public AttachmentReference IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
         {
             //if (context.Journal.IsAttachmentMigrated(att.AttOriginId, out int attWiId))
             if (isAttachmentMigratedDelegate(att.AttOriginId, out int attWiId))
@@ -317,7 +322,7 @@ namespace WorkItemImport
             return null;
         }
 
-        public static void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
         {
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
@@ -349,7 +354,7 @@ namespace WorkItemImport
             }
         }
 
-        public static bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
         {
             string description = wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug" ? wi.Fields[WiFieldReference.ReproSteps].ToString() : wi.Fields[WiFieldReference.Description].ToString();
             if (string.IsNullOrWhiteSpace(description))
@@ -374,7 +379,7 @@ namespace WorkItemImport
             return descUpdated;
         }
 
-        public static void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
+        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, int, bool> isAttachmentMigratedDelegate)
         {
             var currentComment = wi.History;
             var commentUpdated = false;

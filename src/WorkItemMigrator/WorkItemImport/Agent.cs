@@ -21,6 +21,7 @@ using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 using static WorkItemImport.WorkItemUtils;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.VisualStudio.Services.WebApi;
 
 namespace WorkItemImport
 {
@@ -33,19 +34,6 @@ namespace WorkItemImport
         {
             get; private set;
         }
-        /*
-        private WorkItemStore _store;
-        public WorkItemStore Store
-        {
-            get
-            {
-                if (_store == null)
-                    _store = new WorkItemStore(Collection, WorkItemStoreFlags.BypassRules);
-
-                return _store;
-            }
-        }
-        */
 
         public VsWebApi.VssConnection RestConnection { get; private set; }
         public Dictionary<string, int> IterationCache { get; private set; } = new Dictionary<string, int>();
@@ -53,6 +41,7 @@ namespace WorkItemImport
         public Dictionary<string, int> AreaCache { get; private set; } = new Dictionary<string, int>();
         public int RootArea { get; private set; }
 
+        private WorkItemUtils workItemUtils;
         private WebApi.WorkItemTrackingHttpClient _wiClient;
         public WebApi.WorkItemTrackingHttpClient WiClient
         {
@@ -85,6 +74,8 @@ namespace WorkItemImport
                 return null;
 
             var agent = new Agent(context, settings, restConnection, soapConnection);
+
+            agent.workItemUtils = new WorkItemUtils(settings.Account, settings.Project);
 
             // check if projects exists, if not create it
             var project = agent.GetOrCreateProjectAsync().Result;
@@ -352,7 +343,6 @@ namespace WorkItemImport
                 {
                     Logger.Log(LogLevel.Debug, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
                     cache.Add(fullName, node.Id);
-                    Store.RefreshCache();
                     return node.Id;
                 }
             }
@@ -392,13 +382,13 @@ namespace WorkItemImport
                             if (!string.IsNullOrWhiteSpace(iterationPath))
                             {
                                 EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
-                                wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
+                                wi.Fields[WiFieldReference.IterationPath] = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
                             }
                             else
                             {
-                                wi.IterationPath = Settings.Project;
+                                wi.Fields[WiFieldReference.IterationPath] = Settings.Project;
                             }
-                            Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.IterationPath}'.");
+                            Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.Fields[WiFieldReference.IterationPath]}'.");
                             break;
 
                         case var s when s.Equals(WiFieldReference.AreaPath, StringComparison.InvariantCultureIgnoreCase):
@@ -416,14 +406,14 @@ namespace WorkItemImport
                             if (!string.IsNullOrWhiteSpace(areaPath))
                             {
                                 EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
-                                wi.AreaPath = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
+                                wi.Fields[WiFieldReference.AreaPath] = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
                             }
                             else
                             {
-                                wi.AreaPath = Settings.Project;
+                                wi.Fields[WiFieldReference.AreaPath] = Settings.Project;
                             }
 
-                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
+                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{ wi.Fields[WiFieldReference.AreaPath] }'.");
 
                             break;
 
@@ -433,12 +423,12 @@ namespace WorkItemImport
                             s.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                             s.Equals(WiFieldReference.Tags, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null:
 
-                            SetFieldValue(wi, fieldRef, fieldValue);
+                            workItemUtils.SetFieldValue(wi, fieldRef, fieldValue);
                             break;
                         default:
                             if (fieldValue != null)
                             {
-                                SetFieldValue(wi, fieldRef, fieldValue);
+                                workItemUtils.SetFieldValue(wi, fieldRef, fieldValue);
                             }
                             break;
                     }
@@ -456,10 +446,6 @@ namespace WorkItemImport
         private bool ApplyLinks(WiRevision rev, WorkItem wi)
         {
             bool success = true;
-
-            if (!wi.IsOpen)
-                wi.Open();
-
 
             foreach (var link in rev.Links)
             {
@@ -483,7 +469,7 @@ namespace WorkItemImport
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !RemoveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !workItemUtils.RemoveLink(link, wi))
                     {
                         success = false;
                     }
@@ -505,15 +491,15 @@ namespace WorkItemImport
 
         private bool AddLink(WiLink link, WorkItem wi)
         {
-            var linkEnd = ParseLinkEnd(link, wi);
+            var linkEnd = workItemUtils.ParseLinkEnd(link, wi);
 
             if (linkEnd != null)
             {
                 try
                 {
-                    var relatedLink = new RelatedLink(linkEnd, link.TargetWiId);
+                    var relatedLink = new ReferenceLink(linkEnd, link.TargetWiId);
                     relatedLink = ResolveCiclycalLinks(relatedLink, wi);
-                    if (!IsDuplicateWorkItemLink(wi.Links, relatedLink))
+                    if (!workItemUtils.IsDuplicateWorkItemLink(wi.Links, relatedLink))
                     {
                         wi.Links.Add(relatedLink);
                         return true;
@@ -533,23 +519,23 @@ namespace WorkItemImport
 
         }
 
-        private RelatedLink ResolveCiclycalLinks(RelatedLink link, WorkItem wi)
+        private ReferenceLink ResolveCiclycalLinks(ReferenceLink link, WorkItem wi)
         {
             if (link.LinkTypeEnd.LinkType.IsNonCircular && DetectCycle(wi, link))
-                return new RelatedLink(link.LinkTypeEnd.OppositeEnd, link.RelatedWorkItemId);
+                return new ReferenceLink(link.LinkTypeEnd.OppositeEnd, workItemUtils.GetRelatedWorkItemIdFromLink(link));
 
             return link;
         }
 
-        private bool DetectCycle(WorkItem startingWi, RelatedLink startingLink)
+        private async bool DetectCycle(WorkItem startingWi, ReferenceLink startingLink)
         {
             var nextWiLink = startingLink;
             do
             {
-                var nextWi = Store.GetWorkItem(nextWiLink.RelatedWorkItemId);
-                nextWiLink = nextWi.Links.OfType<RelatedLink>().FirstOrDefault(rl => rl.LinkTypeEnd.Id == startingLink.LinkTypeEnd.Id);
+                var nextWi = await workItemUtils.GetWorkItem(workItemUtils.GetRelatedWorkItemIdFromLink(nextWiLink));
+                nextWiLink = nextWi.Links.Links.OfType<ReferenceLink>().FirstOrDefault(rl => rl.LinkTypeEnd.Id == startingLink.LinkTypeEnd.Id);
 
-                if (nextWiLink != null && nextWiLink.RelatedWorkItemId == startingWi.Id)
+                if (nextWiLink != null && workItemUtils.GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
                     return true;
 
             } while (nextWiLink != null);
@@ -585,18 +571,18 @@ namespace WorkItemImport
             }
         }
 
-        private bool RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
+        private async Task<bool> RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
         {
-            var links = newWorkItem.Links.OfType<RelatedLink>().ToList();
+            var links = newWorkItem.Links.Links.OfType<ReferenceLink>().ToList();
             var result = false;
             foreach (var link in links)
             {
-                var relatedWorkItem = GetWorkItem(link.RelatedWorkItemId);
+                var relatedWorkItem = await workItemUtils.GetWorkItem(workItemUtils.GetRelatedWorkItemIdFromLink(link));
                 var relatedLinkCount = relatedWorkItem.RelatedLinkCount;
                 if (relatedLinkCount != 1000)
                     continue;
 
-                newWorkItem.Links.Remove(link);
+                newWorkItem.Links.Links.Remove(link);
                 result = true;
             }
 
@@ -609,14 +595,14 @@ namespace WorkItemImport
             try
             {
                 if (rev.Index == 0)
-                    EnsureClassificationFields(rev);
+                    workItemUtils.EnsureClassificationFields(rev);
 
-                EnsureDateFields(rev, wi);
-                EnsureAuthorFields(rev);
-                EnsureAssigneeField(rev, wi);
-                EnsureFieldsOnStateChange(rev, wi);
+                workItemUtils.EnsureDateFields(rev, wi);
+                workItemUtils.EnsureAuthorFields(rev);
+                workItemUtils.EnsureAssigneeField(rev, wi);
+                workItemUtils.EnsureFieldsOnStateChange(rev, wi);
 
-                var attachmentMap = new Dictionary<string, Attachment>();
+                var attachmentMap = new Dictionary<string, AttachmentReference>();
                 if (rev.Attachments.Any() && !ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
                     incomplete = true;
 
@@ -632,19 +618,19 @@ namespace WorkItemImport
                 if (rev.Attachments.All(a => a.Change != ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
-                    CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    workItemUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
                 if (!string.IsNullOrEmpty(wi.History))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
-                    CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    workItemUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
                 SaveWorkItem(rev, wi);
 
                 foreach (var wiAtt in rev.Attachments)
                 {
-                    if (attachmentMap.TryGetValue(wiAtt.AttOriginId, out Attachment tfsAtt) && tfsAtt.IsSaved)
+                    if (attachmentMap.TryGetValue(wiAtt.AttOriginId, out AttachmentReference tfsAtt) && tfsAtt.IsSaved)
                         _context.Journal.MarkAttachmentAsProcessed(wiAtt.AttOriginId, tfsAtt.Id);
                 }
 
@@ -654,7 +640,7 @@ namespace WorkItemImport
 
                     try
                     {
-                        if (CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
+                        if (workItemUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
                             SaveWorkItem(rev, wi);
                     }
                     catch (Exception ex)
@@ -666,8 +652,6 @@ namespace WorkItemImport
                 _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id, rev.Index);
 
                 Logger.Log(LogLevel.Debug, $"Imported revision.");
-
-                wi.Close();
 
                 return true;
             }
