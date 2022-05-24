@@ -6,7 +6,6 @@ using System;
 using WorkItemImport;
 using Migration.WIContract;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using System.Threading.Tasks;
 using NSubstitute;
@@ -15,7 +14,7 @@ using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 namespace Migration.Wi_Import.Testss
 {
     [TestFixture]
-    public class WorkItemUtilsTests
+    public class WitClientWrapperTests
     {
         // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
@@ -54,7 +53,12 @@ namespace Migration.Wi_Import.Testss
         [Test]
         public void When_calling_ensure_author_fields_with_empty_args_Then_an_exception_is_thrown()
         {
-            WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
+            //var WitClient = _fixture.Freeze<WorkItemTrackingHttpClient>();
+            // Mock WITClient
+            //WitClient.GetWorkItemAsync("", 0).Returns(Task.FromResult(new WorkItem()));
+
+            var wiUtils = _fixture.Freeze<WitClientWrapper>();
+            //WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             Assert.That(
                 () => wiUtils.EnsureAuthorFields(null),
                 Throws.InstanceOf<ArgumentException>());
@@ -107,8 +111,8 @@ namespace Migration.Wi_Import.Testss
             WitClientWrapper wiUtils = new WitClientWrapper("https://dev.azure.com/solidify", "testproject");
             wiUtils.EnsureClassificationFields(rev);
 
-            List<WiField> filteredForAreaPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.AreaPath && f.Value == "");
-            List<WiField> filteredForIterationPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.IterationPath && f.Value == "");
+            List<WiField> filteredForAreaPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.AreaPath && f.Value.ToString() == "");
+            List<WiField> filteredForIterationPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.IterationPath && f.Value.ToString() == "");
 
             Assert.That(filteredForAreaPath.Count, Is.EqualTo(1));
             Assert.That(filteredForIterationPath.Count, Is.EqualTo(1));

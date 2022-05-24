@@ -82,7 +82,7 @@ namespace WorkItemImport
                 witClientWrapper.EnsureAssigneeField(rev, wi);
                 witClientWrapper.EnsureFieldsOnStateChange(rev, wi);
 
-                var attachmentMap = new Dictionary<Guid, AttachmentReference>();
+                var attachmentMap = new Dictionary<string, WiAttachment>();
                 if (rev.Attachments.Any() && !witClientWrapper.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
                     incomplete = true;
 
@@ -110,8 +110,8 @@ namespace WorkItemImport
 
                 foreach (WiAttachment wiAtt in rev.Attachments)
                 {
-                    if (attachmentMap.TryGetValue(wiAtt.AttOriginId, out AttachmentReference tfsAtt))
-                        _context.Journal.MarkAttachmentAsProcessed(wiAtt.AttOriginId, tfsAtt.Id);
+                    if (attachmentMap.TryGetValue(wiAtt.AttOriginId, out WiAttachment tfsAtt))
+                        _context.Journal.MarkAttachmentAsProcessed(wiAtt.AttOriginId, tfsAtt.AttOriginId);
                 }
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)

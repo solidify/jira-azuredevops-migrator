@@ -253,7 +253,7 @@ namespace WorkItemImport
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.IterationPath, Value = "" });
         }
 
-        public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<Guid, AttachmentReference> attachmentMap, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
+        public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, WiAttachment> attachmentMap, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             var success = true;
 
@@ -264,17 +264,16 @@ namespace WorkItemImport
                     Logger.Log(LogLevel.Debug, $"Adding attachment '{att.ToString()}'.");
                     if (att.Change == ReferenceChangeType.Added)
                     {
-                        var newAttachment = new AttachmentReference(att.FilePath, att.Comment);
-                        wi.Attachments.Add(newAttachment);
+                        AddRemoveAttachment(wi, att.FilePath, att.Comment, AttachmentOperation.ADD);
 
-                        attachmentMap.Add(att.AttOriginId, newAttachment);
+                        attachmentMap.Add(att.AttOriginId, att);
                     }
                     else if (att.Change == ReferenceChangeType.Removed)
                     {
-                        AttachmentReference existingAttachment = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
+                        WorkItemRelation existingAttachment = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
                         if (existingAttachment != null)
                         {
-                            wi.Attachments.Remove(existingAttachment);
+                            AddRemoveAttachment(wi, att.FilePath, att.Comment, AttachmentOperation.REMOVE);
                         }
                         else
                         {
@@ -300,7 +299,30 @@ namespace WorkItemImport
             return success;
         }
 
-        public void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
+        private enum AttachmentOperation
+        {
+            ADD,
+            REMOVE
+        }
+
+        private void AddRemoveAttachment(WorkItem wi, string filePath, string comment, AttachmentOperation op)
+        {
+            if (op == AttachmentOperation.ADD)
+            {
+                WorkItemRelation attachmentRelation = new WorkItemRelation();
+                attachmentRelation.Rel = "AttachedFile";
+                attachmentRelation.Attributes["filePath"] = filePath;
+                attachmentRelation.Attributes["comment"] = comment;
+            } else {
+                WorkItemRelation attachmentRelation = wi.Relations.Where(e => e.Rel == "AttachedFile" && e.Attributes["filePath"] == filePath).FirstOrDefault();
+                if(attachmentRelation != default(WorkItemRelation))
+                {
+                    wi.Relations.Remove(attachmentRelation);
+                }
+            }
+        }
+
+        public void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
             {
@@ -332,7 +354,7 @@ namespace WorkItemImport
             }
         }
 
-        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
+        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             string description = wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug" ? wi.Fields[WiFieldReference.ReproSteps].ToString() : wi.Fields[WiFieldReference.Description].ToString();
             if (string.IsNullOrWhiteSpace(description))
@@ -357,7 +379,7 @@ namespace WorkItemImport
             return descUpdated;
         }
 
-        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
+        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             string currentComment = wi.Fields[WiFieldReference.History].ToString();
             bool commentUpdated = false;
@@ -374,24 +396,45 @@ namespace WorkItemImport
 
         public async Task SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
         {
+            //var wi = WitClient.GetWorkItemAsync(WorkItemsAdded.First()).Result;
+
+            // Build json patch document from fields
+            JsonPatchDocument patchDocument = new JsonPatchDocument();
+            foreach (string key in newWorkItem.Fields.Keys)
+            {
+                object val = newWorkItem.Fields[key];
+
+                patchDocument.Add(
+                    new JsonPatchOperation()
+                    {
+                        Operation = Operation.Add,
+                        Path = "/fields/" + key,
+                        Value = val
+                    }
+                );
+            };
+
             try
             {
-                newWorkItem.Save(SaveFlags.MergeAll);
+                var result = WitClient.UpdateWorkItemAsync(patchDocument, newWorkItem.Id.Value).Result;
             }
-            catch (FileAttachmentException faex)
+            catch (AggregateException ex)
             {
-                Logger.Log(faex,
-                    $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
-                newWorkItem.Attachments.Remove(faex.SourceAttachment);
-                await SaveWorkItem(rev, newWorkItem);
+                Logger.Log(ex, "Work Item " + newWorkItem.Id + " failed to save.");
+                //Logger.Log(faex,
+                //    $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
+                //newWorkItem.Attachments.Remove(faex.SourceAttachment);
+                //await SaveWorkItem(rev, newWorkItem);
             }
-            catch (WorkItemLinkValidationException wilve)
+            /*
+            catch (RuleValidationException wilve)
             {
-                Logger.Log(wilve, $"[{wilve.GetType()}] {wilve.Message}. Link Source: {wilve.LinkInfo.SourceId}, Target: {wilve.LinkInfo.TargetId} in {rev} will be skipped.");
+                Logger.Log(wilve, $"[{wilve.GetType()}] {wilve.Message}. Link Source: {wilve.SourceId}, Target: {wilve.LinkInfo.TargetId} in {rev} will be skipped.");
                 var exceedsLinkLimit = await RemoveLinksFromWiThatExceedsLimit(newWorkItem);
                 if (exceedsLinkLimit)
                     await SaveWorkItem(rev, newWorkItem);
             }
+            */
         }
 
         private async Task<WorkItemRelationType> ParseLinkEnd(WiLink link, WorkItem wi)
@@ -424,11 +467,13 @@ namespace WorkItemImport
             return LinkTypeOut;
         }
 
-        private AttachmentReference IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<Guid, Guid, bool> isAttachmentMigratedDelegate)
+        private WorkItemRelation IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             //if (context.Journal.IsAttachmentMigrated(att.AttOriginId, out int attWiId))
-            if (isAttachmentMigratedDelegate(att.AttOriginId, out Guid attWiId))
-                return wi.Attachments.Cast<AttachmentReference>().SingleOrDefault(a => a.Id == attWiId);
+            if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
+            {
+                return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["filePath"] == att.FilePath);
+            }
             return null;
         }
 

@@ -8,7 +8,7 @@ namespace Migration.WIContract
         public ReferenceChangeType Change { get; set; }
         public string FilePath { get; set; }
         public string Comment { get; set; }
-        public Guid AttOriginId { get; set; }
+        public string AttOriginId { get; set; }
 
         public override string ToString()
         {

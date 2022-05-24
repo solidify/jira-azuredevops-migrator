@@ -43,11 +43,7 @@ namespace Migration.Common
                 foreach (string att in attLines)
                 {
                     string[] props = att.Split(';');
-                    Guid guid0;
-                    Guid.TryParse(props[0], out guid0);
-                    Guid guid1;
-                    Guid.TryParse(props[1], out guid1);
-                    journal.ProcessedAttachments[guid0] = guid1;
+                    journal.ProcessedAttachments[props[0]] = props[1];
                 }
             }
 
@@ -58,7 +54,7 @@ namespace Migration.Common
 
         public Dictionary<string, (int, int)> ProcessedRevisions { get; private set; } = new Dictionary<string, (int, int)>();
 
-        public Dictionary<Guid, Guid> ProcessedAttachments { get; private set; } = new Dictionary<Guid, Guid>();
+        public Dictionary<string, string> ProcessedAttachments { get; private set; } = new Dictionary<string, string>();
         public string ItemsPath { get; private set; }
         public string AttachmentsPath { get; private set; }
 
@@ -80,13 +76,13 @@ namespace Migration.Common
             File.AppendAllText(ItemsPath, $"{originId};{wiId};{rev}" + Environment.NewLine);
         }
 
-        public void MarkAttachmentAsProcessed(Guid attOriginId, Guid attWiId)
+        public void MarkAttachmentAsProcessed(string attOriginId, string attWiId)
         {
             ProcessedAttachments.Add(attOriginId, attWiId);
             WriteAttachment(attOriginId, attWiId);
         }
 
-        private void WriteAttachment(Guid attOriginId, Guid attWiId)
+        private void WriteAttachment(string attOriginId, string attWiId)
         {
             File.AppendAllText(AttachmentsPath, $"{attOriginId};{attWiId}" + Environment.NewLine);
         }
@@ -108,7 +104,7 @@ namespace Migration.Common
             return wiId;
         }
 
-        public bool IsAttachmentMigrated(Guid attOriginId, out Guid attWiId)
+        public bool IsAttachmentMigrated(string attOriginId, out string attWiId)
         {
             return ProcessedAttachments.TryGetValue(attOriginId, out attWiId);
         }
