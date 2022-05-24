@@ -64,12 +64,12 @@ namespace WorkItemImport
             return _witClientUtils.GetWorkItem(wiId);
         }
 
-        public WorkItem CreateWI(string type)
+        public WorkItem CreateWorkItem(string type)
         {
             return _witClientUtils.CreateWorkItem(type);
         }
 
-        public async Task<bool> ImportRevision(WiRevision rev, WorkItem wi)
+        public bool ImportRevision(WiRevision rev, WorkItem wi)
         {
             var incomplete = false;
             try
@@ -89,7 +89,7 @@ namespace WorkItemImport
                 if (rev.Fields.Any() && !UpdateWIFields(rev.Fields, wi))
                     incomplete = true;
 
-                if (rev.Links.Any() && !(await ApplyLinks(rev, wi)))
+                if (rev.Links.Any() && !ApplyLinks(rev, wi))
                     incomplete = true;
 
                 if (incomplete)
@@ -100,13 +100,13 @@ namespace WorkItemImport
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
                     _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
-                if (!string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
+                if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                await _witClientUtils.SaveWorkItem(rev, wi);
+                _witClientUtils.SaveWorkItem(rev, wi);
 
                 foreach (WiAttachment wiAtt in rev.Attachments)
                 {
@@ -121,7 +121,7 @@ namespace WorkItemImport
                     try
                     {
                         if (_witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
-                            await _witClientUtils.SaveWorkItem(rev, wi);
+                            _witClientUtils.SaveWorkItem(rev, wi);
                     }
                     catch (Exception ex)
                     {
@@ -528,7 +528,7 @@ namespace WorkItemImport
             return success;
         }
 
-        private async Task<bool> ApplyLinks(WiRevision rev, WorkItem wi)
+        private bool ApplyLinks(WiRevision rev, WorkItem wi)
         {
             bool success = true;
 

@@ -13,6 +13,7 @@
 
     public static class WiFieldReference
     {
+        public static string Title => "System.Title";
         public static string ActivatedDate => "Microsoft.VSTS.Common.ActivatedDate";
         public static string ClosedDate => "Microsoft.VSTS.Common.ClosedDate";
         public static string ClosedBy => "Microsoft.VSTS.Common.ClosedBy";

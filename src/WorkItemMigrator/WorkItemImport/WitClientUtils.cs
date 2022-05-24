@@ -166,7 +166,11 @@ namespace WorkItemImport
 
         public void EnsureAssigneeField(WiRevision rev, WorkItem wi)
         {
-            string assignedTo = wi.Fields[WiFieldReference.AssignedTo].ToString();
+            string assignedTo = "";
+            if(wi.Fields.ContainsKey(WiFieldReference.AssignedTo))
+            {
+                assignedTo = wi.Fields[WiFieldReference.AssignedTo].ToString();
+            }
 
             if (rev.Fields.HasAnyByRefName(WiFieldReference.AssignedTo))
             {
@@ -393,7 +397,7 @@ namespace WorkItemImport
             return _witClientWrapper.GetWorkItem(wiId);
         }
 
-        public async Task SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
+        public void SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
         {
             //var wi = WitClient.GetWorkItemAsync(WorkItemsAdded.First()).Result;
 

@@ -6,7 +6,9 @@ using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using Migration.WIContract;
 
 namespace WorkItemImport
 {
@@ -34,16 +36,26 @@ namespace WorkItemImport
 
         public WorkItem CreateWorkItem(string wiType)
         {
-            WorkItem a = null;
+            JsonPatchDocument patchDoc = new JsonPatchDocument
+            {
+                new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/"+WiFieldReference.Title,
+                    Value = "[Placeholder Name]"
+                }
+            };
+
+            WorkItem wiOut = null;
             try
             {
-                a = WitClient.CreateWorkItemAsync(new JsonPatchDocument(), TeamProject.Name, wiType).Result;
+                wiOut = WitClient.CreateWorkItemAsync(patchDoc, TeamProject.Name, wiType).Result;
             } catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("Error when creating new Work item: " + e.Message);
             }
             
-            return a;
+            return wiOut;
         }
 
         public WorkItem GetWorkItem(int wiId)

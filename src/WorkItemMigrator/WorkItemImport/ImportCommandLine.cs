@@ -66,7 +66,7 @@ namespace WorkItemImport
             });
         }
 
-        private async void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             ConfigJson config = null;
             var itemCount = 0;
@@ -118,15 +118,15 @@ namespace WorkItemImport
                             continue;
 
                         WorkItem wi = null;
-
+                        
                         if (executionItem.WiId > 0)
                             wi = agent.GetWorkItem(executionItem.WiId);
                         else
-                            wi = agent.CreateWI(executionItem.WiType);
+                            wi = agent.CreateWorkItem(executionItem.WiType);
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
-                        await agent.ImportRevision(executionItem.Revision, wi);
+                        agent.ImportRevision(executionItem.Revision, wi);
                         importedItems++;
                     }
                     catch (AbortMigrationException)
