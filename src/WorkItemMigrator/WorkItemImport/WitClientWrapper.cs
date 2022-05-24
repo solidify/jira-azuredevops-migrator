@@ -32,29 +32,38 @@ namespace WorkItemImport
             DefaultWorkItemType = DefaultWorkItemTypeCategory.DefaultWorkItemType;
         }
 
-        public async Task<WorkItem> CreateWorkItem(string wiType)
+        public WorkItem CreateWorkItem(string wiType)
         {
-            return await WitClient.CreateWorkItemAsync(null, TeamProject.Id, wiType);
+            WorkItem a = null;
+            try
+            {
+                a = WitClient.CreateWorkItemAsync(new JsonPatchDocument(), TeamProject.Name, wiType).Result;
+            } catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            
+            return a;
         }
 
-        public async Task<WorkItem> GetWorkItem(int wiId)
+        public WorkItem GetWorkItem(int wiId)
         {
-            return await WitClient.GetWorkItemAsync(wiId);
+            return WitClient.GetWorkItemAsync(wiId).Result;
         }
 
-        public async Task<WorkItem> UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
+        public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
         {
-            return await WitClient.UpdateWorkItemAsync(patchDocument, workItemId);
+            return WitClient.UpdateWorkItemAsync(patchDocument, workItemId).Result;
         }
 
-        public async Task<TeamProject> GetProject(string projectId)
+        public TeamProject GetProject(string projectId)
         {
-            return await ProjectClient.GetProject(projectId);
+            return ProjectClient.GetProject(projectId).Result;
         }
 
-        public async Task<List<WorkItemRelationType>> GetRelationTypes()
+        public List<WorkItemRelationType> GetRelationTypes()
         {
-            return await WitClient.GetRelationTypesAsync();
+            return WitClient.GetRelationTypesAsync().Result;
         }
     }
 }

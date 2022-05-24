@@ -120,9 +120,9 @@ namespace WorkItemImport
                         WorkItem wi = null;
 
                         if (executionItem.WiId > 0)
-                            wi = await agent.GetWorkItem(executionItem.WiId);
+                            wi = agent.GetWorkItem(executionItem.WiId);
                         else
-                            wi = await agent.CreateWI(executionItem.WiType);
+                            wi = agent.CreateWI(executionItem.WiType);
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 

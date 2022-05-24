@@ -38,7 +38,7 @@ namespace WorkItemImport
         public Dictionary<string, int> AreaCache { get; private set; } = new Dictionary<string, int>();
         public int RootArea { get; private set; }
 
-        private WitClientUtils witClientWrapper;
+        private WitClientUtils _witClientUtils;
         private WebApi.WorkItemTrackingHttpClient _wiClient;
         public WebApi.WorkItemTrackingHttpClient WiClient
         {
@@ -59,14 +59,14 @@ namespace WorkItemImport
             Collection = soapConnection;
         }
 
-        public async Task<WorkItem> GetWorkItem(int wiId)
+        public WorkItem GetWorkItem(int wiId)
         {
-            return await witClientWrapper.GetWorkItem(wiId);
+            return _witClientUtils.GetWorkItem(wiId);
         }
 
-        public async Task<WorkItem> CreateWI(string type)
+        public WorkItem CreateWI(string type)
         {
-            return await witClientWrapper.CreateWorkItem(type);
+            return _witClientUtils.CreateWorkItem(type);
         }
 
         public async Task<bool> ImportRevision(WiRevision rev, WorkItem wi)
@@ -75,15 +75,15 @@ namespace WorkItemImport
             try
             {
                 if (rev.Index == 0)
-                    witClientWrapper.EnsureClassificationFields(rev);
+                    _witClientUtils.EnsureClassificationFields(rev);
 
-                witClientWrapper.EnsureDateFields(rev, wi);
-                witClientWrapper.EnsureAuthorFields(rev);
-                witClientWrapper.EnsureAssigneeField(rev, wi);
-                witClientWrapper.EnsureFieldsOnStateChange(rev, wi);
+                _witClientUtils.EnsureDateFields(rev, wi);
+                _witClientUtils.EnsureAuthorFields(rev);
+                _witClientUtils.EnsureAssigneeField(rev, wi);
+                _witClientUtils.EnsureFieldsOnStateChange(rev, wi);
 
                 var attachmentMap = new Dictionary<string, WiAttachment>();
-                if (rev.Attachments.Any() && !witClientWrapper.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
+                if (rev.Attachments.Any() && !_witClientUtils.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
                     incomplete = true;
 
                 if (rev.Fields.Any() && !UpdateWIFields(rev.Fields, wi))
@@ -98,15 +98,15 @@ namespace WorkItemImport
                 if (rev.Attachments.All(a => a.Change != ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
-                    witClientWrapper.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
                 if (!string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
-                    witClientWrapper.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                await witClientWrapper.SaveWorkItem(rev, wi);
+                await _witClientUtils.SaveWorkItem(rev, wi);
 
                 foreach (WiAttachment wiAtt in rev.Attachments)
                 {
@@ -120,8 +120,8 @@ namespace WorkItemImport
 
                     try
                     {
-                        if (witClientWrapper.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
-                            await witClientWrapper.SaveWorkItem(rev, wi);
+                        if (_witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
+                            await _witClientUtils.SaveWorkItem(rev, wi);
                     }
                     catch (Exception ex)
                     {
@@ -160,7 +160,7 @@ namespace WorkItemImport
             var agent = new Agent(context, settings, restConnection, soapConnection);
 
             WitClientWrapper witClientWrapper = new WitClientWrapper(settings.Account, settings.Project);
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            agent._witClientUtils = new WitClientUtils(witClientWrapper);
 
             // check if projects exists, if not create it
             var project = agent.GetOrCreateProjectAsync().Result;
@@ -508,12 +508,12 @@ namespace WorkItemImport
                             s.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                             s.Equals(WiFieldReference.Tags, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null:
 
-                            witClientWrapper.SetFieldValue(wi, fieldRef, fieldValue);
+                            _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
                             break;
                         default:
                             if (fieldValue != null)
                             {
-                                witClientWrapper.SetFieldValue(wi, fieldRef, fieldValue);
+                                _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
                             }
                             break;
                     }
@@ -550,11 +550,11 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !(await witClientWrapper.AddLink(link, wi)))
+                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddLink(link, wi))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !witClientWrapper.RemoveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveLink(link, wi))
                     {
                         success = false;
                     }

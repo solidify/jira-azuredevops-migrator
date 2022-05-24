@@ -25,9 +25,9 @@ namespace WorkItemImport
 
         public delegate V IsAttachmentMigratedDelegate<T, U, V>(T input, out U output);
 
-        public async Task<WorkItem> CreateWorkItem(string type)
+        public WorkItem CreateWorkItem(string type)
         {
-            return await _witClientWrapper.CreateWorkItem(type);
+            return _witClientWrapper.CreateWorkItem(type);
         }
 
         public void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
@@ -44,7 +44,7 @@ namespace WorkItemImport
                     }
                 };
 
-                var result = _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value).Result;
+                var result = _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
             }
             catch (AggregateException ex)
             {
@@ -75,21 +75,21 @@ namespace WorkItemImport
             return true;
         }
 
-        public async Task<bool> AddLink(WiLink link, WorkItem wi)
+        public bool AddLink(WiLink link, WorkItem wi)
         {
-            var linkEnd = await ParseLinkEnd(link, wi);
+            var linkEnd = ParseLinkEnd(link, wi);
 
             if (linkEnd != null)
             {
                 try
                 {
-                    WorkItem targetWorkItem = await GetWorkItem(link.TargetWiId);
+                    WorkItem targetWorkItem = GetWorkItem(link.TargetWiId);
 
                     WorkItemRelation relatedLink = new WorkItemRelation();
                     relatedLink.Rel = linkEnd.ReferenceName;
                     relatedLink.Url = targetWorkItem.Url;
 
-                    relatedLink = await ResolveCyclicalLinks(relatedLink, wi);
+                    relatedLink = ResolveCyclicalLinks(relatedLink, wi);
                     if (!IsDuplicateWorkItemLink(wi.Relations, relatedLink))
                     {
                         wi.Relations.Add(relatedLink);
@@ -124,13 +124,13 @@ namespace WorkItemImport
             wi.Relations.Remove(linkToRemove);
             return true;
         }
-        public async Task<bool> RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
+        public bool RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
         {
             List<WorkItemRelation> links = newWorkItem.Relations.OfType<WorkItemRelation>().ToList();
             bool result = false;
             foreach (var link in links)
             {
-                WorkItem relatedWorkItem = await GetWorkItem(GetRelatedWorkItemIdFromLink(link));
+                WorkItem relatedWorkItem = GetWorkItem(GetRelatedWorkItemIdFromLink(link));
                 int relatedLinkCount = relatedWorkItem.Relations.Count;
                 if (relatedLinkCount != 1000)
                     continue;
@@ -388,9 +388,9 @@ namespace WorkItemImport
                 wi.Fields[WiFieldReference.History] = currentComment;
         }
 
-        public async Task<WorkItem> GetWorkItem(int wiId)
+        public WorkItem GetWorkItem(int wiId)
         {
-            return await _witClientWrapper.GetWorkItem(wiId);
+            return _witClientWrapper.GetWorkItem(wiId);
         }
 
         public async Task SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
@@ -415,7 +415,7 @@ namespace WorkItemImport
 
             try
             {
-                var result = await _witClientWrapper.UpdateWorkItem(patchDocument, newWorkItem.Id.Value);
+                var result = _witClientWrapper.UpdateWorkItem(patchDocument, newWorkItem.Id.Value);
             }
             catch (AggregateException ex)
             {
@@ -423,25 +423,25 @@ namespace WorkItemImport
                 //Logger.Log(faex,
                 //    $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
                 //newWorkItem.Attachments.Remove(faex.SourceAttachment);
-                //await SaveWorkItem(rev, newWorkItem);
+                //SaveWorkItem(rev, newWorkItem);
             }
             /*
             catch (RuleValidationException wilve)
             {
                 Logger.Log(wilve, $"[{wilve.GetType()}] {wilve.Message}. Link Source: {wilve.SourceId}, Target: {wilve.LinkInfo.TargetId} in {rev} will be skipped.");
-                var exceedsLinkLimit = await RemoveLinksFromWiThatExceedsLimit(newWorkItem);
+                var exceedsLinkLimit = RemoveLinksFromWiThatExceedsLimit(newWorkItem);
                 if (exceedsLinkLimit)
-                    await SaveWorkItem(rev, newWorkItem);
+                    SaveWorkItem(rev, newWorkItem);
             }
             */
             return;
         }
 
-        private async Task<WorkItemRelationType> ParseLinkEnd(WiLink link, WorkItem wi)
+        private WorkItemRelationType ParseLinkEnd(WiLink link, WorkItem wi)
         {
             string[] props = link.WiType?.Split('-');
 
-            List<WorkItemRelationType> linkTypes = await _witClientWrapper.GetRelationTypes();
+            List<WorkItemRelationType> linkTypes = _witClientWrapper.GetRelationTypes();
             WorkItemRelationType linkType = linkTypes.SingleOrDefault(lt => lt.ReferenceName == props?[0]);
 
             if (linkType == null)
@@ -477,9 +477,9 @@ namespace WorkItemImport
             return null;
         }
 
-        private async Task<WorkItemRelation> ResolveCyclicalLinks(WorkItemRelation link, WorkItem wi)
+        private WorkItemRelation ResolveCyclicalLinks(WorkItemRelation link, WorkItem wi)
         {
-            if (await DetectCycle(wi, link))
+            if (DetectCycle(wi, link))
             {
                 WorkItemRelation reverseLink = new WorkItemRelation();
                 string reverseLinkTypeName = GetReverseLinkTypeReferenceName(link.Rel);
@@ -491,12 +491,12 @@ namespace WorkItemImport
             return link;
         }
 
-        private async Task<bool> DetectCycle(WorkItem startingWi, WorkItemRelation startingLink)
+        private bool DetectCycle(WorkItem startingWi, WorkItemRelation startingLink)
         {
             var nextWiLink = startingLink;
             do
             {
-                var nextWi = await GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
+                var nextWi = GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
                 nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
 
                 if (nextWiLink != null && GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
@@ -519,10 +519,10 @@ namespace WorkItemImport
             }
         }
 
-        private async Task<TeamProject> GetProjectFromWorkItem(WorkItem wi)
+        private TeamProject GetProjectFromWorkItem(WorkItem wi)
         {
             string projectName = wi.Fields[WiFieldReference.TeamProject].ToString();
-            return await _witClientWrapper.GetProject(projectName);
+            return _witClientWrapper.GetProject(projectName);
         }
 
         private int GetRelatedWorkItemIdFromLink(WorkItemRelation link)

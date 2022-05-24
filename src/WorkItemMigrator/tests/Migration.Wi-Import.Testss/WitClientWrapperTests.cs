@@ -6,9 +6,7 @@ using System;
 using WorkItemImport;
 using Migration.WIContract;
 using System.Collections.Generic;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using System.Threading.Tasks;
-using NSubstitute;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
@@ -30,7 +28,7 @@ namespace Migration.Wi_Import.Testss
 
             }
 
-            public async Task<WorkItem> CreateWorkItem(string wiType)
+            public WorkItem CreateWorkItem(string wiType)
             {
                 WorkItem workItem = new WorkItem();
                 workItem.Id = _wiIdCounter;
@@ -40,12 +38,12 @@ namespace Migration.Wi_Import.Testss
                 return workItem;
             }
 
-            public async Task<WorkItem> GetWorkItem(int wiId)
+            public WorkItem GetWorkItem(int wiId)
             {
                 return _wiCache[wiId];
             }
 
-            public async Task<WorkItem> UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
+            public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
             {
                 WorkItem wi = _wiCache[workItemId];
                 foreach(JsonPatchOperation op in patchDocument)
@@ -82,7 +80,7 @@ namespace Migration.Wi_Import.Testss
                 return wi;
             }
 
-            public async Task<TeamProject> GetProject(string projectId)
+            public TeamProject GetProject(string projectId)
             {
                 TeamProject tp = new TeamProject();
                 Guid projGuid;
@@ -98,7 +96,7 @@ namespace Migration.Wi_Import.Testss
                 return tp;
             }
 
-            public async Task<List<WorkItemRelationType>> GetRelationTypes()
+            public List<WorkItemRelationType> GetRelationTypes()
             {
                 WorkItemRelationType issue = new WorkItemRelationType();
                 issue.ReferenceName = "Issue";

@@ -8,10 +8,10 @@ namespace WorkItemImport
 {
     public interface IWitClientWrapper
     {
-        Task<WorkItem> CreateWorkItem(string wiType);
-        Task<WorkItem> GetWorkItem(int wiId);
-        Task<WorkItem> UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId);
-        Task<TeamProject> GetProject(string projectId);
-        Task<List<WorkItemRelationType>> GetRelationTypes();
+        WorkItem CreateWorkItem(string wiType);
+        WorkItem GetWorkItem(int wiId);
+        WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId);
+        TeamProject GetProject(string projectId);
+        List<WorkItemRelationType> GetRelationTypes();
     }
 }
