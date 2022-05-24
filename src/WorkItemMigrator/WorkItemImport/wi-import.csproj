@@ -250,7 +250,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IWitClientWrapper.cs" />
     <Compile Include="WitClientWrapper.cs" />
+    <Compile Include="WitClientUtils.cs" />
     <Compile Include="ExecutionPlan.cs" />
     <Compile Include="ExecutionPlanBuilder.cs" />
     <Compile Include="ImportCommandLine.cs" />

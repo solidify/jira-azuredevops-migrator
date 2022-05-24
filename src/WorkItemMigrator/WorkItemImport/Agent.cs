@@ -38,7 +38,7 @@ namespace WorkItemImport
         public Dictionary<string, int> AreaCache { get; private set; } = new Dictionary<string, int>();
         public int RootArea { get; private set; }
 
-        private WitClientWrapper witClientWrapper;
+        private WitClientUtils witClientWrapper;
         private WebApi.WorkItemTrackingHttpClient _wiClient;
         public WebApi.WorkItemTrackingHttpClient WiClient
         {
@@ -159,7 +159,8 @@ namespace WorkItemImport
 
             var agent = new Agent(context, settings, restConnection, soapConnection);
 
-            agent.witClientWrapper = new WitClientWrapper(settings.Account, settings.Project);
+            WitClientWrapper witClientWrapper = new WitClientWrapper(settings.Account, settings.Project);
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             // check if projects exists, if not create it
             var project = agent.GetOrCreateProjectAsync().Result;
