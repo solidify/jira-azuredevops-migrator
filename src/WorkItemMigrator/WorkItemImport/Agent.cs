@@ -82,6 +82,9 @@ namespace WorkItemImport
                 _witClientUtils.EnsureAssigneeField(rev, wi);
                 _witClientUtils.EnsureFieldsOnStateChange(rev, wi);
 
+                if (!_witClientUtils.ApplyTitleField(rev, wi))
+                    incomplete = true;
+
                 var attachmentMap = new Dictionary<string, WiAttachment>();
                 if (rev.Attachments.Any() && !_witClientUtils.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
                     incomplete = true;

@@ -241,6 +241,17 @@ namespace WorkItemImport
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.IterationPath, Value = "" });
         }
 
+        public bool ApplyTitleField(WiRevision rev, WorkItem wi)
+        {
+            if (rev.Fields.HasAnyByRefName(WiFieldReference.Title))
+            {
+                string title = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.Title);
+                wi.Fields[WiFieldReference.Title] = title;
+                return true;
+            }
+            return false;
+        }
+
         public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, WiAttachment> attachmentMap, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             var success = true;
