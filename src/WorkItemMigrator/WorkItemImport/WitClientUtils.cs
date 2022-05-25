@@ -420,11 +420,11 @@ namespace WorkItemImport
             {
                 if(attachment.Change == ReferenceChangeType.Added)
                 {
-                    AddAttachmentToWorkItemAndSave(attachment.FilePath, attachment.Comment, newWorkItem);
+                    AddAttachmentToWorkItemAndSave(attachment, newWorkItem);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveAttachmentFromWorkItemAndSave(attachment.FilePath, newWorkItem);
+                    RemoveAttachmentFromWorkItemAndSave(attachment, newWorkItem);
                 }
             }
 
@@ -483,10 +483,10 @@ namespace WorkItemImport
             return;
         }
 
-        private void AddAttachmentToWorkItemAndSave(string filePath, string comment, WorkItem wi)
+        private void AddAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
         {
             // Upload attachment
-            AttachmentReference attachment = _witClientWrapper.CreateAttachment(filePath);
+            AttachmentReference attachment = _witClientWrapper.CreateAttachment(att.FilePath);
             Console.WriteLine("Attachment created");
             Console.WriteLine($"ID: {attachment.Id}");
             Console.WriteLine($"URL: '{attachment.Url}'");
@@ -505,7 +505,7 @@ namespace WorkItemImport
                         url = attachment.Url,
                         attributes = new
                         {
-                            comment = comment
+                            comment = $"{att.Comment}|${att.FilePath}"
                         }
                     }
                 }
@@ -523,15 +523,18 @@ namespace WorkItemImport
             Console.WriteLine();
         }
 
-        private void RemoveAttachmentFromWorkItemAndSave(string filePath, WorkItem wi)
+        private void RemoveAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
         {
-            /*
-            List<WorkItemRelation> existingAttachmentRelations =
-                wi.Relations?.Where(r => r.Rel == "AttachedFile").ToList() ?? new List<WorkItemRelation>();
-            foreach (WorkItemRelation relation in existingAttachmentRelations)
-            {
-                string attachmentId = relation.Url.Split('/')[relation.Url.Split('/').Length - 1];
+            WorkItemRelation existingAttachmentRelation =
+                wi.Relations?.SingleOrDefault(
+                    r => r.Rel == "AttachedFile"
+                    && r.Attributes["comment"].ToString().Split('|').Last() == att.FilePath
+                );
 
+            if(existingAttachmentRelation == null)
+            {
+                Logger.Log(LogLevel.Warning, $"Skipping saving attachment {att.AttOriginId}, since that attachment was not found.");
+                return;
             }
 
             // Get an existing work item and add the attachment to it
@@ -543,12 +546,8 @@ namespace WorkItemImport
                     Path = "/relations/-",
                     Value = new
                     {
-                        rel = "AttachedFile",
-                        url = attachment.Url,
-                        attributes = new
-                        {
-                            comment = comment
-                        }
+                        rel = existingAttachmentRelation.Rel,
+                        url = existingAttachmentRelation.Url
                     }
                 }
             };
@@ -561,9 +560,7 @@ namespace WorkItemImport
             var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
             var newAttachmentsCount = newAttachments.Count();
 
-            Console.WriteLine($"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
-            Console.WriteLine();
-            */
+            Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
         }
 
         private void AddLinkToWorkItemAndSave(WiLink link, WorkItem sourceWI, WorkItem targetWI, string comment)
@@ -597,7 +594,7 @@ namespace WorkItemImport
         {
             WorkItemRelation rel = sourceWI.Relations.SingleOrDefault(a =>
                 a.Rel == link.WiType
-                && int.Parse(a.Url.Split('/')[a.Url.Split('/').Length - 1]) == link.TargetWiId);
+                && int.Parse(a.Url.Split('/').Last()) == link.TargetWiId);
 
             // Create a patch document for a new work item.
             // Specify a relation to the existing work item.
@@ -667,7 +664,7 @@ namespace WorkItemImport
                 WorkItemRelation reverseLink = new WorkItemRelation();
                 string reverseLinkTypeName = GetReverseLinkTypeReferenceName(link.Rel);
                 reverseLink.Rel = reverseLinkTypeName;
-                reverseLink.Url = reverseLink.Url.Replace(reverseLink.Url.Split('/')[reverseLink.Url.Split('/').Length - 1], GetRelatedWorkItemIdFromLink(link).ToString());
+                reverseLink.Url = reverseLink.Url.Replace(reverseLink.Url.Split('/').Last(), GetRelatedWorkItemIdFromLink(link).ToString());
                 return reverseLink;
             }
 
@@ -710,7 +707,7 @@ namespace WorkItemImport
 
         private int GetRelatedWorkItemIdFromLink(WorkItemRelation link)
         {
-            return int.Parse(link.Url.Split('/')[link.Url.Split('/').Length - 1]);
+            return int.Parse(link.Url.Split('/').Last());
         }
     }
 }
