@@ -6,7 +6,6 @@ using System;
 using WorkItemImport;
 using Migration.WIContract;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
@@ -113,6 +112,14 @@ namespace Migration.Wi_Import.Testss
                 outList.Add(userStory);
                 outList.Add(bug);
                 return outList;
+            }
+
+            public AttachmentReference CreateAttachment(string filePath)
+            {
+                AttachmentReference att = new AttachmentReference();
+                att.Id = Guid.NewGuid();
+                att.Url = "https://example.com";
+                return att;
             }
         }
         private bool MockedIsAttachmentMigratedDelegate(string _attOriginId, out string attWiId)

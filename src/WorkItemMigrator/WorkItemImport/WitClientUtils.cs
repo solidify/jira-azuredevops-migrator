@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
@@ -241,15 +241,19 @@ namespace WorkItemImport
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.IterationPath, Value = "" });
         }
 
-        public bool ApplyTitleField(WiRevision rev, WorkItem wi)
+        public void EnsureWorkItemFieldsInitialized(WiRevision rev, WorkItem wi)
         {
+            // System.Title
             if (rev.Fields.HasAnyByRefName(WiFieldReference.Title))
             {
                 string title = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.Title);
                 wi.Fields[WiFieldReference.Title] = title;
-                return true;
             }
-            return false;
+
+            // System.Description
+            string descriptionFieldRef = wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug" ? WiFieldReference.ReproSteps : WiFieldReference.Description;
+            if (!wi.Fields.ContainsKey(descriptionFieldRef))
+                    wi.Fields[descriptionFieldRef] = "";
         }
 
         public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, WiAttachment> attachmentMap, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
@@ -310,6 +314,7 @@ namespace WorkItemImport
             {
                 WorkItemRelation attachmentRelation = new WorkItemRelation();
                 attachmentRelation.Rel = "AttachedFile";
+                attachmentRelation.Attributes = new Dictionary<string, object>();
                 attachmentRelation.Attributes["filePath"] = filePath;
                 attachmentRelation.Attributes["comment"] = comment;
             } else {
@@ -410,7 +415,19 @@ namespace WorkItemImport
 
         public void SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
         {
-            //var wi = WitClient.GetWorkItemAsync(WorkItemsAdded.First()).Result;
+            // Save attachments
+            foreach(WiAttachment attachment in rev.Attachments)
+            {
+                if(attachment.Change == ReferenceChangeType.Added)
+                {
+                    AddAttachmentToWorkItemAndSave(attachment.FilePath, attachment.Comment, newWorkItem);
+                }
+                else if (attachment.Change == ReferenceChangeType.Removed)
+                {
+                    RemoveAttachmentFromWorkItemAndSave(attachment.FilePath, newWorkItem);
+                }
+
+            }
 
             // Build json patch document from fields
             JsonPatchDocument patchDocument = new JsonPatchDocument();
@@ -450,6 +467,87 @@ namespace WorkItemImport
             }
             */
             return;
+        }
+
+        private void AddAttachmentToWorkItemAndSave(string filePath, string comment, WorkItem wi)
+        {
+            // Upload attachment
+            AttachmentReference attachment = _witClientWrapper.CreateAttachment(filePath);
+            Console.WriteLine("Attachment created");
+            Console.WriteLine($"ID: {attachment.Id}");
+            Console.WriteLine($"URL: '{attachment.Url}'");
+            Console.WriteLine();
+
+            // Get an existing work item and add the attachment to it
+            JsonPatchDocument attachmentPatchDocument = new JsonPatchDocument
+            {
+                new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/relations/-",
+                    Value = new
+                    {
+                        rel = "AttachedFile",
+                        url = attachment.Url,
+                        attributes = new
+                        {
+                            comment = comment
+                        }
+                    }
+                }
+            };
+
+            var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
+            var previousAttachmentsCount = attachments.Count();
+
+            var result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
+
+            var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
+            var newAttachmentsCount = newAttachments.Count();
+
+            Console.WriteLine($"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
+            Console.WriteLine();
+        }
+
+        private void RemoveAttachmentFromWorkItemAndSave(string filePath, WorkItem wi)
+        {
+            List<WorkItemRelation> existingAttachmentRelations =
+                wi.Relations?.Where(r => r.Rel == "AttachedFile").ToList() ?? new List<WorkItemRelation>();
+            foreach (WorkItemRelation relation in existingAttachmentRelations)
+            {
+                string attachmentId = relation.Url.Split('/')[relation.Url.Split('/').Length - 1];
+
+            }
+
+            // Get an existing work item and add the attachment to it
+            JsonPatchDocument attachmentPatchDocument = new JsonPatchDocument
+            {
+                new JsonPatchOperation()
+                {
+                    Operation = Operation.Remove,
+                    Path = "/relations/-",
+                    Value = new
+                    {
+                        rel = "AttachedFile",
+                        url = attachment.Url,
+                        attributes = new
+                        {
+                            comment = comment
+                        }
+                    }
+                }
+            };
+
+            var existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
+            var previousAttachmentsCount = existingAttachments.Count();
+
+            var result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
+
+            var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
+            var newAttachmentsCount = newAttachments.Count();
+
+            Console.WriteLine($"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
+            Console.WriteLine();
         }
 
         private WorkItemRelationType ParseLinkEnd(WiLink link, WorkItem wi)

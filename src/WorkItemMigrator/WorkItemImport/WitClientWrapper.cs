@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
@@ -76,6 +75,11 @@ namespace WorkItemImport
         public List<WorkItemRelationType> GetRelationTypes()
         {
             return WitClient.GetRelationTypesAsync().Result;
+        }
+
+        public AttachmentReference CreateAttachment(string filePath)
+        {
+            return WitClient.CreateAttachmentAsync(filePath).Result;
         }
     }
 }
