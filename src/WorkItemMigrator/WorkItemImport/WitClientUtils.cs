@@ -426,7 +426,21 @@ namespace WorkItemImport
                 {
                     RemoveAttachmentFromWorkItemAndSave(attachment.FilePath, newWorkItem);
                 }
+            }
 
+            // Save links
+            foreach (WiLink link in rev.Links)
+            {
+                if (link.Change == ReferenceChangeType.Added)
+                {
+                    WorkItem targetWI = _witClientWrapper.GetWorkItem(link.TargetWiId);
+                    AddLinkToWorkItemAndSave(link, newWorkItem, targetWI, "Imported link from JIRA");
+
+                }
+                else if (link.Change == ReferenceChangeType.Removed)
+                {
+                    RemoveLinkFromWorkItemAndSave(link, newWorkItem);
+                }
             }
 
             // Build json patch document from fields
@@ -511,6 +525,7 @@ namespace WorkItemImport
 
         private void RemoveAttachmentFromWorkItemAndSave(string filePath, WorkItem wi)
         {
+            /*
             List<WorkItemRelation> existingAttachmentRelations =
                 wi.Relations?.Where(r => r.Rel == "AttachedFile").ToList() ?? new List<WorkItemRelation>();
             foreach (WorkItemRelation relation in existingAttachmentRelations)
@@ -548,6 +563,61 @@ namespace WorkItemImport
 
             Console.WriteLine($"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
             Console.WriteLine();
+            */
+        }
+
+        private void AddLinkToWorkItemAndSave(WiLink link, WorkItem sourceWI, WorkItem targetWI, string comment)
+        {
+            // Create a patch document for a new work item.
+            // Specify a relation to the existing work item.
+            JsonPatchDocument linkPatchDocument = new JsonPatchDocument
+            {
+                new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/relations/-",
+                    Value = new
+                    {
+                        rel = link.WiType,
+                        url = targetWI.Url,
+                        attributes = new
+                        {
+                            comment = comment
+                        }
+                    }
+                }
+            };
+
+            var result = _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
+
+            Console.WriteLine($"Updated new work item Id:{sourceWI.Id} with link to work item ID:{targetWI.Id}");
+        }
+
+        private void RemoveLinkFromWorkItemAndSave(WiLink link, WorkItem sourceWI)
+        {
+            WorkItemRelation rel = sourceWI.Relations.SingleOrDefault(a =>
+                a.Rel == link.WiType
+                && int.Parse(a.Url.Split('/')[a.Url.Split('/').Length - 1]) == link.TargetWiId);
+
+            // Create a patch document for a new work item.
+            // Specify a relation to the existing work item.
+            JsonPatchDocument linkPatchDocument = new JsonPatchDocument
+            {
+                new JsonPatchOperation()
+                {
+                    Operation = Operation.Remove,
+                    Path = "/relations/-",
+                    Value = new
+                    {
+                        rel = rel.Rel,
+                        url = rel.Url
+                    }
+                }
+            };
+
+            var result = _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
+
+            Console.WriteLine($"Updated new work item Id:{sourceWI.Id}, removed link with Url: {rel.Url}");
         }
 
         private WorkItemRelationType ParseLinkEnd(WiLink link, WorkItem wi)
