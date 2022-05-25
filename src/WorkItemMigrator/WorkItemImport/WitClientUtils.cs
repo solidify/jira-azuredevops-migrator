@@ -32,6 +32,12 @@ namespace WorkItemImport
 
         public void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
         {
+            string fieldValOut = "";
+            if(fieldValue!=null)
+            {
+                fieldValOut = fieldValue.ToString();
+            }
+
             try
             {
                 JsonPatchDocument patchDocument = new JsonPatchDocument
@@ -40,7 +46,7 @@ namespace WorkItemImport
                     {
                         Operation = Operation.Add,
                         Path = "/fields/"+fieldRef,
-                        Value = fieldValue.ToString()
+                        Value = fieldValOut
                     }
                 };
 
