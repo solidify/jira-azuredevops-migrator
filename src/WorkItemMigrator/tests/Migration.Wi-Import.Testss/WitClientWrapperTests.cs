@@ -20,7 +20,7 @@ namespace Migration.Wi_Import.Testss
         private class MockedWitClientWrapper : IWitClientWrapper
         {
             private int _wiIdCounter = 1;
-            private Dictionary<int, WorkItem> _wiCache = new Dictionary<int, WorkItem>();
+            public Dictionary<int, WorkItem> _wiCache = new Dictionary<int, WorkItem>();
 
             public MockedWitClientWrapper()
             {
@@ -31,7 +31,9 @@ namespace Migration.Wi_Import.Testss
             {
                 WorkItem workItem = new WorkItem();
                 workItem.Id = _wiIdCounter;
+                workItem.Url = $"https://example/workItems/{_wiIdCounter}";
                 workItem.Fields[WiFieldReference.WorkItemType] = wiType;
+                workItem.Relations = new List<WorkItemRelation>();
                 _wiCache[_wiIdCounter] = (workItem);
                 _wiIdCounter++;
                 return workItem;
@@ -97,20 +99,18 @@ namespace Migration.Wi_Import.Testss
 
             public List<WorkItemRelationType> GetRelationTypes()
             {
-                WorkItemRelationType issue = new WorkItemRelationType();
-                issue.ReferenceName = "Issue";
-                WorkItemRelationType task = new WorkItemRelationType();
-                task.ReferenceName = "Task";
-                WorkItemRelationType userStory = new WorkItemRelationType();
-                userStory.ReferenceName = "User Story";
-                WorkItemRelationType bug = new WorkItemRelationType();
-                bug.ReferenceName = "Bug";
+                WorkItemRelationType hierarchyForward = new WorkItemRelationType
+                {
+                    ReferenceName = "System.LinkTypes.Hierarchy-Forward"
+                };
+                WorkItemRelationType hierarchyReverse = new WorkItemRelationType
+                {
+                    ReferenceName = "System.LinkTypes.Hierarchy-Reverse"
+                };
 
                 List<WorkItemRelationType> outList = new List<WorkItemRelationType>();
-                outList.Add(issue);
-                outList.Add(task);
-                outList.Add(userStory);
-                outList.Add(bug);
+                outList.Add(hierarchyForward);
+                outList.Add(hierarchyReverse);
                 return outList;
             }
 
@@ -241,6 +241,88 @@ namespace Migration.Wi_Import.Testss
             bool isDuplicate = wiUtils.IsDuplicateWorkItemLink(links, relatedLink);
 
             Assert.That(isDuplicate, Is.EqualTo(false));
+        }
+
+        [Test]
+        public void When_calling_create_work_item_Then_work_item_is_created_and_added_to_cache()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
+            WorkItem retrievedWI = null;
+            if (createdWI.Id.HasValue)
+            {
+                retrievedWI = wiUtils.GetWorkItem(createdWI.Id.Value);
+            }
+
+            Assert.That(createdWI.Id, Is.EqualTo(1));
+            Assert.That(retrievedWI.Id, Is.EqualTo(1));
+
+            Assert.That(createdWI.Fields[WiFieldReference.WorkItemType], Is.EqualTo("Task"));
+            Assert.That(retrievedWI.Fields[WiFieldReference.WorkItemType], Is.EqualTo("Task"));
+        }
+
+        [Test]
+        public void When_calling_set_field_value_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.SetFieldValue(null, "", ""),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_set_field_value_with_valid_args_Then_a_field_is_added()
+        {
+            string iterationPathValue = "My/Iteration/Path";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
+
+            wiUtils.SetFieldValue(createdWI, WiFieldReference.IterationPath, iterationPathValue);
+
+            Assert.That(createdWI.Fields[WiFieldReference.IterationPath], Is.EqualTo(iterationPathValue));
+        }
+
+        [Test]
+        public void When_calling_add_link_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.AddLink(null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_add_link_with_valid_args_Then_a_link_is_added()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+
+            WiLink link = new WiLink();
+            link.WiType = "System.LinkTypes.Hierarchy-Forward";
+            link.SourceOriginId = "100";
+            link.SourceWiId = 1;
+            link.TargetOriginId = "101";
+            link.TargetWiId = 2;
+            link.Change = ReferenceChangeType.Added;
+
+            wiUtils.AddLink(link, createdWI);
+
+            WorkItemRelation rel = createdWI.Relations[0];
+
+            Assert.That(rel.Rel, Is.EqualTo(link.WiType));
+            Assert.That(rel.Url, Is.EqualTo(linkedWI.Url));
         }
     }
 }
