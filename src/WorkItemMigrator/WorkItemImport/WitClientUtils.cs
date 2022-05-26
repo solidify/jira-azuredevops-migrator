@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
@@ -135,9 +133,18 @@ namespace WorkItemImport
 
         public bool RemoveLink(WiLink link, WorkItem wi)
         {
-            WorkItemRelation linkToRemove = wi.Links.Links.OfType<WorkItemRelation>().SingleOrDefault(
+            if (link == null)
+            {
+                throw new ArgumentException(nameof(link));
+            }
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            WorkItemRelation linkToRemove = wi.Relations.OfType<WorkItemRelation>().SingleOrDefault(
                 rl =>
-                    rl.GetType().FullName == link.WiType
+                    rl.Rel == link.WiType
                     && GetRelatedWorkItemIdFromLink(rl) == link.TargetWiId);
             if (linkToRemove == null)
             {
@@ -148,6 +155,7 @@ namespace WorkItemImport
             return true;
         }
 
+        /*
         public bool RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
         {
             List<WorkItemRelation> links = newWorkItem.Relations.OfType<WorkItemRelation>().ToList();
@@ -165,6 +173,7 @@ namespace WorkItemImport
 
             return result;
         }
+        */
 
         public void EnsureAuthorFields(WiRevision rev)
         {
@@ -190,6 +199,21 @@ namespace WorkItemImport
 
         public void EnsureAssigneeField(WiRevision rev, WorkItem wi)
         {
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            if (rev.Fields == null)
+            {
+                throw new ArgumentException(nameof(rev.Fields));
+            }
+
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
             string assignedTo = "";
             if(wi.Fields.ContainsKey(WiFieldReference.AssignedTo))
             {
@@ -207,6 +231,21 @@ namespace WorkItemImport
 
         public void EnsureDateFields(WiRevision rev, WorkItem wi)
         {
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            if (rev.Fields == null)
+            {
+                throw new ArgumentException(nameof(rev.Fields));
+            }
+
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
             if (rev.Index == 0 && !rev.Fields.HasAnyByRefName(WiFieldReference.CreatedDate))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.CreatedDate, Value = rev.Time.ToString("o") });
@@ -225,6 +264,21 @@ namespace WorkItemImport
 
         public void EnsureFieldsOnStateChange(WiRevision rev, WorkItem wi)
         {
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            if (rev.Fields == null)
+            {
+                throw new ArgumentException(nameof(rev.Fields));
+            }
+
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
             if (rev.Index != 0 && rev.Fields.HasAnyByRefName(WiFieldReference.State))
             {
                 var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
@@ -267,6 +321,16 @@ namespace WorkItemImport
 
         public void EnsureWorkItemFieldsInitialized(WiRevision rev, WorkItem wi)
         {
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            if (rev.Fields == null)
+            {
+                throw new ArgumentException(nameof(rev.Fields));
+            }
+
             // System.Title
             if (rev.Fields.HasAnyByRefName(WiFieldReference.Title))
             {
@@ -334,6 +398,10 @@ namespace WorkItemImport
 
         private void AddRemoveAttachment(WorkItem wi, string filePath, string comment, AttachmentOperation op)
         {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
             if (op == AttachmentOperation.ADD)
             {
                 WorkItemRelation attachmentRelation = new WorkItemRelation();
@@ -350,7 +418,7 @@ namespace WorkItemImport
             }
         }
 
-        public void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             if (wi == null)
             {
@@ -399,6 +467,21 @@ namespace WorkItemImport
 
         public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (wiItem == null)
+            {
+                throw new ArgumentException(nameof(wiItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
             string description = wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug" ? wi.Fields[WiFieldReference.ReproSteps].ToString() : wi.Fields[WiFieldReference.Description].ToString();
             if (string.IsNullOrWhiteSpace(description))
                 return false;
@@ -424,6 +507,21 @@ namespace WorkItemImport
 
         public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (wiItem == null)
+            {
+                throw new ArgumentException(nameof(wiItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
             string currentComment = wi.Fields[WiFieldReference.History].ToString();
             bool commentUpdated = false;
             CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated, isAttachmentMigratedDelegate);

@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using System.Linq;
 
+using Migration.Common;
+
 namespace Migration.Wi_Import.Testss
 {
     [TestFixture]
@@ -139,20 +141,6 @@ namespace Migration.Wi_Import.Testss
         }
 
         [Test]
-        public void When_calling_correct_image_path_with_null_args_Then_an_exception_is_thrown()
-        {
-            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
-
-            string textField = "";
-            bool isUpdated = true;
-
-            Assert.That(
-                () => wiUtils.CorrectImagePath(null, null, null, ref textField, ref isUpdated, MockedIsAttachmentMigratedDelegate),
-                Throws.InstanceOf<ArgumentException>());
-        }
-
-        [Test]
         public void When_calling_ensure_author_fields_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
@@ -194,6 +182,110 @@ namespace Migration.Wi_Import.Testss
         }
 
         [Test]
+        public void When_calling_ensure_assignee_field_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            Assert.That(
+                () => wiUtils.EnsureAssigneeField(null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_ensure_assignee_field_with_first_revision_Then_assignee_is_added_to_fields()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WiRevision rev = new WiRevision();
+            rev.Fields = new List<WiField>();
+            rev.Index = 0;
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.AssignedTo] = "Mr. Test";
+
+            wiUtils.EnsureAssigneeField(rev, createdWI);
+
+            Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.AssignedTo));
+            Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
+        }
+
+        [Test]
+        public void When_calling_ensure_date_fields_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            Assert.That(
+                () => wiUtils.EnsureDateFields(null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_ensure_date_fields_with_first_revision_Then_dates_are_added_to_fields()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WiRevision rev = new WiRevision();
+            rev.Fields = new List<WiField>();
+            rev.Index = 0;
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            wiUtils.EnsureDateFields(rev, createdWI);
+
+            Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedDate));
+            Assert.That(
+                DateTime.Parse(rev.Fields[0].Value.ToString()),
+                Is.LessThan(createdWI.Fields[WiFieldReference.ChangedDate]));
+
+            Assert.That(rev.Fields[1].ReferenceName, Is.EqualTo(WiFieldReference.ChangedDate));
+            Assert.That(
+                DateTime.Parse(rev.Fields[1].Value.ToString()),
+                Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString())));
+            //Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
+        }
+
+        [Test]
+        public void When_calling_ensure_fields_on_state_change_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            Assert.That(
+                () => wiUtils.EnsureFieldsOnStateChange(null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_ensure_fields_on_state_change_with_subsequent_revision_Then_dates_are_added_to_fields()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WiRevision rev = new WiRevision();
+            rev.Fields = new List<WiField>();
+            rev.Index = 1;
+
+            WiField revState = new WiField();
+            revState.ReferenceName = WiFieldReference.State;
+            revState.Value = "New";
+            rev.Fields.Add(revState);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.State] = "Done";
+            createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            wiUtils.EnsureFieldsOnStateChange(rev, createdWI);
+
+            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State), Is.EqualTo("New"));
+            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedDate), Is.EqualTo(null));
+            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedBy), Is.EqualTo(null));
+            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedDate), Is.EqualTo(null));
+            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedBy), Is.EqualTo(null));
+        }
+
+        [Test]
         public void When_calling_ensure_classification_fields_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
@@ -218,6 +310,66 @@ namespace Migration.Wi_Import.Testss
 
             Assert.That(filteredForAreaPath.Count, Is.EqualTo(1));
             Assert.That(filteredForIterationPath.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void When_calling_ensure_workitem_fields_initialized_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            Assert.That(
+                () => wiUtils.EnsureWorkItemFieldsInitialized(null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_ensure_workitem_fields_initialized_for_user_story_Then_title_and_description_are_added_to_fields()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+
+            WiRevision rev = new WiRevision();
+            rev.Fields = new List<WiField>();
+
+            WiField revTitleField = new WiField();
+            revTitleField.ReferenceName = WiFieldReference.Title;
+            revTitleField.Value = "My title";
+
+            rev.Fields.Add(revTitleField);
+
+            wiUtils.EnsureWorkItemFieldsInitialized(rev, createdWI);
+
+            Assert.That(createdWI.Fields[WiFieldReference.Title],
+                Is.EqualTo(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.Title)));
+            Assert.That(createdWI.Fields[WiFieldReference.Description],
+                Is.EqualTo(""));
+        }
+
+        [Test]
+        public void When_calling_ensure_workitem_fields_initialized_for_bug_Then_title_and_description_are_added_to_fields()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("Bug");
+
+            WiRevision rev = new WiRevision();
+            rev.Fields = new List<WiField>();
+
+            WiField revTitleField = new WiField();
+            revTitleField.ReferenceName = WiFieldReference.Title;
+            revTitleField.Value = "My title";
+
+            rev.Fields.Add(revTitleField);
+
+            wiUtils.EnsureWorkItemFieldsInitialized(rev, createdWI);
+
+            Assert.That(createdWI.Fields[WiFieldReference.Title],
+                Is.EqualTo(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.Title)));
+            Assert.That(createdWI.Fields[WiFieldReference.ReproSteps],
+                Is.EqualTo(""));
         }
 
         [Test]
@@ -323,6 +475,181 @@ namespace Migration.Wi_Import.Testss
 
             Assert.That(rel.Rel, Is.EqualTo(link.WiType));
             Assert.That(rel.Url, Is.EqualTo(linkedWI.Url));
+        }
+
+        [Test]
+        public void When_calling_remove_link_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.RemoveLink(null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_remove_link_with_no_link_added_Then_false_is_returned()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+
+            WiLink link = new WiLink();
+            link.WiType = "System.LinkTypes.Hierarchy-Forward";
+
+            bool result = wiUtils.RemoveLink(link, createdWI);
+
+            Assert.That(result, Is.EqualTo(false));
+        }
+
+        [Test]
+        public void When_calling_remove_link_with_link_added_Then_link_is_removed()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+
+            WiLink link = new WiLink();
+            link.WiType = "System.LinkTypes.Hierarchy-Forward";
+            link.SourceOriginId = "100";
+            link.SourceWiId = 1;
+            link.TargetOriginId = "101";
+            link.TargetWiId = 2;
+            link.Change = ReferenceChangeType.Added;
+
+            wiUtils.AddLink(link, createdWI);
+
+            bool result = wiUtils.RemoveLink(link, createdWI);
+
+            Assert.That(result, Is.EqualTo(true));
+            Assert.That(createdWI.Relations, Is.Empty);
+        }
+
+        [Test]
+        public void When_calling_correct_comment_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.CorrectComment(null, null, null, MockedIsAttachmentMigratedDelegate),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_correct_comment_with_valid_args_Then_history_is_updated_with_correct_image_urls()
+        {
+            string commentBeforeTransformation = "My comment, including file: <img src=\"my_image.png\">";
+            string commentAfterTransformation = "My comment, including file: <img src=\"https://example.com/my_image.png\">";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
+            createdWI.Fields[WiFieldReference.History] = commentBeforeTransformation;
+            createdWI.Relations.Add(new WorkItemRelation() {
+                Rel= "AttachedFile",
+                Url= "https://example.com/my_image.png",
+                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            WiItem wiItem = new WiItem();
+            wiItem.Revisions = new List<WiRevision>();
+            wiItem.Revisions.Add(revision);
+
+            wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegate);
+
+            Assert.That(createdWI.Fields[WiFieldReference.History], Is.EqualTo(commentAfterTransformation));
+        }
+
+        [Test]
+        public void When_calling_correct_description_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.CorrectDescription(null, null, null, MockedIsAttachmentMigratedDelegate),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_correct_description_for_user_story_Then_description_is_updated_with_correct_image_urls()
+        {
+            string descriptionBeforeTransformation = "My description, including file: <img src=\"my_image.png\">";
+            string descriptionAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.Description] = descriptionBeforeTransformation;
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
+                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            WiItem wiItem = new WiItem();
+            wiItem.Revisions = new List<WiRevision>();
+            wiItem.Revisions.Add(revision);
+
+            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegate);
+
+            Assert.That(createdWI.Fields[WiFieldReference.Description], Is.EqualTo(descriptionAfterTransformation));
+        }
+
+        [Test]
+        public void When_calling_correct_description_for_bug_Then_repro_steps_is_updated_with_correct_image_urls()
+        {
+            string reproStepsBeforeTransformation = "My description, including file: <img src=\"my_image.png\">";
+            string reproStepsAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("Bug");
+            createdWI.Fields[WiFieldReference.ReproSteps] = reproStepsBeforeTransformation;
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
+                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            WiItem wiItem = new WiItem();
+            wiItem.Revisions = new List<WiRevision>();
+            wiItem.Revisions.Add(revision);
+
+            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegate);
+
+            Assert.That(createdWI.Fields[WiFieldReference.ReproSteps], Is.EqualTo(reproStepsAfterTransformation));
         }
     }
 }
