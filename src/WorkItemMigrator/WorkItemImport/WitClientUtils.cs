@@ -418,53 +418,6 @@ namespace WorkItemImport
             }
         }
 
-        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
-        {
-            if (wi == null)
-            {
-                throw new ArgumentException(nameof(wi));
-            }
-
-            if (wiItem == null)
-            {
-                throw new ArgumentException(nameof(wiItem));
-            }
-
-            if (rev == null)
-            {
-                throw new ArgumentException(nameof(rev));
-            }
-
-            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
-            {
-                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                if (textField.Contains(fileName))
-                {
-                    var tfsAtt = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
-
-                    if (tfsAtt != null)
-                    {
-                        string imageSrcPattern = $"src.*?=.*?\"([^\"])(?=.*{att.AttOriginId}).*?\"";
-                        textField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
-                        isUpdated = true;
-                    }
-                    else
-                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
-                }
-            }
-            if (isUpdated)
-            {
-                DateTime changedDate;
-                if (wiItem.Revisions.Count > rev.Index + 1)
-                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time, wiItem.Revisions[rev.Index + 1].Time);
-                else
-                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
-
-                wi.Fields[WiFieldReference.ChangedDate] = changedDate;
-                wi.Fields[WiFieldReference.ChangedBy] = rev.Author;
-            }
-        }
-
         public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             if (wi == null)
@@ -609,6 +562,53 @@ namespace WorkItemImport
             }
             */
             return;
+        }
+
+        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (wiItem == null)
+            {
+                throw new ArgumentException(nameof(wiItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
+            {
+                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                if (textField.Contains(fileName))
+                {
+                    var tfsAtt = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
+
+                    if (tfsAtt != null)
+                    {
+                        string imageSrcPattern = $"src.*?=.*?\"([^\"])(?=.*{att.AttOriginId}).*?\"";
+                        textField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
+                        isUpdated = true;
+                    }
+                    else
+                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
+                }
+            }
+            if (isUpdated)
+            {
+                DateTime changedDate;
+                if (wiItem.Revisions.Count > rev.Index + 1)
+                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time, wiItem.Revisions[rev.Index + 1].Time);
+                else
+                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
+
+                wi.Fields[WiFieldReference.ChangedDate] = changedDate;
+                wi.Fields[WiFieldReference.ChangedBy] = rev.Author;
+            }
         }
 
         private void AddAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
