@@ -50,7 +50,10 @@ namespace WorkItemImport
                     }
                 };
 
-                var result = _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
+                if (wi.Id.HasValue)
+                    _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
+                else
+                    throw new Exception($"Work item ID was null: {wi.Url}");
             }
             catch (AggregateException ex)
             {
@@ -470,7 +473,10 @@ namespace WorkItemImport
 
             try
             {
-                var result = _witClientWrapper.UpdateWorkItem(patchDocument, newWorkItem.Id.Value);
+                if (newWorkItem.Id.HasValue)
+                    _witClientWrapper.UpdateWorkItem(patchDocument, newWorkItem.Id.Value);
+                else
+                    throw new Exception($"Work item ID was null: {newWorkItem.Url}");
             }
             catch (AggregateException ex)
             {
@@ -523,7 +529,11 @@ namespace WorkItemImport
             var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
             var previousAttachmentsCount = attachments.Count();
 
-            var result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
+            WorkItem result = null;
+            if (wi.Id.HasValue)
+                result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
+            else
+                throw new Exception($"Work item ID was null: {wi.Url}");
 
             var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
             var newAttachmentsCount = newAttachments.Count();
@@ -561,13 +571,17 @@ namespace WorkItemImport
                 }
             };
 
-            var existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
-            var previousAttachmentsCount = existingAttachments.Count();
+            IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
+            int previousAttachmentsCount = existingAttachments.Count();
 
-            var result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
+            WorkItem result = null;
+            if (wi.Id.HasValue)
+                result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
+            else
+                throw new Exception($"Work item ID was null: {wi.Url}");
 
-            var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
-            var newAttachmentsCount = newAttachments.Count();
+            IEnumerable<WorkItemRelation> newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
+            int newAttachmentsCount = newAttachments.Count();
 
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
         }
@@ -594,7 +608,10 @@ namespace WorkItemImport
                 }
             };
 
-            var result = _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
+            if (sourceWI.Id.HasValue)
+                _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
+            else
+                throw new Exception($"Work item ID was null: {sourceWI.Url}");
 
             Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id} with link to work item ID:{targetWI.Id}");
         }
@@ -621,7 +638,10 @@ namespace WorkItemImport
                 }
             };
 
-            var result = _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
+            if (sourceWI.Id.HasValue)
+                _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
+            else
+                throw new Exception($"Work item ID was null: {sourceWI.Url}");
 
             Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id}, removed link with Url: {rel.Url}");
         }
