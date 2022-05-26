@@ -124,10 +124,16 @@ namespace Migration.Wi_Import.Testss
                 return att;
             }
         }
-        private bool MockedIsAttachmentMigratedDelegate(string _attOriginId, out string attWiId)
+        private bool MockedIsAttachmentMigratedDelegateTrue(string _attOriginId, out string attWiId)
         {
             attWiId = "1";
             return true;
+        }
+
+        private bool MockedIsAttachmentMigratedDelegateFalse(string _attOriginId, out string attWiId)
+        {
+            attWiId = "1";
+            return false;
         }
 
         // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
@@ -536,7 +542,7 @@ namespace Migration.Wi_Import.Testss
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectComment(null, null, null, MockedIsAttachmentMigratedDelegate),
+                () => wiUtils.CorrectComment(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -568,7 +574,7 @@ namespace Migration.Wi_Import.Testss
             wiItem.Revisions = new List<WiRevision>();
             wiItem.Revisions.Add(revision);
 
-            wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegate);
+            wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
 
             Assert.That(createdWI.Fields[WiFieldReference.History], Is.EqualTo(commentAfterTransformation));
         }
@@ -580,7 +586,7 @@ namespace Migration.Wi_Import.Testss
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectDescription(null, null, null, MockedIsAttachmentMigratedDelegate),
+                () => wiUtils.CorrectDescription(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -613,7 +619,7 @@ namespace Migration.Wi_Import.Testss
             wiItem.Revisions = new List<WiRevision>();
             wiItem.Revisions.Add(revision);
 
-            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegate);
+            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
 
             Assert.That(createdWI.Fields[WiFieldReference.Description], Is.EqualTo(descriptionAfterTransformation));
         }
@@ -647,9 +653,111 @@ namespace Migration.Wi_Import.Testss
             wiItem.Revisions = new List<WiRevision>();
             wiItem.Revisions.Add(revision);
 
-            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegate);
+            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
 
             Assert.That(createdWI.Fields[WiFieldReference.ReproSteps], Is.EqualTo(reproStepsAfterTransformation));
         }
+
+        [Test]
+        public void When_calling_apply_attachments_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.ApplyAttachments(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_apply_attachments_with_change_equal_to_added_Then_workitem_is_updated_with_correct_attachment()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.AttOriginId = "100";
+            att.Comment = "My comment";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            Dictionary<string, WiAttachment> attachmentMap = new Dictionary<string, WiAttachment>();
+
+            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateTrue);
+
+            Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
+            Assert.That(createdWI.Relations[0].Attributes["filePath"], Is.EqualTo(att.FilePath));
+            Assert.That(createdWI.Relations[0].Attributes["comment"], Is.EqualTo(att.Comment));
+        }
+
+        [Test]
+        public void When_calling_apply_attachments_with_change_equal_to_removed_Then_workitem_is_updated_with_removed_attachment()
+        {
+            string attachmentFilePath = "C:\\Temp\\MyFiles\\my_image.png";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
+                Attributes = new Dictionary<string, object>() { { "filePath", attachmentFilePath } }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Removed;
+            att.FilePath = attachmentFilePath;
+            att.AttOriginId = "100";
+            att.Comment = "My comment";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            Dictionary<string, WiAttachment> attachmentMap = new Dictionary<string, WiAttachment>();
+
+            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateTrue);
+
+            Assert.That(createdWI.Relations, Is.Empty);
+        }
+
+        [Test]
+        public void When_calling_apply_attachments_with_already_existing_attachment_Then_workitem_is_updated_with_another_attachment()
+        {
+            string attachmentFilePath = "C:\\Temp\\MyFiles\\my_image.png";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
+                Attributes = new Dictionary<string, object>() { { "filePath", attachmentFilePath } }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = attachmentFilePath;
+            att.AttOriginId = "100";
+            att.Comment = "My comment";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            Dictionary<string, WiAttachment> attachmentMap = new Dictionary<string, WiAttachment>();
+
+            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateFalse);
+
+            Assert.That(createdWI.Relations.Count, Is.EqualTo(2));
+        }
+        //TODO: test SaveWorkItem
     }
 }

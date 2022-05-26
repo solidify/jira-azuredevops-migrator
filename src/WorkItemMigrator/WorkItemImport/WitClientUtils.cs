@@ -346,6 +346,16 @@ namespace WorkItemImport
 
         public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, WiAttachment> attachmentMap, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
             var success = true;
 
             foreach (var att in rev.Attachments)
@@ -409,6 +419,7 @@ namespace WorkItemImport
                 attachmentRelation.Attributes = new Dictionary<string, object>();
                 attachmentRelation.Attributes["filePath"] = filePath;
                 attachmentRelation.Attributes["comment"] = comment;
+                wi.Relations.Add(attachmentRelation);
             } else {
                 WorkItemRelation attachmentRelation = wi.Relations.Where(e => e.Rel == "AttachedFile" && e.Attributes["filePath"] == filePath).FirstOrDefault();
                 if(attachmentRelation != default(WorkItemRelation))
@@ -773,7 +784,6 @@ namespace WorkItemImport
 
         private WorkItemRelation IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
-            //if (context.Journal.IsAttachmentMigrated(att.AttOriginId, out int attWiId))
             if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
             {
                 return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["filePath"] == att.FilePath);
