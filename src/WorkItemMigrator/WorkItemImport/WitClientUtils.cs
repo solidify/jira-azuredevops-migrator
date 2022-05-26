@@ -440,7 +440,10 @@ namespace WorkItemImport
                 if (link.Change == ReferenceChangeType.Added)
                 {
                     WorkItem targetWI = _witClientWrapper.GetWorkItem(link.TargetWiId);
-                    AddLinkToWorkItemAndSave(link, newWorkItem, targetWI, "Imported link from JIRA");
+                    if (targetWI != null)
+                    {
+                        AddLinkToWorkItemAndSave(link, newWorkItem, targetWI, "Imported link from JIRA");
+                    }
 
                 }
                 else if (link.Change == ReferenceChangeType.Removed)

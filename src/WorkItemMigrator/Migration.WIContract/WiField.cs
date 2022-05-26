@@ -32,6 +32,7 @@
         public static string TeamProject => "System.TeamProject";
         public static string WorkItemType => "System.WorkItemType";
         public static string History => "System.History";
+        public static string Reason => "System.Reason";
 
     }
 }

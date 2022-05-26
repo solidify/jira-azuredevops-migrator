@@ -131,7 +131,13 @@ namespace WorkItemImport
                     }
                 }
 
-                _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
+                if (wi.Id.HasValue)
+                {
+                    _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
+                } else
+                {
+                    throw new Exception($"Work Item had no ID: {wi.Url}");
+                }
 
                 Logger.Log(LogLevel.Debug, $"Imported revision.");
 

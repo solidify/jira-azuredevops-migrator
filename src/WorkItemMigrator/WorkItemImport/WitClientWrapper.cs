@@ -59,7 +59,16 @@ namespace WorkItemImport
 
         public WorkItem GetWorkItem(int wiId)
         {
-            return WitClient.GetWorkItemAsync(wiId).Result;
+            WorkItem wiOut = null;
+            try
+            {
+                wiOut = WitClient.GetWorkItemAsync(wiId).Result;
+            } catch(System.AggregateException e)
+            {
+                // Work item was not found, return null
+                return null;
+            }
+            return wiOut;
         }
 
         public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
