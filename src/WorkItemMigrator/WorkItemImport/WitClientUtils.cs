@@ -725,12 +725,6 @@ namespace WorkItemImport
             }
         }
 
-        private TeamProject GetProjectFromWorkItem(WorkItem wi)
-        {
-            string projectName = wi.Fields[WiFieldReference.TeamProject].ToString();
-            return _witClientWrapper.GetProject(projectName);
-        }
-
         private int GetRelatedWorkItemIdFromLink(WorkItemRelation link)
         {
             return int.Parse(link.Url.Split('/').Last());
