@@ -60,11 +60,11 @@ namespace WorkItemImport
 
         public WorkItem GetWorkItem(int wiId)
         {
-            WorkItem wiOut = null;
+            WorkItem wiOut;
             try
             {
                 wiOut = WitClient.GetWorkItemAsync(wiId).Result;
-            } catch(System.AggregateException e)
+            } catch (System.AggregateException)
             {
                 // Work item was not found, return null
                 return null;

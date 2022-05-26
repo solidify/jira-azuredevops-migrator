@@ -32,6 +32,11 @@ namespace WorkItemImport
 
         public void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
         {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
             string fieldValOut = "";
             if(fieldValue!=null)
             {
@@ -86,16 +91,25 @@ namespace WorkItemImport
 
         public bool AddLink(WiLink link, WorkItem wi)
         {
-            var linkEnd = ParseLinkEnd(link, wi);
+            if (link == null)
+            {
+                throw new ArgumentException(nameof(link));
+            }
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
 
-            if (linkEnd != null)
+            WorkItemRelationType parsedLink = ParseLink(link);
+
+            if (parsedLink != null)
             {
                 try
                 {
                     WorkItem targetWorkItem = GetWorkItem(link.TargetWiId);
 
                     WorkItemRelation relatedLink = new WorkItemRelation();
-                    relatedLink.Rel = linkEnd.ReferenceName;
+                    relatedLink.Rel = parsedLink.ReferenceName;
                     relatedLink.Url = targetWorkItem.Url;
 
                     relatedLink = ResolveCyclicalLinks(relatedLink, wi);
@@ -133,6 +147,7 @@ namespace WorkItemImport
             wi.Relations.Remove(linkToRemove);
             return true;
         }
+
         public bool RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
         {
             List<WorkItemRelation> links = newWorkItem.Relations.OfType<WorkItemRelation>().ToList();
@@ -646,34 +661,16 @@ namespace WorkItemImport
             Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id}, removed link with Url: {rel.Url}");
         }
 
-        private WorkItemRelationType ParseLinkEnd(WiLink link, WorkItem wi)
+        private WorkItemRelationType ParseLink(WiLink link)
         {
-            string[] props = link.WiType?.Split('-');
-
             List<WorkItemRelationType> linkTypes = _witClientWrapper.GetRelationTypes();
-            WorkItemRelationType linkType = linkTypes.SingleOrDefault(lt => lt.ReferenceName == props?[0]);
+            WorkItemRelationType linkType = linkTypes.SingleOrDefault(lt => lt.ReferenceName == link.WiType);
 
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({props?[0]}) does not exist in project");
-                return null;
+                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({link.WiType}) does not exist in project");
             }
-
-            WorkItemRelationType LinkTypeOut = new WorkItemRelationType();
-
-            // Is link directional?
-            if (linkType.ReferenceName.EndsWith("Forward") || linkType.ReferenceName.EndsWith("Reverse"))
-            {
-                string reverseLinkTypeName = GetReverseLinkTypeReferenceName(linkType.ReferenceName);
-                if (props?.Length > 1)
-                    LinkTypeOut = props[1] == "Forward" ? linkType : linkTypes.Where(e => e.ReferenceName == reverseLinkTypeName).SingleOrDefault();
-                else
-                    Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link direction not provided for '{wi.Id}'.");
-            }
-            else
-                LinkTypeOut = linkType;
-
-            return LinkTypeOut;
+            return linkType;
         }
 
         private WorkItemRelation IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
