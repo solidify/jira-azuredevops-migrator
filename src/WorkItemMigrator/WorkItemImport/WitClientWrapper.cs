@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using Migration.Common.Log;
 using Migration.WIContract;
 
 namespace WorkItemImport
@@ -51,7 +52,7 @@ namespace WorkItemImport
                 wiOut = WitClient.CreateWorkItemAsync(patchDoc, TeamProject.Name, wiType).Result;
             } catch (Exception e)
             {
-                Console.WriteLine("Error when creating new Work item: " + e.Message);
+                Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
             }
             
             return wiOut;

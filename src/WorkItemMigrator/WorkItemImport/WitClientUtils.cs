@@ -496,10 +496,10 @@ namespace WorkItemImport
         {
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att.FilePath);
-            Console.WriteLine("Attachment created");
-            Console.WriteLine($"ID: {attachment.Id}");
-            Console.WriteLine($"URL: '{attachment.Url}'");
-            Console.WriteLine();
+            Logger.Log(LogLevel.Info, "Attachment created");
+            Logger.Log(LogLevel.Info, $"ID: { attachment.Id}");
+            Logger.Log(LogLevel.Info, $"URL: '{attachment.Url}'");
+            Logger.Log(LogLevel.Info, "");
 
             // Get an existing work item and add the attachment to it
             JsonPatchDocument attachmentPatchDocument = new JsonPatchDocument
@@ -528,8 +528,8 @@ namespace WorkItemImport
             var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
             var newAttachmentsCount = newAttachments.Count();
 
-            Console.WriteLine($"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
-            Console.WriteLine();
+            Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
+            Logger.Log(LogLevel.Info, "");
         }
 
         private void RemoveAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
@@ -596,7 +596,7 @@ namespace WorkItemImport
 
             var result = _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
 
-            Console.WriteLine($"Updated new work item Id:{sourceWI.Id} with link to work item ID:{targetWI.Id}");
+            Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id} with link to work item ID:{targetWI.Id}");
         }
 
         private void RemoveLinkFromWorkItemAndSave(WiLink link, WorkItem sourceWI)
@@ -623,7 +623,7 @@ namespace WorkItemImport
 
             var result = _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
 
-            Console.WriteLine($"Updated new work item Id:{sourceWI.Id}, removed link with Url: {rel.Url}");
+            Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id}, removed link with Url: {rel.Url}");
         }
 
         private WorkItemRelationType ParseLinkEnd(WiLink link, WorkItem wi)
