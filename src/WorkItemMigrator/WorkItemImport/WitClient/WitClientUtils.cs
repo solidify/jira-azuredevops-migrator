@@ -14,14 +14,14 @@ namespace WorkItemImport
 {
     public class WitClientUtils
     {
-        private IWitClientWrapper _witClientWrapper;
+        private readonly IWitClientWrapper _witClientWrapper;
 
         public WitClientUtils(IWitClientWrapper witClientWrapper)
         {
             _witClientWrapper = witClientWrapper;
         }
 
-        public delegate V IsAttachmentMigratedDelegate<T, U, V>(T input, out U output);
+        public delegate V IsAttachmentMigratedDelegate<T, U, out V>(T input, out U output);
 
         public WorkItem CreateWorkItem(string type)
         {
@@ -56,7 +56,7 @@ namespace WorkItemImport
                 if (wi.Id.HasValue)
                     _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
                 else
-                    throw new Exception($"Work item ID was null: {wi.Url}");
+                    throw new MissingFieldException($"Work item ID was null: {wi.Url}");
             }
             catch (AggregateException ex)
             {
@@ -154,27 +154,6 @@ namespace WorkItemImport
             wi.Relations.Remove(linkToRemove);
             return true;
         }
-
-        /*
-        public bool RemoveLinksFromWiThatExceedsLimit(WorkItem newWorkItem)
-        {
-            List<WorkItemRelation> links = newWorkItem.Relations.OfType<WorkItemRelation>().ToList();
-            bool result = false;
-            foreach (var link in links)
-            {
-                WorkItem relatedWorkItem = GetWorkItem(GetRelatedWorkItemIdFromLink(link));
-                int relatedLinkCount = relatedWorkItem.Relations.Count;
-                if (relatedLinkCount != 1000)
-                    continue;
-
-                newWorkItem.Relations.Remove(link);
-                result = true;
-            }
-
-            return result;
-        }
-        */
-
         public void EnsureAuthorFields(WiRevision rev)
         {
             if(rev == null)
@@ -421,7 +400,7 @@ namespace WorkItemImport
                 attachmentRelation.Attributes["comment"] = comment;
                 wi.Relations.Add(attachmentRelation);
             } else {
-                WorkItemRelation attachmentRelation = wi.Relations.Where(e => e.Rel == "AttachedFile" && e.Attributes["filePath"] == filePath).FirstOrDefault();
+                WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(e => e.Rel == "AttachedFile" && e.Attributes["filePath"].ToString() == filePath);
                 if(attachmentRelation != default(WorkItemRelation))
                 {
                     wi.Relations.Remove(attachmentRelation);
@@ -556,33 +535,19 @@ namespace WorkItemImport
                         Value = val
                     }
                 );
-            };
+            }
 
             try
             {
                 if (newWorkItem.Id.HasValue)
                     _witClientWrapper.UpdateWorkItem(patchDocument, newWorkItem.Id.Value);
                 else
-                    throw new Exception($"Work item ID was null: {newWorkItem.Url}");
+                    throw new MissingFieldException($"Work item ID was null: {newWorkItem.Url}");
             }
             catch (AggregateException ex)
             {
                 Logger.Log(ex, "Work Item " + newWorkItem.Id + " failed to save.");
-                //Logger.Log(faex,
-                //    $"[{faex.GetType().ToString()}] {faex.Message}. Attachment {faex.SourceAttachment.Name}({faex.SourceAttachment.Id}) in {rev.ToString()} will be skipped.");
-                //newWorkItem.Attachments.Remove(faex.SourceAttachment);
-                //SaveWorkItem(rev, newWorkItem);
             }
-            /*
-            catch (RuleValidationException wilve)
-            {
-                Logger.Log(wilve, $"[{wilve.GetType()}] {wilve.Message}. Link Source: {wilve.SourceId}, Target: {wilve.LinkInfo.TargetId} in {rev} will be skipped.");
-                var exceedsLinkLimit = RemoveLinksFromWiThatExceedsLimit(newWorkItem);
-                if (exceedsLinkLimit)
-                    SaveWorkItem(rev, newWorkItem);
-            }
-            */
-            return;
         }
 
         private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
@@ -667,7 +632,7 @@ namespace WorkItemImport
             if (wi.Id.HasValue)
                 result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
             else
-                throw new Exception($"Work item ID was null: {wi.Url}");
+                throw new MissingFieldException($"Work item ID was null: {wi.Url}");
 
             var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
             var newAttachmentsCount = newAttachments.Count();
@@ -712,7 +677,7 @@ namespace WorkItemImport
             if (wi.Id.HasValue)
                 result = _witClientWrapper.UpdateWorkItem(attachmentPatchDocument, wi.Id.Value);
             else
-                throw new Exception($"Work item ID was null: {wi.Url}");
+                throw new MissingFieldException($"Work item ID was null: {wi.Url}");
 
             IEnumerable<WorkItemRelation> newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
             int newAttachmentsCount = newAttachments.Count();
@@ -745,7 +710,7 @@ namespace WorkItemImport
             if (sourceWI.Id.HasValue)
                 _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
             else
-                throw new Exception($"Work item ID was null: {sourceWI.Url}");
+                throw new MissingFieldException($"Work item ID was null: {sourceWI.Url}");
 
             Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id} with link to work item ID:{targetWI.Id}");
         }
@@ -775,7 +740,7 @@ namespace WorkItemImport
             if (sourceWI.Id.HasValue)
                 _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value);
             else
-                throw new Exception($"Work item ID was null: {sourceWI.Url}");
+                throw new MissingFieldException($"Work item ID was null: {sourceWI.Url}");
 
             Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id}, removed link with Url: {rel.Url}");
         }
@@ -796,7 +761,7 @@ namespace WorkItemImport
         {
             if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
             {
-                return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["filePath"] == att.FilePath);
+                return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["filePath"].ToString() == att.FilePath);
             }
             return null;
         }

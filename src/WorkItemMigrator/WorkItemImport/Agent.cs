@@ -110,10 +110,10 @@ namespace WorkItemImport
 
                 _witClientUtils.SaveWorkItem(rev, wi);
 
-                foreach (WiAttachment wiAtt in rev.Attachments)
+                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
                 {
-                    if (attachmentMap.TryGetValue(wiAtt.AttOriginId, out WiAttachment tfsAtt))
-                        _context.Journal.MarkAttachmentAsProcessed(wiAtt.AttOriginId, tfsAtt.AttOriginId);
+                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
+                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
                 }
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
@@ -136,7 +136,7 @@ namespace WorkItemImport
                     _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
                 } else
                 {
-                    throw new Exception($"Work Item had no ID: {wi.Url}");
+                    throw new MissingFieldException($"Work Item had no ID: {wi.Url}");
                 }
 
                 Logger.Log(LogLevel.Debug, $"Imported revision.");
