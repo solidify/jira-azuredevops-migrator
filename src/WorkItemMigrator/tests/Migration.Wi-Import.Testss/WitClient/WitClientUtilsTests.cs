@@ -17,7 +17,7 @@ using Migration.Common;
 namespace Migration.Wi_Import.Testss
 {
     [TestFixture]
-    public class WitClientWrapperTests
+    public class WitClientUtilsTests
     {
         private class MockedWitClientWrapper : IWitClientWrapper
         {
@@ -796,6 +796,7 @@ namespace Migration.Wi_Import.Testss
             createdWI.Fields[WiFieldReference.Priority] = "1";
 
             // Add attachment
+
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
             att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
