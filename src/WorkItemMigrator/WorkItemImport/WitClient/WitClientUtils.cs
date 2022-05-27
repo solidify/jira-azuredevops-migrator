@@ -21,7 +21,7 @@ namespace WorkItemImport
             _witClientWrapper = witClientWrapper;
         }
 
-        public delegate V IsAttachmentMigratedDelegate<T, U, out V>(T input, out U output);
+        public delegate V IsAttachmentMigratedDelegate<in T, U, out V>(T input, out U output);
 
         public WorkItem CreateWorkItem(string type)
         {
@@ -490,20 +490,31 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(rev));
             }
 
+            SaveWorkItemAttachments(rev, newWorkItem);
+
+            SaveWorkItemLinks(rev, newWorkItem);
+
+
+        }
+
+        private void SaveWorkItemAttachments(WiRevision rev, WorkItem wi)
+        {
             // Save attachments
             foreach (WiAttachment attachment in rev.Attachments)
             {
-                if(attachment.Change == ReferenceChangeType.Added)
+                if (attachment.Change == ReferenceChangeType.Added)
                 {
-                    AddAttachmentToWorkItemAndSave(attachment, newWorkItem);
+                    AddSingleAttachmentToWorkItemAndSave(attachment, wi);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveAttachmentFromWorkItemAndSave(attachment, newWorkItem);
+                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi);
                 }
             }
+        }
 
-            // Save links
+        private void SaveWorkItemLinks(WiRevision rev, WorkItem wi)
+        {
             foreach (WiLink link in rev.Links)
             {
                 if (link.Change == ReferenceChangeType.Added)
@@ -511,21 +522,24 @@ namespace WorkItemImport
                     WorkItem targetWI = _witClientWrapper.GetWorkItem(link.TargetWiId);
                     if (targetWI != null)
                     {
-                        AddLinkToWorkItemAndSave(link, newWorkItem, targetWI, "Imported link from JIRA");
+                        AddSingleLinkToWorkItemAndSave(link, wi, targetWI, "Imported link from JIRA");
                     }
 
                 }
                 else if (link.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveLinkFromWorkItemAndSave(link, newWorkItem);
+                    RemoveSingleLinkFromWorkItemAndSave(link, wi);
                 }
             }
+        }
 
+        private void SaveWorkItemFields(WiRevision rev, WorkItem wi)
+        {
             // Build json patch document from fields
             JsonPatchDocument patchDocument = new JsonPatchDocument();
-            foreach (string key in newWorkItem.Fields.Keys)
+            foreach (string key in wi.Fields.Keys)
             {
-                object val = newWorkItem.Fields[key];
+                object val = wi.Fields[key];
 
                 patchDocument.Add(
                     new JsonPatchOperation()
@@ -539,14 +553,14 @@ namespace WorkItemImport
 
             try
             {
-                if (newWorkItem.Id.HasValue)
-                    _witClientWrapper.UpdateWorkItem(patchDocument, newWorkItem.Id.Value);
+                if (wi.Id.HasValue)
+                    _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
                 else
-                    throw new MissingFieldException($"Work item ID was null: {newWorkItem.Url}");
+                    throw new MissingFieldException($"Work item ID was null: {wi.Url}");
             }
             catch (AggregateException ex)
             {
-                Logger.Log(ex, "Work Item " + newWorkItem.Id + " failed to save.");
+                Logger.Log(ex, "Work Item " + wi.Id + " failed to save.");
             }
         }
 
@@ -597,7 +611,7 @@ namespace WorkItemImport
             }
         }
 
-        private void AddAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
         {
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att.FilePath);
@@ -641,7 +655,7 @@ namespace WorkItemImport
             Logger.Log(LogLevel.Info, "");
         }
 
-        private void RemoveAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
         {
             WorkItemRelation existingAttachmentRelation =
                 wi.Relations?.SingleOrDefault(
@@ -685,7 +699,7 @@ namespace WorkItemImport
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
         }
 
-        private void AddLinkToWorkItemAndSave(WiLink link, WorkItem sourceWI, WorkItem targetWI, string comment)
+        private void AddSingleLinkToWorkItemAndSave(WiLink link, WorkItem sourceWI, WorkItem targetWI, string comment)
         {
             // Create a patch document for a new work item.
             // Specify a relation to the existing work item.
@@ -715,7 +729,7 @@ namespace WorkItemImport
             Logger.Log(LogLevel.Info, $"Updated new work item Id:{sourceWI.Id} with link to work item ID:{targetWI.Id}");
         }
 
-        private void RemoveLinkFromWorkItemAndSave(WiLink link, WorkItem sourceWI)
+        private void RemoveSingleLinkFromWorkItemAndSave(WiLink link, WorkItem sourceWI)
         {
             WorkItemRelation rel = sourceWI.Relations.SingleOrDefault(a =>
                 a.Rel == link.WiType
