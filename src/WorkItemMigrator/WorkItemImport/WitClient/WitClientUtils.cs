@@ -494,6 +494,7 @@ namespace WorkItemImport
 
             SaveWorkItemLinks(rev, newWorkItem);
 
+            SaveWorkItemFields(rev, newWorkItem);
 
         }
 
