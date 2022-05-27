@@ -501,8 +501,18 @@ namespace WorkItemImport
 
         public void SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
         {
+            if (newWorkItem == null)
+            {
+                throw new ArgumentException(nameof(newWorkItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
             // Save attachments
-            foreach(WiAttachment attachment in rev.Attachments)
+            foreach (WiAttachment attachment in rev.Attachments)
             {
                 if(attachment.Change == ReferenceChangeType.Added)
                 {
@@ -644,7 +654,7 @@ namespace WorkItemImport
                         url = attachment.Url,
                         attributes = new
                         {
-                            comment = $"{att.Comment}|${att.FilePath}"
+                            comment = $"{att.Comment}|{att.FilePath}"
                         }
                     }
                 }

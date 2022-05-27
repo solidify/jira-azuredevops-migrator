@@ -60,7 +60,17 @@ namespace Migration.Wi_Import.Testss
                         }
                         else if (op.Path.StartsWith("/relations/"))
                         {
-                            wi.Relations.Add(op.Value as WorkItemRelation);
+                            string rel = op.Value.GetType().GetProperty("rel")?.GetValue(op.Value, null).ToString();
+                            string url = op.Value.GetType().GetProperty("url")?.GetValue(op.Value, null).ToString();
+                            object attributes = op.Value.GetType().GetProperty("attributes")?.GetValue(op.Value, null);
+                            string comment = attributes.GetType().GetProperty("comment")?.GetValue(attributes, null).ToString();
+
+                            WorkItemRelation wiRelation = new WorkItemRelation();
+                            wiRelation.Rel = rel;
+                            wiRelation.Url = url;
+                            wiRelation.Attributes = new Dictionary<string, object>{ { "comment", comment } };
+
+                            wi.Relations.Add(wiRelation);
                         }
                     }
                     else if (op.Operation == Operation.Remove) {
@@ -759,5 +769,78 @@ namespace Migration.Wi_Import.Testss
             Assert.That(createdWI.Relations.Count, Is.EqualTo(2));
         }
         //TODO: test SaveWorkItem
+
+        [Test]
+        public void When_calling_save_workitem_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.SaveWorkItem(null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_save_workitem_with_populated_workitem_Then_workitem_is_updated_in_store()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+
+            // Add fields
+            createdWI.Fields[WiFieldReference.Title] = "My work item";
+            createdWI.Fields[WiFieldReference.Description] = "My description";
+            createdWI.Fields[WiFieldReference.Priority] = "1";
+
+            // Add attachment
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.AttOriginId = "100";
+            att.Comment = "My comment";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            // Add links
+            WiLink link = new WiLink();
+            link.WiType = "System.LinkTypes.Hierarchy-Forward";
+            link.SourceOriginId = "100";
+            link.SourceWiId = 1;
+            link.TargetOriginId = "101";
+            link.TargetWiId = 2;
+            link.Change = ReferenceChangeType.Added;
+
+            revision.Links.Add(link);
+
+            // Perform save
+
+            wiUtils.SaveWorkItem(revision, createdWI);
+
+            WorkItem updatedWI = null;
+
+            if (createdWI.Id.HasValue)
+            {
+                updatedWI = wiUtils.GetWorkItem(createdWI.Id.Value);
+            }
+
+            // Assertions
+
+            Assert.That(updatedWI.Fields[WiFieldReference.Title], Is.EqualTo(createdWI.Fields[WiFieldReference.Title]));
+            Assert.That(updatedWI.Fields[WiFieldReference.Description], Is.EqualTo(createdWI.Fields[WiFieldReference.Description]));
+            Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
+
+            Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
+            Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
+            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
+            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
+
+            Assert.That(createdWI.Relations[1].Rel, Is.EqualTo(revision.Links[0].WiType));
+            Assert.That(createdWI.Relations[1].Url, Is.EqualTo($"https://example/workItems/{revision.Links[0].TargetWiId}"));
+
+        }
     }
 }

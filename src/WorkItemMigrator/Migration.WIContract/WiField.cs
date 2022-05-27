@@ -33,6 +33,7 @@
         public static string WorkItemType => "System.WorkItemType";
         public static string History => "System.History";
         public static string Reason => "System.Reason";
+        public static string Priority => "System.Priority";
 
     }
 }
