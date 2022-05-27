@@ -28,6 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Migration.Common\Migration.Common.csproj" />
 		<ProjectReference Include="..\..\WorkItemImport\wi-import.csproj">
 			<Project>{19b3af60-8be6-47fc-9911-7829455b3557}</Project>
 			<Name>wi-import</Name>
