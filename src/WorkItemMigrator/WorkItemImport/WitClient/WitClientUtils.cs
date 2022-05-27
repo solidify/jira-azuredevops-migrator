@@ -494,7 +494,7 @@ namespace WorkItemImport
 
             SaveWorkItemLinks(rev, newWorkItem);
 
-            SaveWorkItemFields(rev, newWorkItem);
+            SaveWorkItemFields(newWorkItem);
 
         }
 
@@ -534,7 +534,7 @@ namespace WorkItemImport
             }
         }
 
-        private void SaveWorkItemFields(WiRevision rev, WorkItem wi)
+        private void SaveWorkItemFields(WorkItem wi)
         {
             // Build json patch document from fields
             JsonPatchDocument patchDocument = new JsonPatchDocument();
