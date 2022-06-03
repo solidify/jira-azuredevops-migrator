@@ -29,20 +29,20 @@ namespace Migration.Common
         {
             if (File.Exists(journal.ItemsPath))
             {
-                string[] revLines = File.ReadAllLines(journal.ItemsPath);
+                var revLines = File.ReadAllLines(journal.ItemsPath);
                 foreach (string rev in revLines)
                 {
-                    string[] props = rev.Split(';');
+                    var props = rev.Split(';');
                     journal.ProcessedRevisions[props[0]] = (Convert.ToInt32(props[1]), Convert.ToInt32(props[2]));
                 }
             }
 
             if (File.Exists(journal.AttachmentsPath))
             {
-                string[] attLines = File.ReadAllLines(journal.AttachmentsPath);
+                var attLines = File.ReadAllLines(journal.AttachmentsPath);
                 foreach (string att in attLines)
                 {
-                    string[] props = att.Split(';');
+                    var props = att.Split(';');
                     journal.ProcessedAttachments[props[0]] = props[1];
                 }
             }
