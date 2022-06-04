@@ -108,7 +108,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
 {
   "source-project": "SCRUM",
   "target-project": "Scrum-Demo-From-Jira",
-  "query": "project = SCRUM ORDER BY Rank ASC",
+  "query": "project = \"SCRUM\" ORDER BY Rank ASC",
   "using-jira-cloud": true,
   "workspace": "C:\\Temp\\JiraExport\\",
   "epic-link-field": "Epic Link",
