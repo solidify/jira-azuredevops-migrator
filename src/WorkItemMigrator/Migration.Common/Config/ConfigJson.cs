@@ -68,6 +68,6 @@ namespace Common.Config
         public bool UsingJiraCloud { get; set; } = true;
 
         [JsonProperty(PropertyName = "sprint-char-replace-map")]
-        public List<CharField> CharReplaceMap { get; set; }
+        public List<CharReplaceRule> CharReplaceRuleMap { get; set; }
     }
 }

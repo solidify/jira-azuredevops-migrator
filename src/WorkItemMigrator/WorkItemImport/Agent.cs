@@ -327,9 +327,9 @@ namespace WorkItemImport
         
         private string ReplaceAzdoInvalidChar(string iterationPath) 
         {
-            if (Settings.CharReplaceMap.Count > 0)
+            if (Settings.CharReplaceRuleMap.Count > 0)
             {
-                foreach (CharField element in Settings.CharReplaceMap)
+                foreach (CharReplaceRule element in Settings.CharReplaceRuleMap)
                 {
                     iterationPath = iterationPath.Replace(element.Source, element.Target);
                 }

@@ -56,8 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseMapper.cs" />
-    <Compile Include="Config\CharReplace.cs" />
-    <Compile Include="Config\CharField.cs" />
+    <Compile Include="Config\CharReplaceRuleMap.cs" />
+    <Compile Include="Config\CharReplaceRule.cs" />
     <Compile Include="Config\ConfigJson.cs" />
     <Compile Include="Config\ConfigReaderJson.cs" />
     <Compile Include="Config\Field.cs" />

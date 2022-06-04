@@ -2,7 +2,7 @@
 
 namespace Migration.Common.Config
 {
-    public class CharField
+    public class CharReplaceRule
     {
         [JsonProperty("target", Required = Required.Always)]
         public string Target { get; set; }

@@ -48,7 +48,7 @@ namespace Migration.Common.Tests
             FieldMap fieldMap = new FieldMap();
             TypeMap typeMap = new TypeMap();
             LinkMap linkMap = new LinkMap();
-            List<CharField> CharReplaceMap = new List<CharField>();
+            List<CharReplaceRule> CharReplaceMap = new List<CharReplaceRule>();
 
             string jsonString = "{"
                 + string.Format("\"source-project\": \"{0}\",", SourceProject)
@@ -97,7 +97,7 @@ namespace Migration.Common.Tests
             AreEqualByJson(configJson.LinkMap, linkMap);
             Assert.That(configJson.RenderedFields, Is.EqualTo(RenderedFields));
             Assert.That(configJson.UsingJiraCloud, Is.EqualTo(UsingJiraCloud));
-            AreEqualByJson(configJson.CharReplaceMap, CharReplaceMap);
+            AreEqualByJson(configJson.CharReplaceRuleMap, CharReplaceMap);
         }
 
         private static void AreEqualByJson(object expected, object actual)
