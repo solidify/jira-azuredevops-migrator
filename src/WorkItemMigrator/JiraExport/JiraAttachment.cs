@@ -4,10 +4,10 @@ namespace JiraExport
 {
     public sealed class JiraAttachment : IEquatable<JiraAttachment>
     {
-        public string Id { get; internal set; }
-        public string Filename { get; internal set; }
-        public string Url { get; internal set; }
-        public string LocalPath { get; internal set; }
+        public string Id { get; set; }
+        public string Filename { get; set; }
+        public string Url { get; set; }
+        public string LocalPath { get; set; }
 
         public bool Equals(JiraAttachment other)
         {
