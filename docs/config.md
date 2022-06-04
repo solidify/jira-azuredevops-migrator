@@ -36,6 +36,7 @@ The migration configuration file is defined in a json file with the properties d
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
 |**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
+|**sprint-char-replace-map**|True|json|List of **characters** to replace in the area/iteration paths of the imported Azure DevOps/TFS work items. If left empty, all special characters will be removed by default.|
 
 ## Download options
 This option allows the tool to download related issues to cover cases where these are not included in the section query (like a parent issue).
@@ -101,6 +102,14 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |MapRemainingWork|Maps and converts a Jira time to hours|
 |MapRendered|Maps field to rendered html format value|
 |(default)|Simply copies soure to target|
+
+## Sprint Character Replace Rule properties
+Name-value pairs of characters to replace in the area/iteration paths of the AzDO/TFS work items, and their target characters.
+
+|Name|Required|Type|Description|
+|---|---|---|---|
+|source|False|string|Source character.|
+|target|False|string|Target character.|
 
 ## Example configuration
 
