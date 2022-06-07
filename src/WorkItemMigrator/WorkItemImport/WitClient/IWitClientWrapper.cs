@@ -13,5 +13,7 @@ namespace WorkItemImport
         TeamProject GetProject(string projectId);
         List<WorkItemRelationType> GetRelationTypes();
         AttachmentReference CreateAttachment(string filePath);
+        WorkItemClassificationNode CreateOrUpdateClassificationNode(WorkItemClassificationNode postedNode, string project, TreeStructureGroup structureGroup, string path);
+
     }
 }

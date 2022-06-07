@@ -91,5 +91,10 @@ namespace WorkItemImport
         {
             return WitClient.CreateAttachmentAsync(filePath).Result;
         }
+
+        public WorkItemClassificationNode CreateOrUpdateClassificationNode(WorkItemClassificationNode postedNode, string project, TreeStructureGroup structureGroup, string path)
+        {
+            return WitClient.CreateOrUpdateClassificationNodeAsync(postedNode, Guid.Parse(project), structureGroup, path).Result;
+        }
     }
 }

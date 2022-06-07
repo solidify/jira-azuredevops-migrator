@@ -14,15 +14,22 @@ using System.Linq;
 
 using Migration.Common;
 
+//TODO: Fix MockedWitClientWrapper
+//TODO: CreateSprintPathFromRevisionAndAddToWorkItem unit tests
+//TODO: CreateSprintPathFromRevisionAndAddToWorkItem unit test with invalid characters, with replaceMap
+//TODO: CreateSprintPathFromRevisionAndAddToWorkItem unit test with invalid characters, without replaceMap
+
 namespace Migration.Wi_Import.Testss
 {
     [TestFixture]
-    public class WitClientUtilsTests
+    public class WiClientUtilsTests
     {
         private class MockedWitClientWrapper : IWitClientWrapper
         {
             private int _wiIdCounter = 1;
+            private int _cnIdCounter = 1;
             public Dictionary<int, WorkItem> _wiCache = new Dictionary<int, WorkItem>();
+            public Dictionary<int, WorkItemClassificationNode> _classificationNodeCache = new Dictionary<int, WorkItemClassificationNode>();
 
             public MockedWitClientWrapper()
             {
@@ -132,6 +139,18 @@ namespace Migration.Wi_Import.Testss
                 att.Id = Guid.NewGuid();
                 att.Url = "https://example.com";
                 return att;
+            }
+
+            public WorkItemClassificationNode CreateOrUpdateClassificationNode(WorkItemClassificationNode postedNode, string project, TreeStructureGroup structureGroup, string path)
+            {
+                WorkItemClassificationNode classificationNode = new WorkItemClassificationNode();
+                classificationNode.Id = _cnIdCounter;
+                classificationNode.Url = $"https://example/workItems/{_wiIdCounter}";
+                classificationNode.Name = postedNode.Name;
+                classificationNode.Path = postedNode.Path;
+                _classificationNodeCache[_cnIdCounter] = (classificationNode);
+                _cnIdCounter++;
+                return classificationNode;
             }
         }
         private bool MockedIsAttachmentMigratedDelegateTrue(string _attOriginId, out string attWiId)

@@ -7,8 +7,11 @@ using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 
 using Migration.Common;
+using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
+
+using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 namespace WorkItemImport
 {
@@ -498,6 +501,32 @@ namespace WorkItemImport
 
         }
 
+        public void CreateSprintPathFromRevisionAndAddToWorkItem(WorkItem wi, string fieldValue, string sprintPath, string projectName, List<CharReplaceRule> charReplaceRuleMap, Dictionary<string, int> cache)
+        {
+            //var sprintPath = Settings.BaseIterationPath;
+
+            if (!string.IsNullOrWhiteSpace(fieldValue))
+            {
+
+                if (string.IsNullOrWhiteSpace(sprintPath))
+                    sprintPath = fieldValue;
+                else
+                    sprintPath = string.Join("/", sprintPath, fieldValue);
+
+
+            }
+            if (!string.IsNullOrWhiteSpace(sprintPath))
+            {
+                sprintPath = ReplaceAzdoInvalidChar(sprintPath, charReplaceRuleMap);
+                EnsureClasification(sprintPath, projectName, cache, WebModel.TreeStructureGroup.Iterations);
+                wi.Fields[WiFieldReference.IterationPath] = $@"{projectName}\{sprintPath}".Replace("/", @"\");
+            }
+            else
+            {
+                wi.Fields[WiFieldReference.IterationPath] = projectName;
+            }
+        }
+
         private void SaveWorkItemAttachments(WiRevision rev, WorkItem wi)
         {
             // Save attachments
@@ -563,6 +592,65 @@ namespace WorkItemImport
             {
                 Logger.Log(ex, "Work Item " + wi.Id + " failed to save.");
             }
+        }
+
+        private int? EnsureClasification(string fullName, string projectName, Dictionary<string, int> cache, WebModel.TreeStructureGroup structureGroup = WebModel.TreeStructureGroup.Iterations)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                Logger.Log(LogLevel.Error, "Empty value provided for node name/path.");
+                throw new ArgumentException("fullName");
+            }
+
+            var path = fullName.Split('/');
+            var name = path.Last();
+            var parent = string.Join("/", path.Take(path.Length - 1));
+
+            if (!string.IsNullOrEmpty(parent))
+                EnsureClasification(parent, projectName, cache, structureGroup);
+
+            lock (cache)
+            {
+                if (cache.TryGetValue(fullName, out int id))
+                    return id;
+
+                WebModel.WorkItemClassificationNode node = null;
+
+                try
+                {
+                    node = _witClientWrapper.CreateOrUpdateClassificationNode(
+                        new WebModel.WorkItemClassificationNode() { Name = name, }, projectName, structureGroup, parent);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} '{fullName}' to Azure DevOps/TFS.", LogLevel.Critical);
+                }
+
+                if (node != null)
+                {
+                    Logger.Log(LogLevel.Debug, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
+                    cache.Add(fullName, node.Id);
+                    return node.Id;
+                }
+            }
+            return null;
+        }
+
+        private string ReplaceAzdoInvalidChar(string iterationPath, List<CharReplaceRule> charReplaceRuleMap)
+        {
+            if (charReplaceRuleMap.Count > 0)
+            {
+                foreach (CharReplaceRule element in charReplaceRuleMap)
+                {
+                    iterationPath = iterationPath.Replace(element.Source, element.Target);
+                }
+            }
+            else
+            {
+                iterationPath = Regex.Replace(iterationPath, "[/$?*:\"&<>#%|+]", "");
+            }
+
+            return iterationPath;
         }
 
         private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
