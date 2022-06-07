@@ -13,11 +13,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch;
 using System.Linq;
 
 using Migration.Common;
-
-//TODO: Fix MockedWitClientWrapper
-//TODO: CreateSprintPathFromRevisionAndAddToWorkItem unit tests
-//TODO: CreateSprintPathFromRevisionAndAddToWorkItem unit test with invalid characters, with replaceMap
-//TODO: CreateSprintPathFromRevisionAndAddToWorkItem unit test with invalid characters, without replaceMap
+using Migration.Common.Config;
 
 namespace Migration.Wi_Import.Testss
 {
@@ -861,6 +857,68 @@ namespace Migration.Wi_Import.Testss
             Assert.That(createdWI.Relations[1].Rel, Is.EqualTo(revision.Links[0].WiType));
             Assert.That(createdWI.Relations[1].Url, Is.EqualTo($"https://example/workItems/{revision.Links[0].TargetWiId}"));
 
+        }
+
+        [Test]
+        public void When_calling_create_sprint_path_from_revision_and_add_to_work_item_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.CreateSprintPathFromRevisionAndAddToWorkItem(null, null, null, null, null, null, TreeStructureGroup.Iterations),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_create_sprint_path_from_revision_and_add_to_work_item_with_valid_args_Then_sprint_is_added_to_work_items()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            // Setup
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+
+            string baseArea = "base-area";
+            string areaValue = "my&area";
+            string baseIteration = "base-iteration";
+            string iterationValue = "my#iteration";
+            string project = "MyProject";
+
+            List<CharReplaceRule> charReplaceRules = new List<CharReplaceRule>();
+            CharReplaceRule crRule1 = new CharReplaceRule();
+            crRule1.Source = "&";
+            crRule1.Target = "-";
+            charReplaceRules.Add(crRule1);
+            CharReplaceRule crRule2 = new CharReplaceRule();
+            crRule2.Source = "#";
+            crRule2.Target = "_";
+            charReplaceRules.Add(crRule2);
+
+            string expectedArea = string.Format("{0}\\{1}\\{2}", project, baseArea, areaValue);
+            string expectedIteration = string.Format("{0}\\{1}\\{2}", project, baseIteration, iterationValue);
+
+            foreach(CharReplaceRule crRule in charReplaceRules)
+            {
+                expectedArea = expectedArea.Replace(crRule.Source, crRule.Target);
+                expectedIteration = expectedIteration.Replace(crRule.Source, crRule.Target);
+            }
+
+            Dictionary<string, int> areaCache = new Dictionary<string, int>();
+            Dictionary<string, int> iterationCache = new Dictionary<string, int>();
+
+            // Perform CreateSprint
+            wiUtils.CreateSprintPathFromRevisionAndAddToWorkItem(createdWI, areaValue, baseArea, project, charReplaceRules, areaCache, TreeStructureGroup.Areas);
+            wiUtils.CreateSprintPathFromRevisionAndAddToWorkItem(createdWI, iterationValue, baseIteration, project, charReplaceRules, iterationCache, TreeStructureGroup.Iterations);
+
+            // Assertions
+            Assert.That(createdWI.Fields[WiFieldReference.AreaPath], Is.EqualTo(expectedArea));
+            Assert.That(createdWI.Fields[WiFieldReference.IterationPath], Is.EqualTo(expectedIteration));
+            Assert.That(areaCache.Keys.ToList().Contains("base-area"), Is.True);
+            Assert.That(areaCache.Keys.ToList().Contains("base-area/my-area"), Is.True);
+            Assert.That(iterationCache.Keys.ToList().Contains("base-iteration"), Is.True);
+            Assert.That(iterationCache.Keys.ToList().Contains("base-iteration/my_iteration"), Is.True);
         }
     }
 }

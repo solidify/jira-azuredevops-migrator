@@ -17,7 +17,6 @@ using Migration.WIContract;
 
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
 using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
-using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
@@ -179,7 +178,7 @@ namespace WorkItemImport
                 return null;
             }
 
-            (var iterationCache, int rootIteration) = agent.CreateClasificationCacheAsync(settings.Project, WebModel.TreeStructureGroup.Iterations).Result;
+            (var iterationCache, int rootIteration) = agent.CreateClasificationCacheAsync(settings.Project, TreeStructureGroup.Iterations).Result;
             if (iterationCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build iteration cache.");
@@ -189,7 +188,7 @@ namespace WorkItemImport
             agent.IterationCache = iterationCache;
             agent.RootIteration = rootIteration;
 
-            (var areaCache, int rootArea) = agent.CreateClasificationCacheAsync(settings.Project, WebModel.TreeStructureGroup.Areas).Result;
+            (var areaCache, int rootArea) = agent.CreateClasificationCacheAsync(settings.Project, TreeStructureGroup.Areas).Result;
             if (areaCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build area cache.");
@@ -362,12 +361,12 @@ namespace WorkItemImport
             }
         }
 
-        private async Task<(Dictionary<string, int>, int)> CreateClasificationCacheAsync(string project, WebModel.TreeStructureGroup structureGroup)
+        private async Task<(Dictionary<string, int>, int)> CreateClasificationCacheAsync(string project, TreeStructureGroup structureGroup)
         {
             try
             {
-                Logger.Log(LogLevel.Info, $"Building {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} cache...");
-                WebModel.WorkItemClassificationNode all = await WiClient.GetClassificationNodeAsync(project, structureGroup, null, 1000);
+                Logger.Log(LogLevel.Info, $"Building {(structureGroup == TreeStructureGroup.Iterations ? "iteration" : "area")} cache...");
+                WorkItemClassificationNode all = await WiClient.GetClassificationNodeAsync(project, structureGroup, null, 1000);
 
                 var clasificationCache = new Dictionary<string, int>();
 
@@ -381,17 +380,17 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(ex, $"Error while building {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} cache.");
+                Logger.Log(ex, $"Error while building {(structureGroup == TreeStructureGroup.Iterations ? "iteration" : "area")} cache.");
                 return (null, -1);
             }
         }
 
-        private void CreateClasificationCacheRec(WebModel.WorkItemClassificationNode current, Dictionary<string, int> agg, string parentPath)
+        private void CreateClasificationCacheRec(WorkItemClassificationNode current, Dictionary<string, int> agg, string parentPath)
         {
             string fullName = !string.IsNullOrWhiteSpace(parentPath) ? parentPath + "/" + current.Name : current.Name;
 
             agg.Add(fullName, current.Id);
-            Logger.Log(LogLevel.Debug, $"{(current.StructureType == WebModel.TreeNodeStructureType.Iteration ? "Iteration" : "Area")} '{fullName}' added to cache");
+            Logger.Log(LogLevel.Debug, $"{(current.StructureType == TreeNodeStructureType.Iteration ? "Iteration" : "Area")} '{fullName}' added to cache");
             if (current.Children != null)
             {
                 foreach (var node in current.Children)
@@ -418,12 +417,12 @@ namespace WorkItemImport
                     switch (fieldRef)
                     {
                         case var s when s.Equals(WiFieldReference.IterationPath, StringComparison.InvariantCultureIgnoreCase):
-                            _witClientUtils.CreateSprintPathFromRevisionAndAddToWorkItem(wi, (string)fieldValue, Settings.BaseIterationPath, Settings.Project, Settings.CharReplaceRuleMap, IterationCache);
+                            _witClientUtils.CreateSprintPathFromRevisionAndAddToWorkItem(wi, (string)fieldValue, Settings.BaseIterationPath, Settings.Project, Settings.CharReplaceRuleMap, IterationCache, TreeStructureGroup.Iterations);
                             Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.Fields[WiFieldReference.IterationPath]}'.");
                             break;
 
                         case var s when s.Equals(WiFieldReference.AreaPath, StringComparison.InvariantCultureIgnoreCase):
-                            _witClientUtils.CreateSprintPathFromRevisionAndAddToWorkItem(wi, (string)fieldValue, Settings.BaseAreaPath, Settings.Project, Settings.CharReplaceRuleMap, AreaCache);
+                            _witClientUtils.CreateSprintPathFromRevisionAndAddToWorkItem(wi, (string)fieldValue, Settings.BaseAreaPath, Settings.Project, Settings.CharReplaceRuleMap, AreaCache, TreeStructureGroup.Areas);
                             Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{ wi.Fields[WiFieldReference.AreaPath] }'.");
                             break;
 

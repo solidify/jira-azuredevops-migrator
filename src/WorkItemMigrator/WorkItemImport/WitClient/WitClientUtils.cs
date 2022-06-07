@@ -11,8 +11,6 @@ using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
 
-using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-
 namespace WorkItemImport
 {
     public class WitClientUtils
@@ -501,29 +499,30 @@ namespace WorkItemImport
 
         }
 
-        public void CreateSprintPathFromRevisionAndAddToWorkItem(WorkItem wi, string fieldValue, string sprintPath, string projectName, List<CharReplaceRule> charReplaceRuleMap, Dictionary<string, int> cache)
+        public void CreateSprintPathFromRevisionAndAddToWorkItem(WorkItem wi, string fieldValue, string sprintPath, string projectName, List<CharReplaceRule> charReplaceRuleMap, Dictionary<string, int> cache, TreeStructureGroup structureGroup)
         {
-            //var sprintPath = Settings.BaseIterationPath;
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
 
             if (!string.IsNullOrWhiteSpace(fieldValue))
             {
-
                 if (string.IsNullOrWhiteSpace(sprintPath))
                     sprintPath = fieldValue;
                 else
                     sprintPath = string.Join("/", sprintPath, fieldValue);
-
-
             }
+            string sprintField = structureGroup == TreeStructureGroup.Areas ? WiFieldReference.AreaPath : WiFieldReference.IterationPath;
             if (!string.IsNullOrWhiteSpace(sprintPath))
             {
                 sprintPath = ReplaceAzdoInvalidChar(sprintPath, charReplaceRuleMap);
-                EnsureClasification(sprintPath, projectName, cache, WebModel.TreeStructureGroup.Iterations);
-                wi.Fields[WiFieldReference.IterationPath] = $@"{projectName}\{sprintPath}".Replace("/", @"\");
+                EnsureClasification(sprintPath, projectName, cache, structureGroup);
+                wi.Fields[sprintField] = $@"{projectName}\{sprintPath}".Replace("/", @"\");
             }
             else
             {
-                wi.Fields[WiFieldReference.IterationPath] = projectName;
+                wi.Fields[sprintField] = projectName;
             }
         }
 
@@ -594,7 +593,7 @@ namespace WorkItemImport
             }
         }
 
-        private int? EnsureClasification(string fullName, string projectName, Dictionary<string, int> cache, WebModel.TreeStructureGroup structureGroup = WebModel.TreeStructureGroup.Iterations)
+        private int? EnsureClasification(string fullName, string projectName, Dictionary<string, int> cache, TreeStructureGroup structureGroup)
         {
             if (string.IsNullOrWhiteSpace(fullName))
             {
@@ -614,21 +613,21 @@ namespace WorkItemImport
                 if (cache.TryGetValue(fullName, out int id))
                     return id;
 
-                WebModel.WorkItemClassificationNode node = null;
+                WorkItemClassificationNode node = null;
 
                 try
                 {
                     node = _witClientWrapper.CreateOrUpdateClassificationNode(
-                        new WebModel.WorkItemClassificationNode() { Name = name, }, projectName, structureGroup, parent);
+                        new WorkItemClassificationNode() { Name = name, }, projectName, structureGroup, parent);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} '{fullName}' to Azure DevOps/TFS.", LogLevel.Critical);
+                    Logger.Log(ex, $"Error while adding {(structureGroup == TreeStructureGroup.Iterations ? "iteration" : "area")} '{fullName}' to Azure DevOps/TFS.", LogLevel.Critical);
                 }
 
                 if (node != null)
                 {
-                    Logger.Log(LogLevel.Debug, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
+                    Logger.Log(LogLevel.Debug, $"{(structureGroup == TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
                     cache.Add(fullName, node.Id);
                     return node.Id;
                 }
