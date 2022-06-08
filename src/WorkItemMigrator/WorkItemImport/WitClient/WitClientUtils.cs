@@ -518,7 +518,7 @@ namespace WorkItemImport
             {
                 sprintPath = ReplaceAzdoInvalidChar(sprintPath, charReplaceRuleMap);
                 int classificationNodeId;
-                EnsureClasification(sprintPath, projectName, cache, structureGroup, out classificationNodeId);
+                EnsureClassification(sprintPath, projectName, cache, structureGroup, out classificationNodeId);
                 wi.Fields[sprintField] = $@"{projectName}\{sprintPath}".Replace("/", @"\");
             }
             else
@@ -594,7 +594,7 @@ namespace WorkItemImport
             }
         }
 
-        private void EnsureClasification(string fullName, string projectName, Dictionary<string, int> cache, TreeStructureGroup structureGroup, out int classificationNodeId)
+        private void EnsureClassification(string fullName, string projectName, Dictionary<string, int> cache, TreeStructureGroup structureGroup, out int classificationNodeId)
         {
             if (string.IsNullOrWhiteSpace(fullName))
             {
@@ -607,7 +607,7 @@ namespace WorkItemImport
             var parent = string.Join("/", path.Take(path.Length - 1));
 
             if (!string.IsNullOrEmpty(parent))
-                EnsureClasification(parent, projectName, cache, structureGroup, out classificationNodeId);
+                EnsureClassification(parent, projectName, cache, structureGroup, out classificationNodeId);
 
             lock (cache)
             {

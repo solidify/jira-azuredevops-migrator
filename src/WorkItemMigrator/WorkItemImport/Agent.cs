@@ -178,7 +178,7 @@ namespace WorkItemImport
                 return null;
             }
 
-            (var iterationCache, int rootIteration) = agent.CreateClasificationCacheAsync(settings.Project, TreeStructureGroup.Iterations).Result;
+            (var iterationCache, int rootIteration) = agent.CreateClassificationCacheAsync(settings.Project, TreeStructureGroup.Iterations).Result;
             if (iterationCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build iteration cache.");
@@ -188,7 +188,7 @@ namespace WorkItemImport
             agent.IterationCache = iterationCache;
             agent.RootIteration = rootIteration;
 
-            (var areaCache, int rootArea) = agent.CreateClasificationCacheAsync(settings.Project, TreeStructureGroup.Areas).Result;
+            (var areaCache, int rootArea) = agent.CreateClassificationCacheAsync(settings.Project, TreeStructureGroup.Areas).Result;
             if (areaCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build area cache.");
@@ -361,22 +361,22 @@ namespace WorkItemImport
             }
         }
 
-        private async Task<(Dictionary<string, int>, int)> CreateClasificationCacheAsync(string project, TreeStructureGroup structureGroup)
+        private async Task<(Dictionary<string, int>, int)> CreateClassificationCacheAsync(string project, TreeStructureGroup structureGroup)
         {
             try
             {
                 Logger.Log(LogLevel.Info, $"Building {(structureGroup == TreeStructureGroup.Iterations ? "iteration" : "area")} cache...");
                 WorkItemClassificationNode all = await WiClient.GetClassificationNodeAsync(project, structureGroup, null, 1000);
 
-                var clasificationCache = new Dictionary<string, int>();
+                var classificationCache = new Dictionary<string, int>();
 
                 if (all.Children != null && all.Children.Any())
                 {
                     foreach (var iteration in all.Children)
-                        CreateClasificationCacheRec(iteration, clasificationCache, "");
+                        CreateClassificationCacheRec(iteration, classificationCache, "");
                 }
 
-                return (clasificationCache, all.Id);
+                return (classificationCache, all.Id);
             }
             catch (Exception ex)
             {
@@ -385,7 +385,7 @@ namespace WorkItemImport
             }
         }
 
-        private void CreateClasificationCacheRec(WorkItemClassificationNode current, Dictionary<string, int> agg, string parentPath)
+        private void CreateClassificationCacheRec(WorkItemClassificationNode current, Dictionary<string, int> agg, string parentPath)
         {
             string fullName = !string.IsNullOrWhiteSpace(parentPath) ? parentPath + "/" + current.Name : current.Name;
 
@@ -394,7 +394,7 @@ namespace WorkItemImport
             if (current.Children != null)
             {
                 foreach (var node in current.Children)
-                    CreateClasificationCacheRec(node, agg, fullName);
+                    CreateClassificationCacheRec(node, agg, fullName);
             }
         }
 
