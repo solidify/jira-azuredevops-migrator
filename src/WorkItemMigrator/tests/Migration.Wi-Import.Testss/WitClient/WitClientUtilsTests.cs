@@ -193,8 +193,11 @@ namespace Migration.Wi_Import.Testss
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
             wiUtils.EnsureAuthorFields(rev);
 
-            Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedBy));
-            Assert.That(rev.Fields[0].Value, Is.EqualTo(rev.Author));
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedBy));
+                Assert.That(rev.Fields[0].Value, Is.EqualTo(rev.Author));
+            });
         }
 
         [Test]
@@ -208,8 +211,11 @@ namespace Migration.Wi_Import.Testss
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
             wiUtils.EnsureAuthorFields(rev);
 
-            Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.ChangedBy));
-            Assert.That(rev.Fields[0].Value, Is.EqualTo(rev.Author));
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.ChangedBy));
+                Assert.That(rev.Fields[0].Value, Is.EqualTo(rev.Author));
+            });
         }
 
         [Test]
@@ -237,8 +243,11 @@ namespace Migration.Wi_Import.Testss
 
             wiUtils.EnsureAssigneeField(rev, createdWI);
 
-            Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.AssignedTo));
-            Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.AssignedTo));
+                Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
+            });
         }
 
         [Test]
@@ -266,16 +275,18 @@ namespace Migration.Wi_Import.Testss
 
             wiUtils.EnsureDateFields(rev, createdWI);
 
-            Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedDate));
-            Assert.That(
-                DateTime.Parse(rev.Fields[0].Value.ToString()),
-                Is.LessThan(createdWI.Fields[WiFieldReference.ChangedDate]));
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedDate));
+                Assert.That(
+                    DateTime.Parse(rev.Fields[0].Value.ToString()),
+                    Is.LessThan(createdWI.Fields[WiFieldReference.ChangedDate]));
 
-            Assert.That(rev.Fields[1].ReferenceName, Is.EqualTo(WiFieldReference.ChangedDate));
-            Assert.That(
-                DateTime.Parse(rev.Fields[1].Value.ToString()),
-                Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString())));
-            //Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
+                Assert.That(rev.Fields[1].ReferenceName, Is.EqualTo(WiFieldReference.ChangedDate));
+                Assert.That(
+                    DateTime.Parse(rev.Fields[1].Value.ToString()),
+                    Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString())));
+            });
         }
 
         [Test]
@@ -309,11 +320,14 @@ namespace Migration.Wi_Import.Testss
 
             wiUtils.EnsureFieldsOnStateChange(rev, createdWI);
 
-            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State), Is.EqualTo("New"));
-            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedDate), Is.EqualTo(null));
-            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedBy), Is.EqualTo(null));
-            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedDate), Is.EqualTo(null));
-            Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedBy), Is.EqualTo(null));
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State), Is.EqualTo("New"));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedDate), Is.EqualTo(null));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedBy), Is.EqualTo(null));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedDate), Is.EqualTo(null));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedBy), Is.EqualTo(null));
+            });
         }
 
         [Test]
@@ -339,8 +353,11 @@ namespace Migration.Wi_Import.Testss
             List<WiField> filteredForAreaPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.AreaPath && f.Value.ToString() == "");
             List<WiField> filteredForIterationPath = rev.Fields.FindAll(f => f.ReferenceName == WiFieldReference.IterationPath && f.Value.ToString() == "");
 
-            Assert.That(filteredForAreaPath.Count, Is.EqualTo(1));
-            Assert.That(filteredForIterationPath.Count, Is.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(filteredForAreaPath.Count, Is.EqualTo(1));
+                Assert.That(filteredForIterationPath.Count, Is.EqualTo(1));
+            });
         }
 
         [Test]
@@ -372,10 +389,13 @@ namespace Migration.Wi_Import.Testss
 
             wiUtils.EnsureWorkItemFieldsInitialized(rev, createdWI);
 
-            Assert.That(createdWI.Fields[WiFieldReference.Title],
+            Assert.Multiple(() =>
+            {
+                Assert.That(createdWI.Fields[WiFieldReference.Title],
                 Is.EqualTo(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.Title)));
-            Assert.That(createdWI.Fields[WiFieldReference.Description],
-                Is.EqualTo(""));
+                Assert.That(createdWI.Fields[WiFieldReference.Description],
+                    Is.EqualTo(""));
+            });
         }
 
         [Test]
@@ -397,10 +417,13 @@ namespace Migration.Wi_Import.Testss
 
             wiUtils.EnsureWorkItemFieldsInitialized(rev, createdWI);
 
-            Assert.That(createdWI.Fields[WiFieldReference.Title],
+            Assert.Multiple(() =>
+            {
+                Assert.That(createdWI.Fields[WiFieldReference.Title],
                 Is.EqualTo(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.Title)));
-            Assert.That(createdWI.Fields[WiFieldReference.ReproSteps],
-                Is.EqualTo(""));
+                Assert.That(createdWI.Fields[WiFieldReference.ReproSteps],
+                    Is.EqualTo(""));
+            });
         }
 
         [Test]
@@ -439,11 +462,14 @@ namespace Migration.Wi_Import.Testss
                 retrievedWI = wiUtils.GetWorkItem(createdWI.Id.Value);
             }
 
-            Assert.That(createdWI.Id, Is.EqualTo(1));
-            Assert.That(retrievedWI.Id, Is.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(createdWI.Id, Is.EqualTo(1));
+                Assert.That(retrievedWI.Id, Is.EqualTo(1));
 
-            Assert.That(createdWI.Fields[WiFieldReference.WorkItemType], Is.EqualTo("Task"));
-            Assert.That(retrievedWI.Fields[WiFieldReference.WorkItemType], Is.EqualTo("Task"));
+                Assert.That(createdWI.Fields[WiFieldReference.WorkItemType], Is.EqualTo("Task"));
+                Assert.That(retrievedWI.Fields[WiFieldReference.WorkItemType], Is.EqualTo("Task"));
+            });
         }
 
         [Test]
@@ -504,8 +530,11 @@ namespace Migration.Wi_Import.Testss
 
             WorkItemRelation rel = createdWI.Relations[0];
 
-            Assert.That(rel.Rel, Is.EqualTo(link.WiType));
-            Assert.That(rel.Url, Is.EqualTo(linkedWI.Url));
+            Assert.Multiple(() =>
+            {
+                Assert.That(rel.Rel, Is.EqualTo(link.WiType));
+                Assert.That(rel.Url, Is.EqualTo(linkedWI.Url));
+            });
         }
 
         [Test]
@@ -556,8 +585,11 @@ namespace Migration.Wi_Import.Testss
 
             bool result = wiUtils.RemoveLink(link, createdWI);
 
-            Assert.That(result, Is.EqualTo(true));
-            Assert.That(createdWI.Relations, Is.Empty);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(true));
+                Assert.That(createdWI.Relations, Is.Empty);
+            });
         }
 
         [Test]
@@ -715,9 +747,12 @@ namespace Migration.Wi_Import.Testss
 
             wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateTrue);
 
-            Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
-            Assert.That(createdWI.Relations[0].Attributes["filePath"], Is.EqualTo(att.FilePath));
-            Assert.That(createdWI.Relations[0].Attributes["comment"], Is.EqualTo(att.Comment));
+            Assert.Multiple(() =>
+            {
+                Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
+                Assert.That(createdWI.Relations[0].Attributes["filePath"], Is.EqualTo(att.FilePath));
+                Assert.That(createdWI.Relations[0].Attributes["comment"], Is.EqualTo(att.Comment));
+            });
         }
 
         [Test]
@@ -845,17 +880,20 @@ namespace Migration.Wi_Import.Testss
 
             // Assertions
 
-            Assert.That(updatedWI.Fields[WiFieldReference.Title], Is.EqualTo(createdWI.Fields[WiFieldReference.Title]));
-            Assert.That(updatedWI.Fields[WiFieldReference.Description], Is.EqualTo(createdWI.Fields[WiFieldReference.Description]));
-            Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
+            Assert.Multiple(() =>
+            {
+                Assert.That(updatedWI.Fields[WiFieldReference.Title], Is.EqualTo(createdWI.Fields[WiFieldReference.Title]));
+                Assert.That(updatedWI.Fields[WiFieldReference.Description], Is.EqualTo(createdWI.Fields[WiFieldReference.Description]));
+                Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
 
-            Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
-            Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
-            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
-            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
+                Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
+                Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
+                Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
+                Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
 
-            Assert.That(createdWI.Relations[1].Rel, Is.EqualTo(revision.Links[0].WiType));
-            Assert.That(createdWI.Relations[1].Url, Is.EqualTo($"https://example/workItems/{revision.Links[0].TargetWiId}"));
+                Assert.That(createdWI.Relations[1].Rel, Is.EqualTo(revision.Links[0].WiType));
+                Assert.That(createdWI.Relations[1].Url, Is.EqualTo($"https://example/workItems/{revision.Links[0].TargetWiId}"));
+            });
 
         }
 
@@ -899,7 +937,7 @@ namespace Migration.Wi_Import.Testss
             string expectedArea = string.Format("{0}\\{1}\\{2}", project, baseArea, areaValue);
             string expectedIteration = string.Format("{0}\\{1}\\{2}", project, baseIteration, iterationValue);
 
-            foreach(CharReplaceRule crRule in charReplaceRules)
+            foreach (CharReplaceRule crRule in charReplaceRules)
             {
                 expectedArea = expectedArea.Replace(crRule.Source, crRule.Target);
                 expectedIteration = expectedIteration.Replace(crRule.Source, crRule.Target);
@@ -913,12 +951,15 @@ namespace Migration.Wi_Import.Testss
             wiUtils.CreateSprintPathFromRevisionAndAddToWorkItem(createdWI, iterationValue, baseIteration, project, charReplaceRules, iterationCache, TreeStructureGroup.Iterations);
 
             // Assertions
-            Assert.That(createdWI.Fields[WiFieldReference.AreaPath], Is.EqualTo(expectedArea));
-            Assert.That(createdWI.Fields[WiFieldReference.IterationPath], Is.EqualTo(expectedIteration));
-            Assert.That(areaCache.Keys.ToList().Contains("base-area"), Is.True);
-            Assert.That(areaCache.Keys.ToList().Contains("base-area/my-area"), Is.True);
-            Assert.That(iterationCache.Keys.ToList().Contains("base-iteration"), Is.True);
-            Assert.That(iterationCache.Keys.ToList().Contains("base-iteration/my_iteration"), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(createdWI.Fields[WiFieldReference.AreaPath], Is.EqualTo(expectedArea));
+                Assert.That(createdWI.Fields[WiFieldReference.IterationPath], Is.EqualTo(expectedIteration));
+                Assert.That(areaCache.Keys.ToList().Contains("base-area"), Is.True);
+                Assert.That(areaCache.Keys.ToList().Contains("base-area/my-area"), Is.True);
+                Assert.That(iterationCache.Keys.ToList().Contains("base-iteration"), Is.True);
+                Assert.That(iterationCache.Keys.ToList().Contains("base-iteration/my_iteration"), Is.True);
+            });
         }
     }
 }

@@ -77,28 +77,31 @@ namespace Migration.Common.Tests
 
             ConfigJson configJson = JsonConvert.DeserializeObject<ConfigJson>(jsonString);
 
-            Assert.That(configJson.SourceProject, Is.EqualTo(SourceProject));
-            Assert.That(configJson.TargetProject, Is.EqualTo(TargetProject));
-            Assert.That(configJson.Query, Is.EqualTo(Query));
-            Assert.That(configJson.Workspace, Is.EqualTo(Workspace));
-            Assert.That(configJson.EpicLinkField, Is.EqualTo(EpicLinkField));
-            Assert.That(configJson.SprintField, Is.EqualTo(SprintField));
-            Assert.That(configJson.DownloadOptions, Is.EqualTo(DownloadOptions));
-            Assert.That(configJson.BatchSize, Is.EqualTo(BatchSize));
-            Assert.That(configJson.LogLevel, Is.EqualTo(LogLevel));
-            Assert.That(configJson.AttachmentsFolder, Is.EqualTo(AttachmentsFolder));
-            Assert.That(configJson.UserMappingFile, Is.EqualTo(UserMappingFile));
-            Assert.That(configJson.BaseAreaPath, Is.EqualTo(BaseAreaPath));
-            Assert.That(configJson.BaseIterationPath, Is.EqualTo(BaseIterationPath));
-            Assert.That(configJson.IgnoreFailedLinks, Is.EqualTo(IgnoreFailedLinks));
+            Assert.Multiple(() =>
+            {
+                Assert.That(configJson.SourceProject, Is.EqualTo(SourceProject));
+                Assert.That(configJson.TargetProject, Is.EqualTo(TargetProject));
+                Assert.That(configJson.Query, Is.EqualTo(Query));
+                Assert.That(configJson.Workspace, Is.EqualTo(Workspace));
+                Assert.That(configJson.EpicLinkField, Is.EqualTo(EpicLinkField));
+                Assert.That(configJson.SprintField, Is.EqualTo(SprintField));
+                Assert.That(configJson.DownloadOptions, Is.EqualTo(DownloadOptions));
+                Assert.That(configJson.BatchSize, Is.EqualTo(BatchSize));
+                Assert.That(configJson.LogLevel, Is.EqualTo(LogLevel));
+                Assert.That(configJson.AttachmentsFolder, Is.EqualTo(AttachmentsFolder));
+                Assert.That(configJson.UserMappingFile, Is.EqualTo(UserMappingFile));
+                Assert.That(configJson.BaseAreaPath, Is.EqualTo(BaseAreaPath));
+                Assert.That(configJson.BaseIterationPath, Is.EqualTo(BaseIterationPath));
+                Assert.That(configJson.IgnoreFailedLinks, Is.EqualTo(IgnoreFailedLinks));
+                Assert.That(configJson.ProcessTemplate, Is.EqualTo(ProcessTemplate));
+                Assert.That(configJson.RenderedFields, Is.EqualTo(RenderedFields));
+                Assert.That(configJson.UsingJiraCloud, Is.EqualTo(UsingJiraCloud));
+            });
             AreEqualByJson(configJson.FieldMap, fieldMap);
-            Assert.That(configJson.ProcessTemplate, Is.EqualTo(ProcessTemplate));
             AreEqualByJson(configJson.TypeMap, typeMap);
             AreEqualByJson(configJson.LinkMap, linkMap);
-            Assert.That(configJson.RenderedFields, Is.EqualTo(RenderedFields));
-            Assert.That(configJson.UsingJiraCloud, Is.EqualTo(UsingJiraCloud));
             AreEqualByJson(configJson.SprintCharReplaceMap, CharReplaceMap);
-        }
+    }
 
         private static void AreEqualByJson(object expected, object actual)
         {
