@@ -517,7 +517,8 @@ namespace WorkItemImport
             if (!string.IsNullOrWhiteSpace(sprintPath))
             {
                 sprintPath = ReplaceAzdoInvalidChar(sprintPath, charReplaceRuleMap);
-                EnsureClasification(sprintPath, projectName, cache, structureGroup);
+                int classificationNodeId;
+                EnsureClasification(sprintPath, projectName, cache, structureGroup, out classificationNodeId);
                 wi.Fields[sprintField] = $@"{projectName}\{sprintPath}".Replace("/", @"\");
             }
             else
@@ -593,7 +594,7 @@ namespace WorkItemImport
             }
         }
 
-        private int? EnsureClasification(string fullName, string projectName, Dictionary<string, int> cache, TreeStructureGroup structureGroup)
+        private void EnsureClasification(string fullName, string projectName, Dictionary<string, int> cache, TreeStructureGroup structureGroup, out int classificationNodeId)
         {
             if (string.IsNullOrWhiteSpace(fullName))
             {
@@ -606,12 +607,12 @@ namespace WorkItemImport
             var parent = string.Join("/", path.Take(path.Length - 1));
 
             if (!string.IsNullOrEmpty(parent))
-                EnsureClasification(parent, projectName, cache, structureGroup);
+                EnsureClasification(parent, projectName, cache, structureGroup, out classificationNodeId);
 
             lock (cache)
             {
                 if (cache.TryGetValue(fullName, out int id))
-                    return id;
+                    classificationNodeId = id;
 
                 WorkItemClassificationNode node = null;
 
@@ -629,10 +630,10 @@ namespace WorkItemImport
                 {
                     Logger.Log(LogLevel.Debug, $"{(structureGroup == TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
                     cache.Add(fullName, node.Id);
-                    return node.Id;
+                    classificationNodeId = node.Id;
                 }
             }
-            return null;
+            classificationNodeId = -1;
         }
 
         private string ReplaceAzdoInvalidChar(string iterationPath, List<CharReplaceRule> charReplaceRuleMap)
