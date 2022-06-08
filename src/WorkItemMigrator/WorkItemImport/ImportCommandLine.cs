@@ -91,7 +91,7 @@ namespace WorkItemImport
                     BaseIterationPath = config.BaseIterationPath ?? string.Empty, // Root iteration path that will prefix each iteration
                     IgnoreFailedLinks = config.IgnoreFailedLinks,
                     ProcessTemplate = config.ProcessTemplate,
-                    CharReplaceRuleMap = config.CharReplaceRuleMap
+                    CharReplaceRuleMap = config.SprintCharReplaceMap
                 };
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.

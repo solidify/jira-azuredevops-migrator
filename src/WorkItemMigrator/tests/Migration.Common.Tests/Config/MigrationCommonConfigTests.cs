@@ -97,7 +97,7 @@ namespace Migration.Common.Tests
             AreEqualByJson(configJson.LinkMap, linkMap);
             Assert.That(configJson.RenderedFields, Is.EqualTo(RenderedFields));
             Assert.That(configJson.UsingJiraCloud, Is.EqualTo(UsingJiraCloud));
-            AreEqualByJson(configJson.CharReplaceRuleMap, CharReplaceMap);
+            AreEqualByJson(configJson.SprintCharReplaceMap, CharReplaceMap);
         }
 
         private static void AreEqualByJson(object expected, object actual)
