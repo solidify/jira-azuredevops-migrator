@@ -36,7 +36,7 @@ The migration configuration file is defined in a json file with the properties d
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
 |**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
-|**sprint-char-replace-map**|True|json|List of **characters** to replace in the area/iteration paths of the imported Azure DevOps/TFS work items. If left empty, all special characters will be removed by default.|
+|**sprint-char-replace-map**|True|json|List of **characters** search/replace operations to do in the area/iteration paths of the imported Azure DevOps/TFS work items. Provide a list of source and target characters in the map. If the *sprint-char-replace-map* property is left empty, all special characters will be removed by default. Read more under **Sprint Character Replace Rule properties** in this document.|
 
 ## Download options
 This option allows the tool to download related issues to cover cases where these are not included in the section query (like a parent issue).
@@ -104,7 +104,9 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |(default)|Simply copies soure to target|
 
 ## Sprint Character Replace Rule properties
-Name-value pairs of characters to replace in the area/iteration paths of the AzDO/TFS work items, and their target characters.
+Name-value pairs of characters to replace in the area/iteration paths of the AzDO/TFS work items.
+
+Some special characters are unsupported in the AzDO sprint paths. The *sprint-char-replace-map* property gives you an option to replace those characters in any pattern you want. If the *sprint-char-replace-map* property is left empty, all special characters will be replaced with an empty string.
 
 |Name|Required|Type|Description|
 |---|---|---|---|
@@ -340,6 +342,20 @@ Name-value pairs of characters to replace in the area/iteration paths of the AzD
         "for": "Bug"
       }
     ]
-  }
+  },
+  "sprint-char-replace-map": [
+    {
+      "source": " ",
+      "target": "-"
+    },
+    {
+      "source": "!",
+      "target": "%21"
+    },
+    {
+      "source": "/",
+      "target": "%2F"
+    }
+  ]
 }
 ```
