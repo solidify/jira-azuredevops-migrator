@@ -171,14 +171,14 @@ namespace WorkItemImport
             agent._witClientUtils = new WitClientUtils(witClientWrapper);
 
             // check if projects exists, if not create it
-            var project = agent.GetOrCreateProjectAsync().Result;
+            var project = agent.GetOrCreateProjectAsync().GetAwaiter().GetResult();
             if (project == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not establish connection to the remote Azure DevOps/TFS project.");
                 return null;
             }
 
-            (var iterationCache, int rootIteration) = agent.CreateClassificationCacheAsync(settings.Project, TreeStructureGroup.Iterations).Result;
+            (var iterationCache, int rootIteration) = agent.CreateClassificationCacheAsync(settings.Project, TreeStructureGroup.Iterations).GetAwaiter().GetResult();
             if (iterationCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build iteration cache.");
@@ -188,7 +188,7 @@ namespace WorkItemImport
             agent.IterationCache = iterationCache;
             agent.RootIteration = rootIteration;
 
-            (var areaCache, int rootArea) = agent.CreateClassificationCacheAsync(settings.Project, TreeStructureGroup.Areas).Result;
+            (var areaCache, int rootArea) = agent.CreateClassificationCacheAsync(settings.Project, TreeStructureGroup.Areas).GetAwaiter().GetResult();
             if (areaCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build area cache.");
@@ -270,7 +270,7 @@ namespace WorkItemImport
 
             // Setup process properties       
             ProcessHttpClient processClient = RestConnection.GetClient<ProcessHttpClient>();
-            Guid processId = processClient.GetProcessesAsync().Result.Find(process => { return process.Name.Equals(processName, StringComparison.InvariantCultureIgnoreCase); }).Id;
+            Guid processId = (await processClient.GetProcessesAsync()).Find(process => { return process.Name.Equals(processName, StringComparison.InvariantCultureIgnoreCase); }).Id;
 
             Dictionary<string, string> processProperaties = new Dictionary<string, string>
             {
@@ -305,16 +305,16 @@ namespace WorkItemImport
                 OperationReference operation = await projectClient.QueueCreateProject(projectCreateParameters);
 
                 // Check the operation status every 5 seconds (for up to 30 seconds)
-                Operation completedOperation = WaitForLongRunningOperation(operation.Id, 5, 30).Result;
+                Operation completedOperation = await WaitForLongRunningOperation(operation.Id, 5, 30);
 
                 // Check if the operation succeeded (the project was created) or failed
                 if (completedOperation.Status == OperationStatus.Succeeded)
                 {
                     // Get the full details about the newly created project
-                    project = projectClient.GetProject(
+                    project = await projectClient.GetProject(
                         projectCreateParameters.Name,
                         includeCapabilities: true,
-                        includeHistory: true).Result;
+                        includeHistory: true);
 
                     Logger.Log(LogLevel.Info, $"Project created (ID: {project.Id})");
                 }

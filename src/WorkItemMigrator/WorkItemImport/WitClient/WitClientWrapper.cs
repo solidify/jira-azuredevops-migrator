@@ -28,9 +28,9 @@ namespace WorkItemImport
             Connection = new VssConnection(new Uri(collectionUri), new VssClientCredentials());
             WitClient = Connection.GetClient<WorkItemTrackingHttpClient>();
             ProjectClient = Connection.GetClient<ProjectHttpClient>();
-            TeamProject = ProjectClient.GetProject(project).Result;
+            TeamProject = ProjectClient.GetProject(project).GetAwaiter().GetResult();
             WorkItemsAdded = new HashSet<int>();
-            DefaultWorkItemTypeCategory = WitClient.GetWorkItemTypeCategoryAsync(TeamProject.Id, DefaultCategoryReferenceName).Result;
+            DefaultWorkItemTypeCategory = WitClient.GetWorkItemTypeCategoryAsync(TeamProject.Id, DefaultCategoryReferenceName).GetAwaiter().GetResult();
             DefaultWorkItemType = DefaultWorkItemTypeCategory.DefaultWorkItemType;
         }
 
@@ -49,7 +49,7 @@ namespace WorkItemImport
             WorkItem wiOut = null;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(patchDoc, TeamProject.Name, wiType).Result;
+                wiOut = WitClient.CreateWorkItemAsync(patchDoc, TeamProject.Name, wiType).GetAwaiter().GetResult();
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
@@ -63,7 +63,7 @@ namespace WorkItemImport
             WorkItem wiOut;
             try
             {
-                wiOut = WitClient.GetWorkItemAsync(wiId).Result;
+                wiOut = WitClient.GetWorkItemAsync(wiId).GetAwaiter().GetResult();
             } catch (System.AggregateException)
             {
                 // Work item was not found, return null
@@ -74,27 +74,27 @@ namespace WorkItemImport
 
         public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
         {
-            return WitClient.UpdateWorkItemAsync(patchDocument, workItemId).Result;
+            return WitClient.UpdateWorkItemAsync(patchDocument, workItemId).GetAwaiter().GetResult();
         }
 
         public TeamProject GetProject(string projectId)
         {
-            return ProjectClient.GetProject(projectId).Result;
+            return ProjectClient.GetProject(projectId).GetAwaiter().GetResult();
         }
 
         public List<WorkItemRelationType> GetRelationTypes()
         {
-            return WitClient.GetRelationTypesAsync().Result;
+            return WitClient.GetRelationTypesAsync().GetAwaiter().GetResult();
         }
 
         public AttachmentReference CreateAttachment(string filePath)
         {
-            return WitClient.CreateAttachmentAsync(filePath).Result;
+            return WitClient.CreateAttachmentAsync(filePath).GetAwaiter().GetResult();
         }
 
         public WorkItemClassificationNode CreateOrUpdateClassificationNode(WorkItemClassificationNode postedNode, string project, TreeStructureGroup structureGroup, string path)
         {
-            return WitClient.CreateOrUpdateClassificationNodeAsync(postedNode, Guid.Parse(project), structureGroup, path).Result;
+            return WitClient.CreateOrUpdateClassificationNodeAsync(postedNode, Guid.Parse(project), structureGroup, path).GetAwaiter().GetResult();
         }
     }
 }
