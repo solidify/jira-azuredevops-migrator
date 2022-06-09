@@ -516,7 +516,7 @@ namespace WorkItemImport
             string sprintField = structureGroup == TreeStructureGroup.Areas ? WiFieldReference.AreaPath : WiFieldReference.IterationPath;
             if (!string.IsNullOrWhiteSpace(sprintPath))
             {
-                sprintPath = ReplaceAzdoInvalidChar(sprintPath, charReplaceRuleMap);
+                sprintPath = ReplaceAzdoInvalidCharacters(sprintPath, charReplaceRuleMap);
                 int classificationNodeId;
                 EnsureClassification(sprintPath, projectName, cache, structureGroup, out classificationNodeId);
                 wi.Fields[sprintField] = $@"{projectName}\{sprintPath}".Replace("/", @"\");
@@ -636,21 +636,22 @@ namespace WorkItemImport
             classificationNodeId = -1;
         }
 
-        private string ReplaceAzdoInvalidChar(string iterationPath, List<CharReplaceRule> charReplaceRuleMap)
+        private string ReplaceAzdoInvalidCharacters(string inputString, List<CharReplaceRule> charReplaceRuleMap)
         {
+            string outputString = null;
             if (charReplaceRuleMap.Count > 0)
             {
                 foreach (CharReplaceRule element in charReplaceRuleMap)
                 {
-                    iterationPath = iterationPath.Replace(element.Source, element.Target);
+                    outputString = inputString.Replace(element.Source, element.Target);
                 }
             }
             else
             {
-                iterationPath = Regex.Replace(iterationPath, "[/$?*:\"&<>#%|+]", "");
+                outputString = Regex.Replace(inputString, "[/$?*:\"&<>#%|+]", "");
             }
 
-            return iterationPath;
+            return outputString;
         }
 
         private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
