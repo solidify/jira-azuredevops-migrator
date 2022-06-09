@@ -934,14 +934,8 @@ namespace Migration.Wi_Import.Testss
             crRule2.Target = "_";
             charReplaceRules.Add(crRule2);
 
-            string expectedArea = string.Format("{0}\\{1}\\{2}", project, baseArea, areaValue);
-            string expectedIteration = string.Format("{0}\\{1}\\{2}", project, baseIteration, iterationValue);
-
-            foreach (CharReplaceRule crRule in charReplaceRules)
-            {
-                expectedArea = expectedArea.Replace(crRule.Source, crRule.Target);
-                expectedIteration = expectedIteration.Replace(crRule.Source, crRule.Target);
-            }
+            string expectedArea = "MyProject\\base-area\\my-area";
+            string expectedIteration = "MyProject\\base-iteration\\my_iteration";
 
             Dictionary<string, int> areaCache = new Dictionary<string, int>();
             Dictionary<string, int> iterationCache = new Dictionary<string, int>();

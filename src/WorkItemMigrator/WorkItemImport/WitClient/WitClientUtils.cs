@@ -638,20 +638,19 @@ namespace WorkItemImport
 
         private string ReplaceAzdoInvalidCharacters(string inputString, List<CharReplaceRule> charReplaceRuleMap)
         {
-            string outputString = null;
             if (charReplaceRuleMap.Count > 0)
             {
                 foreach (CharReplaceRule element in charReplaceRuleMap)
                 {
-                    outputString = inputString.Replace(element.Source, element.Target);
+                    inputString = inputString.Replace(element.Source, element.Target);
                 }
             }
             else
             {
-                outputString = Regex.Replace(inputString, "[/$?*:\"&<>#%|+]", "");
+                inputString = Regex.Replace(inputString, "[/$?*:\"&<>#%|+]", "");
             }
 
-            return outputString;
+            return inputString;
         }
 
         private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
