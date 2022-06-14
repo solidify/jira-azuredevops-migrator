@@ -33,7 +33,7 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
-        public void When_calling_equals_with_two_equal_jira_attachments_Then_true_is_returnedd()
+        public void When_calling_equals_with_two_equal_jira_attachments_Then_true_is_returned()
         {
             JiraLink sut1 = new JiraLink();
             sut1.LinkType = "System.LinkTypes.Hierarchy-forward";
@@ -41,9 +41,9 @@ namespace Migration.Jira_Export.Tests
             sut1.TargetItem = "TargetItem";
 
             JiraLink sut2 = new JiraLink();
-            sut2.LinkType = sut1.LinkType;
-            sut2.SourceItem = sut1.SourceItem;
-            sut2.TargetItem = sut1.TargetItem;
+            sut2.LinkType = "System.LinkTypes.Hierarchy-forward";
+            sut2.SourceItem = "SourceItem";
+            sut2.TargetItem = "TargetItem";
 
             Assert.That(() => sut1.Equals(sut2), Is.True);
         }
