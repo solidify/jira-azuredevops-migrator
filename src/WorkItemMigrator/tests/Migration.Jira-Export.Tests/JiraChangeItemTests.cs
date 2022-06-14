@@ -1,0 +1,33 @@
+﻿using NUnit.Framework;
+
+using JiraExport;
+using AutoFixture.AutoNSubstitute;
+using AutoFixture;
+using Newtonsoft.Json.Linq;
+
+namespace Migration.Jira_Export.Tests
+{
+    [TestFixture]
+    public class JiraChangeItemTests
+    {
+        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
+        private Fixture _fixture;
+
+        [SetUp]
+        public void Setup()
+        {
+            _fixture = new Fixture();
+            _fixture.Customize(new AutoNSubstituteCustomization() { });
+        }
+
+        [Test]
+        public void When_creating_a_jirachangeitem_object_Then_an_object_is_created()
+        {
+            JObject jobj = new JObject();
+
+            JiraChangeItem sut = new JiraChangeItem(jobj);
+            
+            Assert.That(sut, Is.Not.Null);
+        }
+    }
+}
