@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using NSubstitute;
 using System.IO.Abstractions;
 using System;
+using Migration.WIContract;
 
 namespace Migration.Common.Tests
 {
@@ -53,7 +54,55 @@ namespace Migration.Common.Tests
 
             Assert.AreEqual(expected, actual);
         }
-        // ReplaceHtmlElements
-        // HasAnyByRefName
+
+        [Test]
+        public void When_calling_hasanybyrefname_when_list_is_null_Then_false_is_returned()
+        {
+            List<WiField> list = null;
+
+            bool expected = false;
+            bool actual = RevisionUtility.HasAnyByRefName(list, "name");
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_calling_hasanybyrefname_when_list_is_empty_Then_false_is_returned()
+        {
+            List<WiField> list = new List<WiField>();
+
+            bool expected = false;
+            bool actual = RevisionUtility.HasAnyByRefName(list, "name");
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_calling_hasanybyrefname_when_list_contains_matching_refname_Then_true_is_returned()
+        {
+            WiField field = new WiField();
+            field.ReferenceName = "name";
+            List<WiField> list = new List<WiField>();
+            list.Add(field);
+
+            bool expected = true;
+            bool actual = RevisionUtility.HasAnyByRefName(list, "name");
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_calling_hasanybyrefname_when_list_does_not_contain_matching_refname_Then_false_is_returned()
+        {
+            WiField field = new WiField();
+            field.ReferenceName = "anothername";
+            List<WiField> list = new List<WiField>();
+            list.Add(field);
+
+            bool expected = false;
+            bool actual = RevisionUtility.HasAnyByRefName(list, "name");
+
+            Assert.AreEqual(expected, actual);
+        }
     }
 }
