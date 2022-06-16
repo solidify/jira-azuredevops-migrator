@@ -23,7 +23,7 @@ namespace Migration.Jira_Export.Tests
         [Test]
         public void When_creating_a_jirachangeitem_object_Then_an_object_is_created()
         {
-            JObject jobj = new JObject();
+            JObject jobj = _fixture.Create<JObject>();
 
             JiraChangeItem sut = new JiraChangeItem(jobj);
             
