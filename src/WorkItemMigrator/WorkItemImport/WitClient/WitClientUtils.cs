@@ -508,6 +508,7 @@ namespace WorkItemImport
 
             if (!string.IsNullOrWhiteSpace(fieldValue))
             {
+                fieldValue = ReplaceAzdoInvalidCharacters((string)fieldValue, charReplaceRuleMap);
                 if (string.IsNullOrWhiteSpace(sprintPath))
                     sprintPath = fieldValue;
                 else
@@ -516,7 +517,6 @@ namespace WorkItemImport
             string sprintField = structureGroup == TreeStructureGroup.Areas ? WiFieldReference.AreaPath : WiFieldReference.IterationPath;
             if (!string.IsNullOrWhiteSpace(sprintPath))
             {
-                sprintPath = ReplaceAzdoInvalidCharacters(sprintPath, charReplaceRuleMap);
                 int classificationNodeId;
                 EnsureClassification(sprintPath, projectName, cache, structureGroup, out classificationNodeId);
                 wi.Fields[sprintField] = $@"{projectName}\{sprintPath}".Replace("/", @"\");
