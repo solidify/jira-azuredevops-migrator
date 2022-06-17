@@ -394,8 +394,77 @@ namespace WorkItemImport
             if (current.Children != null)
             {
                 foreach (var node in current.Children)
+<<<<<<< Updated upstream
                     CreateClassificationCacheRec(node, agg, fullName);
             }
+=======
+                    CreateClasificationCacheRec(node, agg, fullName);
+            }
+        }
+        
+        private string ReplaceAzdoInvalidChar(string iterationPath) 
+        {
+            Console.WriteLine(iterationPath);
+            if (Settings.CharReplaceMap.Count > 0)
+            {
+                foreach (CharField element in Settings.CharReplaceMap)
+                {
+                    iterationPath = iterationPath.Replace(element.Source, element.Target);
+                }
+            }
+            iterationPath = Regex.Replace(iterationPath, "[/$?*:\"&<>#%|+]", "");
+            Console.WriteLine(iterationPath); 
+
+
+
+            return iterationPath;
+        }
+
+
+        public int? EnsureClasification(string fullName, WebModel.TreeStructureGroup structureGroup = WebModel.TreeStructureGroup.Iterations)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                Logger.Log(LogLevel.Error, "Empty value provided for node name/path.");
+                throw new ArgumentException("fullName");
+            }
+
+            var path = fullName.Split('/');
+            var name = path.Last();
+            var parent = string.Join("/", path.Take(path.Length - 1));
+
+            if (!string.IsNullOrEmpty(parent))
+                EnsureClasification(parent, structureGroup);
+
+            var cache = structureGroup == WebModel.TreeStructureGroup.Iterations ? IterationCache : AreaCache;
+
+            lock (cache)
+            {
+                if (cache.TryGetValue(fullName, out int id))
+                    return id;
+
+                WebModel.WorkItemClassificationNode node = null;
+
+                try
+                {
+                    node = WiClient.CreateOrUpdateClassificationNodeAsync(
+                        new WebModel.WorkItemClassificationNode() { Name = name, }, Settings.Project, structureGroup, parent).Result;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} '{fullName}' to Azure DevOps/TFS.", LogLevel.Critical);
+                }
+
+                if (node != null)
+                {
+                    Logger.Log(LogLevel.Debug, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
+                    cache.Add(fullName, node.Id);
+                    Store.RefreshCache();
+                    return node.Id;
+                }
+            }
+            return null;
+>>>>>>> Stashed changes
         }
 
         #endregion
@@ -417,6 +486,7 @@ namespace WorkItemImport
                     switch (fieldRef)
                     {
                         case var s when s.Equals(WiFieldReference.IterationPath, StringComparison.InvariantCultureIgnoreCase):
+<<<<<<< Updated upstream
                             _witClientUtils.CreateSprintPathFromRevisionAndAddToWorkItem(wi, (string)fieldValue, Settings.BaseIterationPath, Settings.Project, Settings.CharReplaceRuleMap, IterationCache, TreeStructureGroup.Iterations);
                             Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.Fields[WiFieldReference.IterationPath]}'.");
                             break;
@@ -424,6 +494,58 @@ namespace WorkItemImport
                         case var s when s.Equals(WiFieldReference.AreaPath, StringComparison.InvariantCultureIgnoreCase):
                             _witClientUtils.CreateSprintPathFromRevisionAndAddToWorkItem(wi, (string)fieldValue, Settings.BaseAreaPath, Settings.Project, Settings.CharReplaceRuleMap, AreaCache, TreeStructureGroup.Areas);
                             Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{ wi.Fields[WiFieldReference.AreaPath] }'.");
+=======
+
+                            var iterationPath = Settings.BaseIterationPath;
+
+                            if (!string.IsNullOrWhiteSpace((string)fieldValue))
+                            {
+                                fieldValue = ReplaceAzdoInvalidChar((string)fieldValue);
+                                if (string.IsNullOrWhiteSpace(iterationPath))
+                                    iterationPath = (string)fieldValue;
+                                else
+                                    iterationPath = string.Join("/", iterationPath, (string)fieldValue);
+
+                            
+                            }
+                            if (!string.IsNullOrWhiteSpace(iterationPath))
+                            {
+                                EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
+                                wi.IterationPath = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
+                            }
+                            else
+                            {
+                                wi.IterationPath = Settings.Project;
+                            }
+                            Logger.Log(LogLevel.Debug, $"Mapped IterationPath '{wi.IterationPath}'.");
+                            break;
+
+                        case var s when s.Equals(WiFieldReference.AreaPath, StringComparison.InvariantCultureIgnoreCase):
+
+                            var areaPath = Settings.BaseAreaPath;
+
+                            if (!string.IsNullOrWhiteSpace((string)fieldValue))
+                            {
+                                fieldValue = ReplaceAzdoInvalidChar((string)fieldValue);
+                                if (string.IsNullOrWhiteSpace(areaPath))
+                                    areaPath = (string)fieldValue;
+                                else
+                                    areaPath = string.Join("/", areaPath, (string)fieldValue);
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(areaPath))
+                            {    
+                                EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
+                                wi.AreaPath = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
+                            }
+                            else
+                            {
+                                wi.AreaPath = Settings.Project;
+                            }
+
+                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.AreaPath}'.");
+
+>>>>>>> Stashed changes
                             break;
 
                         case var s when s.Equals(WiFieldReference.ActivatedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
