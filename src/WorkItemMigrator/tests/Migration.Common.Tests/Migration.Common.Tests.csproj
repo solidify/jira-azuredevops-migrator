@@ -24,6 +24,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Migration.Common\Migration.Common.csproj" />
+	  <ProjectReference Include="..\..\Migration.WIContract\Migration.WIContract.csproj" />
 	</ItemGroup>
 
 </Project>
