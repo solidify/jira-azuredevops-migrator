@@ -102,7 +102,7 @@ namespace Migration.Jira_Export.Tests
             Assert.AreEqual(expected, actual);
         }
 
-        private JiraSettings createSettings()
+        private JiraSettings createJiraSettings()
         {
             JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
             settings.EpicLinkField = "EpicLinkField";
@@ -114,7 +114,7 @@ namespace Migration.Jira_Export.Tests
         private JiraMapper createJiraMapper()
         {
             var provider = _fixture.Freeze<IJiraProvider>();
-            provider.GetSettings().ReturnsForAnyArgs(createSettings());
+            provider.GetSettings().ReturnsForAnyArgs(createJiraSettings());
 
             ConfigJson cjson = new ConfigJson();
             TypeMap t = new TypeMap();
@@ -149,7 +149,7 @@ namespace Migration.Jira_Export.Tests
             };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
-            provider.GetSettings().ReturnsForAnyArgs(createSettings());
+            provider.GetSettings().ReturnsForAnyArgs(createJiraSettings());
 
             JiraItem jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 

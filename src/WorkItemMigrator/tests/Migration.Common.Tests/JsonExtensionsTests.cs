@@ -61,7 +61,8 @@ namespace Migration.Common.Tests
             var expected = new Dictionary<string, string>();
 
             //Act
-            var actualResult = UserMapper.ParseUserMappings(Arg.Any<string>());
+            //var actualResult = UserMapper.ParseUserMappings(Arg.Any<string>());
+            var actualResult = UserMapper.ParseUserMappings("");
 
             //Assert
             Assert.That(actualResult.Count, Is.EqualTo(expected.Count));
