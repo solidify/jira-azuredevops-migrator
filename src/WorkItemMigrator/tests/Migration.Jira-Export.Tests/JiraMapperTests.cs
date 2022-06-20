@@ -29,8 +29,6 @@ namespace Migration.Jira_Export.Tests
         //Reorder public/private methods
  
 
-
-        // Map
         [Test]
         public void When_calling_map_Then_the_expected_result_is_returned()
         {
@@ -85,34 +83,30 @@ namespace Migration.Jira_Export.Tests
             Assert.AreEqual(expected.Type, actual.Type);
         }
 
-        // MapLinks
         [Test]
         public void When_calling_maplinks_Then_the_expected_result_is_returned()
         {
-            //JiraRevision jrev = _fixture.Create<JiraRevision>();
-            JiraItem jitem = _fixture.Create<JiraItem>();
-            JiraRevision jrev = new JiraRevision(jitem);
+            JiraItem jiraItem = _fixture.Create<JiraItem>();
+            JiraRevision jiraRevision = new JiraRevision(jiraItem);
 
             JiraMapper sut = _fixture.Create<JiraMapper>();
 
             List<WiLink> expected = new List<WiLink>();
-            List<WiLink> actual = sut.MapLinks(jrev);
+            List<WiLink> actual = sut.MapLinks(jiraRevision);
 
             Assert.AreEqual(expected, actual);
         }
 
-        //MapAttachments
         [Test]
         public void When_calling_mapattachments_Then_the_expected_result_is_returned()
         {
-            //JiraRevision jrev = _fixture.Create<JiraRevision>();
-            JiraItem jitem = _fixture.Create<JiraItem>();
-            JiraRevision jrev = new JiraRevision(jitem);
+            JiraItem jiraItem = _fixture.Create<JiraItem>();
+            JiraRevision jiraRevision = new JiraRevision(jiraItem);
 
             JiraMapper sut = _fixture.Create<JiraMapper>();
 
             List<WiAttachment> expected = new List<WiAttachment>();
-            List<WiAttachment> actual = sut.MapAttachments(jrev);
+            List<WiAttachment> actual = sut.MapAttachments(jiraRevision);
 
             Assert.AreEqual(expected, actual);
         }
@@ -121,28 +115,66 @@ namespace Migration.Jira_Export.Tests
         [Test]
         public void When_calling_mapfields_Then_the_expected_result_is_returned()
         {
-            //JiraRevision jrev = _fixture.Create<JiraRevision>();
-            JiraItem jitem = _fixture.Create<JiraItem>();
-            JiraRevision jrev = new JiraRevision(jitem);
+            var provider = _fixture.Freeze<IJiraProvider>();
 
-            JiraMapper sut = _fixture.Create<JiraMapper>();
+            var issueType = JObject.Parse(@"{ 'issuetype': {'name': 'Story'}}");
+            var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
+            string issueKey = "issue_key";
 
-            List<WiField> expected = new List<WiField>();
-            List<WiField> actual = sut.MapFields(jrev);
+            JObject remoteIssue = new JObject
+            {
+                { "fields", issueType },
+                { "renderedFields", renderedFields },
+                { "key", issueKey }
+            };
+
+            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
+
+            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
+            settings.EpicLinkField = "EpicLinkField";
+            settings.SprintField = "SprintField";
+
+            provider.GetSettings().ReturnsForAnyArgs(settings);
+
+            JiraItem jiraItem = JiraItem.CreateFromRest(issueKey, provider);
+
+            var provider2 = _fixture.Freeze<IJiraProvider>();
+            provider2.GetSettings().ReturnsForAnyArgs(settings);
+
+            ConfigJson cjson = new ConfigJson();
+            TypeMap t = new TypeMap();
+            t.Types = new List<Type>();
+            FieldMap f = new FieldMap();
+            f.Fields = new List<Field>();
+            cjson.TypeMap = t;
+            Type type = new Type();
+            type.Source = "Story";
+            type.Target = "User Story";
+            t.Types.Add(type);
+            cjson.FieldMap = f;
+
+            JiraRevision jiraRevision = new JiraRevision(jiraItem);
+
+            List<WiField> expectedWiFieldList = new List<WiField>();
+
+            JiraMapper sut = new JiraMapper(provider2, cjson);
+
+            List<WiField> expected = expectedWiFieldList;
+            List<WiField> actual = sut.MapFields(jiraRevision);
 
             Assert.AreEqual(expected, actual);
         }
 
         //InitializeFieldMappings
-        [Test]
-        public void When_calling_initializefieldmappings_Then_the_expected_result_is_returned()
-        {
-            JiraMapper sut = _fixture.Create<JiraMapper>();
+        //[Test]
+        //public void When_calling_initializefieldmappings_Then_the_expected_result_is_returned()
+        //{
+        //    JiraMapper sut = _fixture.Create<JiraMapper>();
 
-            var expected = new Dictionary<string, FieldMapping<JiraRevision>>();
-            //var actual = sut.InitializeFieldMappings();
+        //    var expected = new Dictionary<string, FieldMapping<JiraRevision>>();
+        //    var actual = sut.InitializeFieldMappings();
 
-            //Assert.AreEqual(expected, actual);
-        }
+        //    Assert.AreEqual(expected, actual);
+        //}
     }
 }
