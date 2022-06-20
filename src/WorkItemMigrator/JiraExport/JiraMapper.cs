@@ -202,7 +202,7 @@ namespace JiraExport
             return types;
         }
 
-        private Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings()
+        internal Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings()
         {
             Logger.Log(LogLevel.Info, "Initializing Jira field mapping...");
 
