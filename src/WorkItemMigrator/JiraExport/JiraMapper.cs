@@ -9,16 +9,18 @@ using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Migration.Jira-Export.Tests")]
+
 namespace JiraExport
 {
     internal class JiraMapper : BaseMapper<JiraRevision>
     {
-        private readonly JiraProvider _jiraProvider;
+        private readonly IJiraProvider _jiraProvider;
         private readonly Dictionary<string, FieldMapping<JiraRevision>> _fieldMappingsPerType;
         private readonly HashSet<string> _targetTypes;
         private readonly ConfigJson _config;
 
-        public JiraMapper(JiraProvider jiraProvider, ConfigJson config) : base(jiraProvider?.Settings?.UserMappingFile)
+        public JiraMapper(IJiraProvider jiraProvider, ConfigJson config) : base(jiraProvider?.GetSettings()?.UserMappingFile)
         {
             _jiraProvider = jiraProvider;
             _config = config;
@@ -118,7 +120,7 @@ namespace JiraExport
             }
 
             // map epic link
-            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.Settings.EpicLinkField, "Epic", _config);
+            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.GetSettings().EpicLinkField, "Epic", _config);
 
             // map parent
             LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
