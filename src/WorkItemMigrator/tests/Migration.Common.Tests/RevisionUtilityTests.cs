@@ -22,7 +22,7 @@ namespace Migration.Common.Tests
         }
 
         [Test]
-        public void When_calling_nextvaliddeltarev_with_one_param_Then_the_expeced_result_is_returned()
+        public void When_calling_nextvaliddeltarev_with_one_param_Then_the_expected_result_is_returned()
         {
             DateTime datetime = new DateTime();
 
@@ -33,7 +33,7 @@ namespace Migration.Common.Tests
         }
 
         [Test]
-        public void When_calling_nextvaliddeltarev_with_next_more_than_current_Then_the_expeced_result_is_returned()
+        public void When_calling_nextvaliddeltarev_with_next_more_than_current_Then_the_expected_result_is_returned()
         {
             DateTime datetime1 = new DateTime();
             DateTime datetime2 = datetime1 + TimeSpan.FromMilliseconds(60);
