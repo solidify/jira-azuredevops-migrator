@@ -29,66 +29,7 @@ namespace JiraExport
 
         }
 
-        private List<string> GetWorkItemTypes(params string[] notFor)
-        {
-            List<string> list;
-            if (notFor != null && notFor.Any())
-            {
-                list = _targetTypes.Where(t => !notFor.Contains(t)).ToList();
-            }
-            else
-            {
-                list = _targetTypes.ToList();
-            }
-            return list;
-        }
-
         #region Mapping definitions
-
-        private WiRevision MapRevision(JiraRevision r)
-        {
-            Logger.Log(LogLevel.Debug, $"Mapping revision {r.Index}.");
-
-            List<WiAttachment> attachments = MapAttachments(r);
-            List<WiField> fields = MapFields(r);
-            List<WiLink> links = MapLinks(r);
-
-            return new WiRevision()
-            {
-                ParentOriginId = r.ParentItem.Key,
-                Index = r.Index,
-                Time = r.Time,
-                Author = MapUser(r.Author),
-                Attachments = attachments,
-                Fields = fields,
-                Links = links,
-                AttachmentReferences = attachments.Any()
-            };
-        }
-
-        internal WiItem Map(JiraItem issue)
-        {
-            var wiItem = new WiItem();
-
-            if (_config.TypeMap.Types != null)
-            {
-                var type = (from t in _config.TypeMap.Types where t.Source == issue.Type select t.Target).FirstOrDefault();
-
-                if (type != null)
-                {
-                    var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
-                    wiItem.OriginId = issue.Key;
-                    wiItem.Type = type;
-                    wiItem.Revisions = revisions;
-                }
-                else
-                {
-                    Logger.Log(LogLevel.Error, $"Type mapping missing for '{issue.Key}' with Jira type '{issue.Type}'. Item was not exported which may cause missing links in issues referencing this item.");
-                    return null;
-                }
-            }
-            return wiItem;
-        }
 
         public List<WiLink> MapLinks(JiraRevision r)
         {
@@ -195,11 +136,28 @@ namespace JiraExport
             return fields;
         }
 
-        private HashSet<string> InitializeTypeMappings()
+        internal WiItem Map(JiraItem issue)
         {
-            HashSet<string> types = new HashSet<string>();
-            _config.TypeMap.Types.ForEach(t => types.Add(t.Target));
-            return types;
+            var wiItem = new WiItem();
+
+            if (_config.TypeMap.Types != null)
+            {
+                var type = (from t in _config.TypeMap.Types where t.Source == issue.Type select t.Target).FirstOrDefault();
+
+                if (type != null)
+                {
+                    var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
+                    wiItem.OriginId = issue.Key;
+                    wiItem.Type = type;
+                    wiItem.Revisions = revisions;
+                }
+                else
+                {
+                    Logger.Log(LogLevel.Error, $"Type mapping missing for '{issue.Key}' with Jira type '{issue.Type}'. Item was not exported which may cause missing links in issues referencing this item.");
+                    return null;
+                }
+            }
+            return wiItem;
         }
 
         internal Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings()
@@ -324,6 +282,43 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
+        protected override string MapUser(string sourceUser)
+        {
+            if (string.IsNullOrWhiteSpace(sourceUser))
+                return null;
+
+            var email = _jiraProvider.GetUserEmail(sourceUser);
+            return base.MapUser(email);
+        }
+
+        private WiRevision MapRevision(JiraRevision r)
+        {
+            Logger.Log(LogLevel.Debug, $"Mapping revision {r.Index}.");
+
+            List<WiAttachment> attachments = MapAttachments(r);
+            List<WiField> fields = MapFields(r);
+            List<WiLink> links = MapLinks(r);
+
+            return new WiRevision()
+            {
+                ParentOriginId = r.ParentItem.Key,
+                Index = r.Index,
+                Time = r.Time,
+                Author = MapUser(r.Author),
+                Attachments = attachments,
+                Fields = fields,
+                Links = links,
+                AttachmentReferences = attachments.Any()
+            };
+        }
+
+        private HashSet<string> InitializeTypeMappings()
+        {
+            HashSet<string> types = new HashSet<string>();
+            _config.TypeMap.Types.ForEach(t => types.Add(t.Target));
+            return types;
+        }
+
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
             if (isCustomField)
@@ -352,15 +347,20 @@ namespace JiraExport
             };
         }
 
-        protected override string MapUser(string sourceUser)
-        {
-            if (string.IsNullOrWhiteSpace(sourceUser))
-                return null;
-
-            var email = _jiraProvider.GetUserEmail(sourceUser);
-            return base.MapUser(email);
-        }
-
         #endregion
+        
+        private List<string> GetWorkItemTypes(params string[] notFor)
+        {
+            List<string> list;
+            if (notFor != null && notFor.Any())
+            {
+                list = _targetTypes.Where(t => !notFor.Contains(t)).ToList();
+            }
+            else
+            {
+                list = _targetTypes.ToList();
+            }
+            return list;
+        }
     }
 }
