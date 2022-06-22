@@ -3,7 +3,7 @@
 # You can adjust the behavior by modifying this file.
 # For more information, see:
 # https://github.com/actions/stale
-name: Mark stale issues and close
+name: Mark as stale/close inactive issues
 
 on:
   schedule:
@@ -21,15 +21,14 @@ jobs:
     steps:
     - uses: actions/stale@v5
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        only-labels: 'support'
-        days-before-pr-stale: -1
+        any-of-labels: 'support'
         days-before-issue-stale: 25
-        stale-issue-message: 'This issue is stale because it has been open 25 days with no activity. Remove stale label or comment or this will be closed in 5 days.'
-        stale-issue-label: 'stale'
-        days-before-pr-close: -1
         days-before-issue-close: 5
-        close-issue-message: 'Closing the issue because of inactivity for 30 days. Feel free to reopen the issue if the problem persists.'
-        close-issue-label: 'no-issue-activity'
+        stale-issue-label: "stale"
+        stale-issue-message: "This issue is stale because it has been open for 25 days with no activity."
+        close-issue-message: "This issue was closed because it has been inactive for 5 days since being marked as stale."
+        days-before-pr-stale: -1
+        days-before-pr-close: -1
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
         debug-only: true
 
