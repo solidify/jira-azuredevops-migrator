@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/stale@v5
       with:
-        #any-of-labels: 'support'
+        any-of-labels: 'support'
         days-before-issue-stale: 25
         days-before-issue-close: 5
         stale-issue-label: "stale"
