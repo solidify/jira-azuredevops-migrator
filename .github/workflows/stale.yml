@@ -8,6 +8,7 @@ name: Mark stale issues and close
 on:
   schedule:
   - cron: '30 17 * * *'
+  workflow_dispatch:
 
 jobs:
   stale:
