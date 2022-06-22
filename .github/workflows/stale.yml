@@ -23,10 +23,12 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         only-labels: 'support'
-        days-before-stale: 25
+        days-before-pr-stale: -1
+        days-before-issue-stale: 25
         stale-issue-message: 'This issue is stale because it has been open 25 days with no activity. Remove stale label or comment or this will be closed in 5 days.'
         stale-issue-label: 'stale'
-        days-before-close: 5
+        days-before-pr-close: -1
+        days-before-issue-close: 5
         close-issue-message: 'Closing the issue because of inactivity for 30 days. Feel free to reopen the issue if the problem persists.'
         close-issue-label: 'no-issue-activity'
         debug-only: true
