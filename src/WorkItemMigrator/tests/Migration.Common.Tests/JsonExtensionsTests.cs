@@ -12,7 +12,7 @@ namespace Migration.Common.Tests
     [TestFixture]
     public class JsonExtensionsTests
     {
-        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
+        // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         [SetUp]
@@ -61,7 +61,6 @@ namespace Migration.Common.Tests
             var expected = new Dictionary<string, string>();
 
             //Act
-            //var actualResult = UserMapper.ParseUserMappings(Arg.Any<string>());
             var actualResult = UserMapper.ParseUserMappings("");
 
             //Assert

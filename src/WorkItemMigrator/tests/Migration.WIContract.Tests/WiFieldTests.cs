@@ -8,7 +8,7 @@ namespace Migration.WIContract.Tests
     [TestFixture]
     public class WiFieldTests
     {
-        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
+        // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         [SetUp]

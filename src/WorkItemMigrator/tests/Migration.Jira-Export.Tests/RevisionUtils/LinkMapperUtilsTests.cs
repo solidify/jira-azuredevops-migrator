@@ -16,7 +16,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
     [TestFixture]
     public class LinkMapperUtilsTests
     {
-        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
+        // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         private JiraRevision MockRevisionWithParentItem(string issueKey, string revisionSummary)
