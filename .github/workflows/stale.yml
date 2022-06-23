@@ -1,6 +1,5 @@
-# This workflow warns and then closes issues and PRs that have had no activity for a specified amount of time.
-#
-# You can adjust the behavior by modifying this file.
+# This workflow warns and then closes issues that have had no activity for a specified amount of time.
+
 # For more information, see:
 # https://github.com/actions/stale
 name: Mark as stale/close inactive issues
@@ -8,8 +7,6 @@ name: Mark as stale/close inactive issues
 on:
   schedule:
   - cron: '30 17 * * *'
-  workflow_dispatch:
-  push:
 
 jobs:
   stale:
@@ -30,6 +27,5 @@ jobs:
         days-before-pr-stale: -1
         days-before-pr-close: -1
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        debug-only: true
         operations-per-run: 45
-
+        debug-only: true # To be removed
