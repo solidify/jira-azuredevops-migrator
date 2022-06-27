@@ -34,7 +34,7 @@ namespace JiraExport
                 return (false, null);
         }
 
-        public static (bool, object) MapValue(JiraRevision r, string itemSource, ConfigJson config)
+        public static (bool, object) MapValue(JiraRevision r, string itemSource, string itemTarget, ConfigJson config)
         {
             var targetWit = (from t in config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
@@ -45,7 +45,7 @@ namespace JiraExport
 
             foreach (var item in config.FieldMap.Fields)
             {
-                if (((item.Source == itemSource && (item.For.Contains(targetWit) || item.For == "All")) ||
+                if ((((item.Source == itemSource && item.Target == itemTarget) && (item.For.Contains(targetWit) || item.For == "All")) ||
                       item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
                       item.Mapping?.Values != null)
                 {
