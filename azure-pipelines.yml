@@ -1,12 +1,8 @@
 resources:
 - repo: self
 
-queue:
-  name: Hosted VS2017
-  demands: 
-  - msbuild
-  - visualstudio
-  - npm
+pool:
+  vmimage: windows-2019
 
 variables:
   BuildPlatform: 'any cpu'
@@ -17,6 +13,11 @@ variables:
 name: $(major).$(minor)$(rev:.r)
 
 trigger:
+    branches:
+      include:
+      - master
+
+pr:
 - master
 
 steps:
@@ -54,11 +55,21 @@ steps:
   inputs:
     pollingTimeoutSec: '300'
 
-- task: TfxInstaller@1
-  inputs:
-    version: 'v0.6.x'
 
-- task: PackageAzureDevOpsExtension@2
+- task: DotNetCoreCLI@2
+  displayName: 'Run Tests'
+  inputs:
+    command: test
+    projects: '**/*tests/*.tests.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
+
+- task: TfxInstaller@3
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    version: 'v0.11.x'
+
+- task: PackageAzureDevOpsExtension@3
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Package Extension: src/WorkItemMigrator.Extension'
   inputs:
     rootFolder: 'src/WorkItemMigrator.Extension'
@@ -67,6 +78,7 @@ steps:
     bypassLocalValidation: true
 
 - task: CopyFiles@2
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy JiraExport files'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)'
@@ -90,6 +102,7 @@ steps:
     flattenFolders: true
 
 - task: CopyFiles@2
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy WorkItemImport files'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)'
@@ -113,6 +126,7 @@ steps:
     flattenFolders: true
 
 - task: CopyFiles@2
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy sample files'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\docs\samples'
@@ -120,12 +134,14 @@ steps:
     flattenFolders: true
 
 - task: PublishBuildArtifacts@1
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Publish Artifact: WorkItemMigrator'
   inputs:
     PathtoPublish: '$(build.artifactstagingdirectory)\WorkItemMigrator'
     ArtifactName: WorkItemMigrator
 
 - task: PublishBuildArtifacts@1
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Publish Artifact: WorkItemMigratorExtension'
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)\jira-devops-workitem-migrator-$(Build.BuildNumber).vsix'

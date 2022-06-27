@@ -16,7 +16,7 @@ namespace JiraExport
     {
         #region Static
 
-        public static JiraItem CreateFromRest(string issueKey, JiraProvider jiraProvider)
+        public static JiraItem CreateFromRest(string issueKey, IJiraProvider jiraProvider)
         {
             var remoteIssue = jiraProvider.DownloadIssue(issueKey);
             if (remoteIssue == null)
@@ -33,7 +33,7 @@ namespace JiraExport
 
         }
 
-        private static List<JiraRevision> BuildRevisions(JiraItem jiraItem, JiraProvider jiraProvider)
+        private static List<JiraRevision> BuildRevisions(JiraItem jiraItem, IJiraProvider jiraProvider)
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
@@ -51,7 +51,7 @@ namespace JiraExport
             var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
             Logger.Log(LogLevel.Debug, $"Downloaded issue: {issueKey} changelog.");
 
-            if (jiraProvider.Settings.UsingJiraCloud)
+            if (jiraProvider.GetSettings().UsingJiraCloud)
                 changelog.Reverse();
 
             Stack<JiraRevision> revisions = new Stack<JiraRevision>();
@@ -126,10 +126,10 @@ namespace JiraExport
             return listOfRevisions;
         }
 
-        private static List<JiraRevision> BuildCommentRevisions(JiraItem jiraItem, JiraProvider jiraProvider)
+        private static List<JiraRevision> BuildCommentRevisions(JiraItem jiraItem, IJiraProvider jiraProvider)
         {
             var renderedFields = jiraItem.RemoteIssue.SelectToken("$.renderedFields.comment.comments");
-            var comments = jiraProvider.Jira.Issues.GetCommentsAsync(jiraItem.Key).Result;
+            var comments = jiraProvider.GetCommentsByItemKey(jiraItem.Key);
             return comments.Select((c, i) =>
             {
                 var rc = renderedFields.SelectToken($"$.[{i}].body");
@@ -194,7 +194,7 @@ namespace JiraExport
             };
         }
 
-        private static (string, string, string) TransformFieldChange(JiraChangeItem item, JiraProvider jira)
+        private static (string, string, string) TransformFieldChange(JiraChangeItem item, IJiraProvider jira)
         {
             var objectFields = new HashSet<string>() { "assignee", "creator", "reporter" };
             string from, to = string.Empty;
@@ -215,9 +215,9 @@ namespace JiraExport
             return (fieldId, from, to);
         }
 
-        private static string GetCustomFieldId(string fieldName, JiraProvider jira)
+        private static string GetCustomFieldId(string fieldName, IJiraProvider jira)
         {
-            if (jira.Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out var customField))
+            if (jira.GetCustomField(fieldName, out var customField))
                 return customField.Id;
             else return null;
 
@@ -237,7 +237,7 @@ namespace JiraExport
                 Logger.Log(LogLevel.Debug, $"No link to undo for '{linkChange.ToString()}'");
         }
 
-        private static RevisionAction<JiraLink> TransformLinkChange(JiraChangeItem item, string sourceItemKey, JiraProvider jira)
+        private static RevisionAction<JiraLink> TransformLinkChange(JiraChangeItem item, string sourceItemKey, IJiraProvider jira)
         {
             string targetItemKey = string.Empty;
             string linkTypeString = string.Empty;
@@ -261,7 +261,7 @@ namespace JiraExport
                 return null;
             }
 
-            var linkType = jira.LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Outward + " " + targetItemKey));
+            var linkType = jira.GetLinkType(linkTypeString, targetItemKey);
             if (linkType == null)
             {
                 Logger.Log(LogLevel.Debug, $"Link with description '{linkTypeString}' is either not found or this issue ({sourceItemKey}) is not inward issue.");
@@ -321,7 +321,7 @@ namespace JiraExport
         }
 
         private static Dictionary<string, Func<JToken, object>> _fieldExtractionMapping = null;
-        private static Dictionary<string, object> ExtractFields(string key, JObject remoteIssue, JiraProvider jira)
+        private static Dictionary<string, object> ExtractFields(string key, JObject remoteIssue, IJiraProvider jira)
         {
             var fields = new Dictionary<string, object>();
 
@@ -340,7 +340,7 @@ namespace JiraExport
                         { "assignee", extractAccountIdOrUsername },
                         { "creator", extractAccountIdOrUsername },
                         { "reporter", extractAccountIdOrUsername},
-                        { jira.Settings.SprintField, t => string.Join(", ", ParseCustomField(jira.Settings.SprintField, t, jira)) },
+                        { jira.GetSettings().SprintField, t => string.Join(", ", ParseCustomField(jira.GetSettings().SprintField, t, jira)) },
                         { "status", extractName },
                         { "parent", t => t.ExValue<string>("$.key") }
                     };
@@ -420,13 +420,13 @@ namespace JiraExport
 
         }
 
-        private static string[] ParseCustomField(string fieldName, JToken value, JiraProvider provider)
+        private static string[] ParseCustomField(string fieldName, JToken value, IJiraProvider provider)
         {
             var serializedValue = new string[] { };
 
-            if (provider.Jira.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out var customField) &&
+            if (provider.GetCustomField(fieldName, out var customField) &&
                 customField != null &&
-                provider.Jira.RestClient.Settings.CustomFieldSerializers.TryGetValue(customField.CustomType, out var serializer))
+                provider.GetCustomFieldSerializer(customField.CustomType, out var serializer))
             {
                 serializedValue = serializer.FromJson(value);
             }
@@ -436,7 +436,7 @@ namespace JiraExport
 
         #endregion
 
-        private readonly JiraProvider _provider;
+        private readonly IJiraProvider _provider;
 
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
         public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
@@ -444,8 +444,8 @@ namespace JiraExport
         {
             get
             {
-                if (!string.IsNullOrEmpty(_provider.Settings.EpicLinkField))
-                    return RemoteIssue.ExValue<string>($"$.fields.{_provider.Settings.EpicLinkField}");
+                if (!string.IsNullOrEmpty(_provider.GetSettings().EpicLinkField))
+                    return RemoteIssue.ExValue<string>($"$.fields.{_provider.GetSettings().EpicLinkField}");
                 else
                     return null;
             }
@@ -455,7 +455,7 @@ namespace JiraExport
 
         public JObject RemoteIssue { get; private set; }
         public List<JiraRevision> Revisions { get; set; }
-        private JiraItem(JiraProvider provider, JObject remoteIssue)
+        private JiraItem(IJiraProvider provider, JObject remoteIssue)
         {
             this._provider = provider;
             RemoteIssue = remoteIssue;

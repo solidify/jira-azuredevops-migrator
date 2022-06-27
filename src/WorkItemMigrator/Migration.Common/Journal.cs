@@ -30,7 +30,7 @@ namespace Migration.Common
             if (File.Exists(journal.ItemsPath))
             {
                 var revLines = File.ReadAllLines(journal.ItemsPath);
-                foreach (var rev in revLines)
+                foreach (string rev in revLines)
                 {
                     var props = rev.Split(';');
                     journal.ProcessedRevisions[props[0]] = (Convert.ToInt32(props[1]), Convert.ToInt32(props[2]));
@@ -40,10 +40,10 @@ namespace Migration.Common
             if (File.Exists(journal.AttachmentsPath))
             {
                 var attLines = File.ReadAllLines(journal.AttachmentsPath);
-                foreach (var att in attLines)
+                foreach (string att in attLines)
                 {
                     var props = att.Split(';');
-                    journal.ProcessedAttachments[props[0]] = Convert.ToInt32(props[1]);
+                    journal.ProcessedAttachments[props[0]] = props[1];
                 }
             }
 
@@ -54,7 +54,7 @@ namespace Migration.Common
 
         public Dictionary<string, (int, int)> ProcessedRevisions { get; private set; } = new Dictionary<string, (int, int)>();
 
-        public Dictionary<string, int> ProcessedAttachments { get; private set; } = new Dictionary<string, int>();
+        public Dictionary<string, string> ProcessedAttachments { get; private set; } = new Dictionary<string, string>();
         public string ItemsPath { get; private set; }
         public string AttachmentsPath { get; private set; }
 
@@ -76,13 +76,13 @@ namespace Migration.Common
             File.AppendAllText(ItemsPath, $"{originId};{wiId};{rev}" + Environment.NewLine);
         }
 
-        public void MarkAttachmentAsProcessed(string attOriginId, int attWiId)
+        public void MarkAttachmentAsProcessed(string attOriginId, string attWiId)
         {
             ProcessedAttachments.Add(attOriginId, attWiId);
             WriteAttachment(attOriginId, attWiId);
         }
 
-        private void WriteAttachment(string attOriginId, int attWiId)
+        private void WriteAttachment(string attOriginId, string attWiId)
         {
             File.AppendAllText(AttachmentsPath, $"{attOriginId};{attWiId}" + Environment.NewLine);
         }
@@ -104,7 +104,7 @@ namespace Migration.Common
             return wiId;
         }
 
-        public bool IsAttachmentMigrated(string attOriginId, out int attWiId)
+        public bool IsAttachmentMigrated(string attOriginId, out string attWiId)
         {
             return ProcessedAttachments.TryGetValue(attOriginId, out attWiId);
         }
