@@ -45,10 +45,19 @@ namespace Migration.Common.Tests
         }
 
         [Test]
-        public void When_calling_replacehtmlelements_Then_the_expected_result_is_returned()
+        public void When_calling_replacehtmlelements_with_imagewrappattern_Then_the_expected_result_is_returned()
         {
-            string expected = "html";
-            string actual = RevisionUtility.ReplaceHtmlElements("html");
+            string expected = "<img src=\"img.jpg\" />";
+            string actual = RevisionUtility.ReplaceHtmlElements("<span class=\"image-wrap\">(<img src=\"img.jpg\" />)</span>");
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_calling_replacehtmlelements_with_userlinkpattern_Then_the_expected_result_is_returned()
+        {
+            string expected = "<a href=https://text.com class=\"user - hover\" >placeholder string</a>";
+            string actual = RevisionUtility.ReplaceHtmlElements("<a href=https://text.com class=\"user - hover\" >placeholder string</a>");
 
             Assert.AreEqual(expected, actual);
         }
