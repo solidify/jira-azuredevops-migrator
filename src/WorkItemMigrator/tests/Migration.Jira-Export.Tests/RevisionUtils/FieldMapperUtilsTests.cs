@@ -201,13 +201,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
 
 
-            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "priority", configJson);
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "priority", "priority", configJson);
 
             Assert.Multiple(() =>
             {
                 Assert.That(actualOutput.Item1, Is.True);
-                Assert.That(actualOutput.Item2, Is.EqualTo("1"));
-
+                Assert.That(actualOutput.Item2, Is.EqualTo("High"));
             });
         }
 
@@ -239,7 +238,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
 
 
-            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "emtpy", configJson);
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "emtpy", "empty", configJson);
 
             Assert.Multiple(() =>
             {
