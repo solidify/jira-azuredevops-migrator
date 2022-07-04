@@ -49,7 +49,7 @@ namespace Migration.Common.Tests
             var expected = new Dictionary<string, string>();
 
             //Act
-            var actualResult = UserMapper.ParseUserMappings("");
+            var actualResult = UserMapper.ParseUserMappings(string.Empty);
 
             //Assert
             Assert.That(actualResult.Count, Is.EqualTo(expected.Count));
