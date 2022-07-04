@@ -77,7 +77,7 @@ namespace JiraExport
 
                     if (item.Mapping?.Values != null)
                     {
-                        value = r => FieldMapperUtils.MapValue(r, item.Source, _config);
+                        value = r => FieldMapperUtils.MapValue(r, item.Source, item.Target, _config);
                     }
                     else if (!string.IsNullOrWhiteSpace(item.Mapper))
                     {

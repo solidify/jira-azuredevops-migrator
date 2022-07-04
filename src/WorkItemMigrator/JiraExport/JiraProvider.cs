@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
+using System.Web;
 using Atlassian.Jira;
-
 
 using Migration.Common;
 using Migration.Common.Log;
@@ -157,6 +156,8 @@ namespace JiraExport
                     {
                         var path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
                         EnsurePath(path);
+
+                        att.Url = HttpUtility.UrlEncode(att.Url);
 
                         await DownloadWithJiraRestClientAsync(att.Url, path);
 
