@@ -27,7 +27,7 @@ namespace Migration.Jira_Export.Tests
             sut.Id = "id";
             sut.Filename = "name";
 
-            string expectedToString = sut.Id + "/" + sut.Filename;
+            string expectedToString = $"{sut.Id}/{sut.Filename}";
 
             Assert.That(() => sut.ToString(), Is.EqualTo(expectedToString));
         }
