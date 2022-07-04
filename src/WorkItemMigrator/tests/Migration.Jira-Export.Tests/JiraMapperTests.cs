@@ -40,8 +40,11 @@ namespace Migration.Jira_Export.Tests
             WiItem expected = expectedWiItem;
             WiItem actual = sut.Map(jiraItem);
 
-            Assert.AreEqual(expected.OriginId, actual.OriginId);
-            Assert.AreEqual(expected.Type, actual.Type);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(expected.OriginId, actual.OriginId);
+                Assert.AreEqual(expected.Type, actual.Type);
+            });
         }
 
         [Test]
