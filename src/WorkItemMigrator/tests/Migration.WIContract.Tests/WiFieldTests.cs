@@ -26,7 +26,7 @@ namespace Migration.WIContract.Tests
             sut.ReferenceName = "referenceName";
             sut.Value = "objValue";
 
-            string expectedToString = "[" + sut.ReferenceName + "]=" + sut.Value;
+            string expectedToString = $"[{sut.ReferenceName}]={sut.Value}";
 
             Assert.That(() => sut.ToString(), Is.EqualTo(expectedToString));
         }

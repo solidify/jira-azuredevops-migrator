@@ -27,7 +27,7 @@ namespace Migration.WIContract.Tests
             sut.OriginId = "originId";
             sut.WiId = 1;
 
-            string expectedToString = "[" + sut.Type + "]"+ sut.OriginId +"/" + sut.WiId;
+            string expectedToString = $"[{sut.Type}]{sut.OriginId}/{sut.WiId}";
 
             Assert.That(() => sut.ToString(), Is.EqualTo(expectedToString));
 

@@ -27,7 +27,7 @@ namespace Migration.WIContract.Tests
             sut.ParentOriginId = "parentOriginId";
             sut.Index = 1;
 
-            string expectedToString = "'" + sut.ParentOriginId + "', rev " + sut.Index;
+            string expectedToString = $"'{sut.ParentOriginId}', rev {sut.Index}";
 
             Assert.That(() => sut.ToString(), Is.EqualTo(expectedToString));
         }

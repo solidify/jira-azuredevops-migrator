@@ -27,7 +27,7 @@ namespace Migration.Jira_Export.Tests
             sut.SourceItem = "sourceItem";
             sut.TargetItem = "targetItem";
 
-            string expectedToString = "[" + sut.LinkType + "] " + sut.SourceItem + "->" + sut.TargetItem;
+            string expectedToString = $"[{sut.LinkType}] {sut.SourceItem}->{sut.TargetItem}";
 
             Assert.That(() => sut.ToString(), Is.EqualTo(expectedToString));
         }
