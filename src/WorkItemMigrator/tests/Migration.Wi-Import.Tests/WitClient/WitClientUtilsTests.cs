@@ -14,7 +14,7 @@ using System.Linq;
 
 using Migration.Common;
 
-namespace Migration.Wi_Import.Testss
+namespace Migration.Wi_Import.Tests
 {
     [TestFixture]
     public class WitClientUtilsTests
