@@ -31,111 +31,6 @@ namespace JiraExport
 
         #region Mapping definitions
 
-        public List<WiLink> MapLinks(JiraRevision r)
-        {
-            var links = new List<WiLink>();
-            if (r.LinkActions == null)
-                return links;
-
-            // map issue links
-            foreach (var jiraLinkAction in r.LinkActions)
-            {
-                var changeType = jiraLinkAction.ChangeType == RevisionChangeType.Added ? ReferenceChangeType.Added : ReferenceChangeType.Removed;
-
-                var link = new WiLink();
-
-                if (_config.LinkMap.Links != null)
-                {
-                    var linkType = (from t in _config.LinkMap.Links where t.Source == jiraLinkAction.Value.LinkType select t.Target).FirstOrDefault();
-
-                    if (linkType != null)
-                    {
-                        link.Change = changeType;
-                        link.SourceOriginId = jiraLinkAction.Value.SourceItem;
-                        link.TargetOriginId = jiraLinkAction.Value.TargetItem;
-                        link.WiType = linkType;
-
-                        links.Add(link);
-                    }
-                }
-            }
-
-            // map epic link
-            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.GetSettings().EpicLinkField, "Epic", _config);
-
-            // map parent
-            LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
-
-            // map epic child
-            LinkMapperUtils.MapEpicChildLink(r, links, "epic child", "Child", _config);
-
-
-            return links;
-        }
-
-        public List<WiAttachment> MapAttachments(JiraRevision rev)
-        {
-            var attachments = new List<WiAttachment>();
-            if (rev.AttachmentActions == null)
-                return attachments;
-
-            _jiraProvider.DownloadAttachments(rev).Wait();
-
-            foreach (var att in rev.AttachmentActions)
-            {
-                var change = att.ChangeType == RevisionChangeType.Added ? ReferenceChangeType.Added : ReferenceChangeType.Removed;
-
-                var wiAtt = new WiAttachment()
-                {
-                    Change = change,
-                    AttOriginId = att.Value.Id,
-                    FilePath = att.Value.LocalPath,
-                    Comment = "Imported from Jira"
-                };
-                attachments.Add(wiAtt);
-            }
-
-            return attachments;
-        }
-
-        public List<WiField> MapFields(JiraRevision r)
-        {
-            var fields = new List<WiField>();
-
-            if (_config.TypeMap.Types != null)
-            {
-                var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
-
-                if (type != null && _fieldMappingsPerType.TryGetValue(type, out var mapping))
-                {
-                    foreach (var field in mapping)
-                    {
-                        try
-                        {
-                            var fieldreference = field.Key;
-                            var (include, value) = field.Value(r);
-
-                            if (include)
-                            {
-                                Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
-                                fields.Add(new WiField()
-                                {
-                                    ReferenceName = fieldreference,
-                                    Value = value
-                                });
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex, $"Error mapping field '{field.Key}' on item '{r.OriginId}'.");
-                        }
-                    }
-                }
-            }
-
-            return fields;
-        }
-
         internal WiItem Map(JiraItem issue)
         {
             var wiItem = new WiItem();
@@ -282,16 +177,112 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
-        protected override string MapUser(string sourceUser)
+        internal List<WiLink> MapLinks(JiraRevision r)
         {
-            if (string.IsNullOrWhiteSpace(sourceUser))
-                return null;
+            var links = new List<WiLink>();
+            if (r.LinkActions == null)
+                return links;
 
-            var email = _jiraProvider.GetUserEmail(sourceUser);
-            return base.MapUser(email);
+            // map issue links
+            foreach (var jiraLinkAction in r.LinkActions)
+            {
+                var changeType = jiraLinkAction.ChangeType == RevisionChangeType.Added ? ReferenceChangeType.Added : ReferenceChangeType.Removed;
+
+                var link = new WiLink();
+
+                if (_config.LinkMap.Links != null)
+                {
+                    var linkType = (from t in _config.LinkMap.Links where t.Source == jiraLinkAction.Value.LinkType select t.Target).FirstOrDefault();
+
+                    if (linkType != null)
+                    {
+                        link.Change = changeType;
+                        link.SourceOriginId = jiraLinkAction.Value.SourceItem;
+                        link.TargetOriginId = jiraLinkAction.Value.TargetItem;
+                        link.WiType = linkType;
+
+                        links.Add(link);
+                    }
+                }
+            }
+
+            // map epic link
+            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.GetSettings().EpicLinkField, "Epic", _config);
+
+            // map parent
+            LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
+
+            // map epic child
+            LinkMapperUtils.MapEpicChildLink(r, links, "epic child", "Child", _config);
+
+
+            return links;
         }
 
-        private WiRevision MapRevision(JiraRevision r)
+        internal List<WiAttachment> MapAttachments(JiraRevision rev)
+        {
+            var attachments = new List<WiAttachment>();
+            if (rev.AttachmentActions == null)
+                return attachments;
+
+            _jiraProvider.DownloadAttachments(rev).Wait();
+
+            foreach (var att in rev.AttachmentActions)
+            {
+                var change = att.ChangeType == RevisionChangeType.Added ? ReferenceChangeType.Added : ReferenceChangeType.Removed;
+
+                var wiAtt = new WiAttachment()
+                {
+                    Change = change,
+                    AttOriginId = att.Value.Id,
+                    FilePath = att.Value.LocalPath,
+                    Comment = "Imported from Jira"
+                };
+                attachments.Add(wiAtt);
+            }
+
+            return attachments;
+        }
+
+        internal List<WiField> MapFields(JiraRevision r)
+        {
+            var fields = new List<WiField>();
+
+            if (_config.TypeMap.Types != null)
+            {
+                var type = (from t in _config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
+
+                if (type != null && _fieldMappingsPerType.TryGetValue(type, out var mapping))
+                {
+                    foreach (var field in mapping)
+                    {
+                        try
+                        {
+                            var fieldreference = field.Key;
+                            var (include, value) = field.Value(r);
+
+                            if (include)
+                            {
+                                Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
+                                fields.Add(new WiField()
+                                {
+                                    ReferenceName = fieldreference,
+                                    Value = value
+                                });
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex, $"Error mapping field '{field.Key}' on item '{r.OriginId}'.");
+                        }
+                    }
+                }
+            }
+
+            return fields;
+        }
+
+        internal WiRevision MapRevision(JiraRevision r)
         {
             Logger.Log(LogLevel.Debug, $"Mapping revision {r.Index}.");
 
@@ -310,6 +301,15 @@ namespace JiraExport
                 Links = links,
                 AttachmentReferences = attachments.Any()
             };
+        }
+
+        protected override string MapUser(string sourceUser)
+        {
+            if (string.IsNullOrWhiteSpace(sourceUser))
+                return null;
+
+            var email = _jiraProvider.GetUserEmail(sourceUser);
+            return base.MapUser(email);
         }
 
         private HashSet<string> InitializeTypeMappings()
