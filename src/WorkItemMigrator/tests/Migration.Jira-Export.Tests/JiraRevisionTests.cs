@@ -22,6 +22,13 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
+        public void When_calling_compare_to_with_null_argumentss_Then_1_is_returned()
+        {
+            JiraRevision sut1 = new JiraRevision(createJiraItem());
+            Assert.That(() => sut1.CompareTo(null), Is.EqualTo(1));
+        }
+
+        [Test]
         public void When_calling_compare_to_with_equal_objects_Then_0_is_returned()
         {
             JiraRevision sut1 = new JiraRevision(createJiraItem());

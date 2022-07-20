@@ -65,6 +65,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
+        public void When_calling_map_remaining_work_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapRemainingWork(null); });
+        }
+
+        [Test]
         public void When_calling_map_title_with_empty_args_Then_null_is_returned()
         {
             (bool, object) expected = (false, null);
@@ -123,6 +129,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
+        public void When_calling_map_title_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapTitleWithoutKey(null); });
+        }
+
+        [Test]
         public void When_calling_map_tags_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapTags("");
@@ -136,6 +148,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             string[] tags = { "TAG_A", "TAG_B", "TAG_C" };
             object output = FieldMapperUtils.MapTags(string.Join(" ", tags));
             Assert.AreEqual(string.Join(";", tags), output);
+        }
+
+        [Test]
+        public void When_calling_map_tags_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapTags(null); });
         }
 
         [Test]
@@ -156,6 +174,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
+        public void When_calling_map_array_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapArray(null); });
+        }
+
+        [Test]
         public void When_calling_map_sprint_with_empty_string_arg_Then_null_is_returned()
         {
             object actualResult = FieldMapperUtils.MapSprint("");
@@ -171,7 +195,6 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             object output = FieldMapperUtils.MapSprint(string.Join(",", sprintPath));
             Assert.AreEqual(sprintPath[sprintPath.Length - 1], output);
         }
-
 
         [Test]
         public void When_calling_map_value_with_valid_args_Then_expected_output_is_returned()
@@ -248,6 +271,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
+        public void When_calling_map_value_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapValue(null, null, null, null); });
+        }
+
+        [Test]
         public void When_calling_correct_rendered_html_value_with_empty_string_arg_Then_an_exception_is_thrown()
         {
             var provider = _fixture.Freeze<IJiraProvider>();
@@ -282,6 +311,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
                 "<img https://abc.com />" +
                 "link_text";
             Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        public void When_calling_map_correct_rendered_html_value_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.CorrectRenderedHtmlvalue(null, null); });
         }
 
         [Test]
@@ -356,6 +391,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
                 Assert.That(actualOutput.Item2, Is.Null);
             });
 
+        }
+
+        [Test]
+        public void When_calling_map_rendered_value_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapRenderedValue(null, null, false, null, null); });
         }
 
 

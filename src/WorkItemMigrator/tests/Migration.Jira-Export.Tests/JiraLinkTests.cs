@@ -47,5 +47,12 @@ namespace Migration.Jira_Export.Tests
 
             Assert.That(() => sut1.Equals(sut2), Is.True);
         }
+
+        [Test]
+        public void When_calling_equals_with_null_argumentss_Then_false_is_returned()
+        {
+            JiraLink sut = new JiraLink();
+            Assert.That(() => sut.Equals(null), Is.False);
+        }
     }
 }

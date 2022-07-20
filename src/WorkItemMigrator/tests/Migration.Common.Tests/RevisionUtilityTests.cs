@@ -63,6 +63,12 @@ namespace Migration.Common.Tests
         }
 
         [Test]
+        public void When_calling_replacehtmlelements_with_null_parameter_Then_an_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { RevisionUtility.ReplaceHtmlElements(null); });
+        }
+
+        [Test]
         public void When_calling_hasanybyrefname_when_list_is_null_Then_false_is_returned()
         {
             List<WiField> list = null;
@@ -111,5 +117,6 @@ namespace Migration.Common.Tests
 
             Assert.AreEqual(expected, actual);
         }
+
     }
 }

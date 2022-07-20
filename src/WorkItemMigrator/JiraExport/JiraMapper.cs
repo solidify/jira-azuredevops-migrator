@@ -33,6 +33,9 @@ namespace JiraExport
 
         internal WiItem Map(JiraItem issue)
         {
+            if(issue == null)
+                throw new ArgumentNullException(nameof(issue));
+
             var wiItem = new WiItem();
 
             if (_config.TypeMap.Types != null)
@@ -179,6 +182,9 @@ namespace JiraExport
 
         internal List<WiLink> MapLinks(JiraRevision r)
         {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+
             var links = new List<WiLink>();
             if (r.LinkActions == null)
                 return links;
@@ -221,6 +227,9 @@ namespace JiraExport
 
         internal List<WiAttachment> MapAttachments(JiraRevision rev)
         {
+            if (rev == null)
+                throw new ArgumentNullException(nameof(rev));
+
             var attachments = new List<WiAttachment>();
             if (rev.AttachmentActions == null)
                 return attachments;
@@ -246,6 +255,9 @@ namespace JiraExport
 
         internal List<WiField> MapFields(JiraRevision r)
         {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+
             var fields = new List<WiField>();
 
             if (_config.TypeMap.Types != null)

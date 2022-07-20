@@ -48,6 +48,15 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
+        public void When_calling_map_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            JiraItem jiraItem = createJiraItem();
+            JiraMapper sut = createJiraMapper();
+
+            Assert.Throws<System.ArgumentNullException>(() => { sut.Map(null); });
+        }
+
+        [Test]
         public void When_calling_maplinks_Then_the_expected_result_is_returned()
         {
             JiraItem jiraItem = _fixture.Create<JiraItem>();
@@ -59,6 +68,15 @@ namespace Migration.Jira_Export.Tests
             List<WiLink> actual = sut.MapLinks(jiraRevision);
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_calling_maplinks_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            JiraItem jiraItem = createJiraItem();
+            JiraMapper sut = createJiraMapper();
+
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapLinks(null); });
         }
 
         [Test]
@@ -76,6 +94,15 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
+        public void When_calling_mapattachments_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            JiraItem jiraItem = createJiraItem();
+            JiraMapper sut = createJiraMapper();
+
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapAttachments (null); });
+        }
+
+        [Test]
         public void When_calling_mapfields_Then_the_expected_result_is_returned()
         {
             JiraItem jiraItem = createJiraItem();
@@ -88,6 +115,15 @@ namespace Migration.Jira_Export.Tests
             List<WiField> actual = sut.MapFields(jiraRevision);
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_calling_mapfields_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            JiraItem jiraItem = createJiraItem();
+            JiraMapper sut = createJiraMapper();
+
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapFields(null); });
         }
 
         [Test]

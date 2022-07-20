@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using NSubstitute;
 using System.IO.Abstractions;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace Migration.Common.Tests
 {
@@ -33,32 +34,17 @@ namespace Migration.Common.Tests
             Assert.AreEqual(expected, actual);
         }
 
-        [TestCase("a@jira.com","a@azdo.com")]
-        [TestCase("b@jira.com","b@azdo.com")]
-        public void When_generating_user_map_Then_map_is_correct(string source, string target)
+        [Test]
+        public void When_getvalues_with_non_existent_field_Then_an_exception_is_thrown()
         {
-            string[] userMapLines = { "a@jira.com=a@azdo.com", "b@jira.com=b@azdo.com" };
-            Dictionary<string, string> generatedUserMap = UserMapper.ParseUserMappings(userMapLines);
-
-            Assert.Contains(source, generatedUserMap.Keys);
-            Assert.AreEqual(target, generatedUserMap[source]);
+            JObject jObject = JObject.Parse(@"{ name: 'My Name', emails: [ 'my@email.com', 'my2@email.com' ]}");
+            Assert.Throws<NullReferenceException>(() => { JsonExtensions.GetValues<JToken>(jObject, "addresses"); });
         }
 
         [Test]
-        public void When_calling_ParseUserMappings_with_non_exisiting_file_Return_empty_Dictionary()
+        public void When_getvalues_with_null_input_Then_an_exception_is_thrown()
         {
-            //Assign
-
-            var fileSystem = _fixture.Freeze<IFileSystem>();
-            fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-
-            var expected = new Dictionary<string, string>();
-
-            //Act
-            var actualResult = UserMapper.ParseUserMappings(string.Empty);
-
-            //Assert
-            Assert.That(actualResult.Count, Is.EqualTo(expected.Count));
+            Assert.Throws<ArgumentNullException>(() => { JsonExtensions.GetValues<JToken>(null, ""); });
         }
 
     }

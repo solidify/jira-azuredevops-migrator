@@ -10,6 +10,9 @@ namespace JiraExport
 
         public bool Equals(JiraLink other)
         {
+            if (other == null)
+                return false;
+
             return SourceItem.Equals(other.SourceItem, StringComparison.InvariantCultureIgnoreCase)
                 && TargetItem.Equals(other.TargetItem, StringComparison.InvariantCultureIgnoreCase)
                 && LinkType.Equals(other.LinkType, StringComparison.InvariantCultureIgnoreCase);

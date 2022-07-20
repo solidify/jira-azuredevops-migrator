@@ -20,21 +20,15 @@ namespace Migration.Common.Tests
             _fixture.Customize(new AutoNSubstituteCustomization() { });
         }
 
-        [Test]
-        public void When_generating_user_map_Then_map_is_correct()
+        [TestCase("a@jira.com", "a@azdo.com")]
+        [TestCase("b@jira.com", "b@azdo.com")]
+        public void When_generating_user_map_Then_map_is_correct(string source, string target)
         {
             string[] userMapLines = { "a@jira.com=a@azdo.com", "b@jira.com=b@azdo.com" };
             Dictionary<string, string> generatedUserMap = UserMapper.ParseUserMappings(userMapLines);
 
-            foreach(string line in userMapLines)
-            {
-                string[] splitLine = line.Split("=");
-                string source = splitLine[0];
-                string target = splitLine[1];
-
-                Assert.Contains(source, generatedUserMap.Keys);
-                Assert.AreEqual(target, generatedUserMap[source]);
-            }
+            Assert.Contains(source, generatedUserMap.Keys);
+            Assert.AreEqual(target, generatedUserMap[source]);
         }
 
         [Test]
