@@ -33,7 +33,7 @@ namespace Migration.Common.Tests
             Assert.AreEqual(expected, actual);
         }
 
-            [Test]
+        [Test]
         public void When_generating_user_map_Then_map_is_correct()
         {
             string[] userMapLines = { "a@jira.com=a@azdo.com", "b@jira.com=b@azdo.com" };

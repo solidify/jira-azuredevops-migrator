@@ -11,7 +11,6 @@ namespace Migration.Common.Tests
     [TestFixture]
     public class MigrationCommonTests
     {
-        // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         [SetUp]
