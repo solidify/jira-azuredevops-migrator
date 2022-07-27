@@ -14,7 +14,7 @@ using System.Linq;
 
 using Migration.Common;
 
-namespace Migration.Wi_Import.Testss
+namespace Migration.Wi_Import.Tests
 {
     [TestFixture]
     public class WitClientUtilsTests
@@ -146,7 +146,7 @@ namespace Migration.Wi_Import.Testss
             return false;
         }
 
-        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
+        // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         [SetUp]

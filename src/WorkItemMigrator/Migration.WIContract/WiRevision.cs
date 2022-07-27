@@ -11,49 +11,6 @@ namespace Migration.WIContract
         Removed
     }
 
-    public enum TemplateType
-    {
-        Scrum,
-        Agile,
-        CMMI
-    }
-
-    public static class WorkItemType
-    {
-        public static string ProductBacklogItem => "Product Backlog Item";
-        public static string UserStory => "User Story";
-        public static string Requirement => "Requirement";
-        public static string Bug => "Bug";
-        public static string Task => "Task";
-        public static string Epic => "Epic";
-        public static string Feature => "Feature";
-
-        public static List<string> GetWorkItemTypes(string[] notForValues = null)
-        {
-            var list = new List<string>();
-            var properties = typeof(WorkItemType).GetProperties();
-            foreach (var prop in properties)
-            {
-                var propertyValue = prop.GetValue(typeof(WorkItemType)).ToString();
-                if (notForValues != null)
-                {
-                    foreach (var value in notForValues)
-                    {
-                        if (propertyValue != value)
-                        {
-                            list.Add(propertyValue);
-                        }
-                    }
-                }
-                else
-                {
-                    list.Add(propertyValue);
-                }
-            }
-            return list;
-        }
-    }
-
     public class WiRevision
     {
         public WiRevision()

@@ -11,7 +11,6 @@ namespace Migration.Common.Tests
     [TestFixture]
     public class MigrationCommonTests
     {
-        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         [SetUp]
@@ -21,21 +20,18 @@ namespace Migration.Common.Tests
             _fixture.Customize(new AutoNSubstituteCustomization() { });
         }
 
-        [Test]
-        public void When_generating_user_map_Then_map_is_correct()
+        [TestCase("a@jira.com", "a@azdo.com")]
+        [TestCase("b@jira.com", "b@azdo.com")]
+        public void When_generating_user_map_Then_map_is_correct(string source, string target)
         {
             string[] userMapLines = { "a@jira.com=a@azdo.com", "b@jira.com=b@azdo.com" };
             Dictionary<string, string> generatedUserMap = UserMapper.ParseUserMappings(userMapLines);
 
-            foreach(string line in userMapLines)
+            Assert.Multiple(() =>
             {
-                string[] splitLine = line.Split("=");
-                string source = splitLine[0];
-                string target = splitLine[1];
-
                 Assert.Contains(source, generatedUserMap.Keys);
                 Assert.AreEqual(target, generatedUserMap[source]);
-            }
+            });
         }
 
         [Test]
@@ -49,7 +45,7 @@ namespace Migration.Common.Tests
             var expected = new Dictionary<string, string>();
 
             //Act
-            var actualResult = UserMapper.ParseUserMappings(Arg.Any<string>());
+            var actualResult = UserMapper.ParseUserMappings(string.Empty);
 
             //Assert
             Assert.That(actualResult.Count, Is.EqualTo(expected.Count));
