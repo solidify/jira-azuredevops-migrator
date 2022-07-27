@@ -27,8 +27,11 @@ namespace Migration.Common.Tests
             string[] userMapLines = { "a@jira.com=a@azdo.com", "b@jira.com=b@azdo.com" };
             Dictionary<string, string> generatedUserMap = UserMapper.ParseUserMappings(userMapLines);
 
-            Assert.Contains(source, generatedUserMap.Keys);
-            Assert.AreEqual(target, generatedUserMap[source]);
+            Assert.Multiple(() =>
+            {
+                Assert.Contains(source, generatedUserMap.Keys);
+                Assert.AreEqual(target, generatedUserMap[source]);
+            });
         }
 
         [Test]
