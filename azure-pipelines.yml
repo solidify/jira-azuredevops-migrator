@@ -115,6 +115,7 @@ steps:
         Microsoft.TeamFoundation.WorkItemTracking.Common.dll
         Microsoft.TeamFoundation.WorkItemTracking.Proxy.dll
         Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll
+        Microsoft.VisualStudio.Services.Client.Interactive.dll
         Microsoft.VisualStudio.Services.Common.dll
         Microsoft.VisualStudio.Services.WebApi.dll
         Microsoft.WITDataStore32.dll
