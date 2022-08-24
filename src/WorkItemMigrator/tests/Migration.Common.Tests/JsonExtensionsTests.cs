@@ -2,9 +2,6 @@
 
 using AutoFixture.AutoNSubstitute;
 using AutoFixture;
-using System.Collections.Generic;
-using NSubstitute;
-using System.IO.Abstractions;
 using Newtonsoft.Json.Linq;
 using System;
 
