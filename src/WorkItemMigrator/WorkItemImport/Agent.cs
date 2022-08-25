@@ -167,7 +167,7 @@ namespace WorkItemImport
 
             var agent = new Agent(context, settings, restConnection, soapConnection);
 
-            var witClientWrapper = new WitClientWrapper(settings.Account, settings.Project);
+            var witClientWrapper = new WitClientWrapper(settings.Account, settings.Project, settings.Pat);
             agent._witClientUtils = new WitClientUtils(witClientWrapper);
 
             // check if projects exists, if not create it
