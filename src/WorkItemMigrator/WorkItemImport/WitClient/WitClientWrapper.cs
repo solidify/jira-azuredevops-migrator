@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Microsoft.VisualStudio.Services.Client;
+using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
@@ -23,9 +23,10 @@ namespace WorkItemImport
         private WorkItemTypeCategory DefaultWorkItemTypeCategory { get; }
         private WorkItemTypeReference DefaultWorkItemType { get; }
 
-        public WitClientWrapper(string collectionUri, string project)
+        public WitClientWrapper(string collectionUri, string project, string personalAccessToken)
         {
-            Connection = new VssConnection(new Uri(collectionUri), new VssClientCredentials());
+            var credentials = new VssBasicCredential("", personalAccessToken);
+            Connection = new VssConnection(new Uri(collectionUri), credentials);
             WitClient = Connection.GetClient<WorkItemTrackingHttpClient>();
             ProjectClient = Connection.GetClient<ProjectHttpClient>();
             TeamProject = ProjectClient.GetProject(project).Result;
