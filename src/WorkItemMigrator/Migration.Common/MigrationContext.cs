@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
 
@@ -9,8 +10,8 @@ namespace Migration.Common
     public class MigrationContext
     {
         public static MigrationContext Instance { get; private set; }
-        public string AttachmentsPath { get { return Path.Combine(MigrationWorkspace, "Attachments"); } }
-        public string UserMappingPath { get { return Path.Combine(MigrationWorkspace, "users.txt"); } }
+        public string AttachmentsPath { get; private set; }
+        public string UserMappingPath { get; private set; }
         public Dictionary<string, string> UserMapping { get; private set; }
         public string App { get; internal set; }
         public string MigrationWorkspace { get; internal set; }
@@ -19,20 +20,22 @@ namespace Migration.Common
         public Journal Journal { get; internal set; }
         public WiItemProvider Provider { get; private set; }
 
-        private MigrationContext(string app, string workspacePath, string logLevel, bool forceFresh)
+        private MigrationContext(string app, ConfigJson config, string logLevel, bool forceFresh)
         {
             App = app;
-            MigrationWorkspace = workspacePath;
+            MigrationWorkspace = config.Workspace;
+            UserMappingPath = config.UserMappingFile != null ? Path.Combine(MigrationWorkspace, config.UserMappingFile) : string.Empty;
+            AttachmentsPath = Path.Combine(MigrationWorkspace, config.AttachmentsFolder);
             UserMapping = UserMapper.ParseUserMappings(UserMappingPath);
             LogLevel = Logger.GetLogLevelFromString(logLevel);
             ForceFresh = forceFresh;
         }
 
-        public static MigrationContext Init(string app, string workspacePath, string logLevel, bool forceFresh, string continueOnCritical)
+        public static MigrationContext Init(string app, ConfigJson config, string logLevel, bool forceFresh, string continueOnCritical)
         {
-            Instance = new MigrationContext(app, workspacePath, logLevel, forceFresh);
+            Instance = new MigrationContext(app, config, logLevel, forceFresh);
 
-            Logger.Init(app, workspacePath, logLevel, continueOnCritical);
+            Logger.Init(app, config.Workspace, logLevel, continueOnCritical);
 
             Instance.Journal = Journal.Init(Instance);
             Instance.Provider = new WiItemProvider(Instance.MigrationWorkspace);
