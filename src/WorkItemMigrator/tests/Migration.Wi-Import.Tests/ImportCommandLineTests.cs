@@ -5,12 +5,12 @@ using AutoFixture;
 using System;
 using WorkItemImport;
 
-namespace Migration.Wi_Import.Testss
+namespace Migration.Wi_Import.Tests
 {
     [TestFixture]
     public class ImportCommandLineTests
     {
-        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
+        // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         [SetUp]

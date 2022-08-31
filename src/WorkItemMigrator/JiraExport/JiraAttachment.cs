@@ -11,6 +11,8 @@ namespace JiraExport
 
         public bool Equals(JiraAttachment other)
         {
+            if (other == null)
+                return false;
             return Id == other.Id;
         }
 
