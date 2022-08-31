@@ -81,7 +81,7 @@ namespace WorkItemImport
                 ConfigReaderJson configReaderJson = new ConfigReaderJson(configFileName);
                 config = configReaderJson.Deserialize();
 
-                var context = MigrationContext.Init("wi-import", config.Workspace, config.LogLevel, forceFresh, continueOnCritical.Value());
+                var context = MigrationContext.Init("wi-import", config, config.LogLevel, forceFresh, continueOnCritical.Value());
 
                 // connection settings for Azure DevOps/TFS:
                 // full base url incl https, name of the project where the items will be migrated (if it doesn't exist on destination it will be created), personal access token

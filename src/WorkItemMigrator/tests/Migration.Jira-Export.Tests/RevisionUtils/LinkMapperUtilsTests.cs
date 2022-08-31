@@ -16,7 +16,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
     [TestFixture]
     public class LinkMapperUtilsTests
     {
-        // use auto fixiture to help mock and instantiate with dummy data with nsubsitute. 
+        // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
 
         private JiraRevision MockRevisionWithParentItem(string issueKey, string revisionSummary)
@@ -130,6 +130,11 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             Assert.IsEmpty(links);
         }
 
+        [Test]
+        public void When_calling_add_single_link_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { LinkMapperUtils.AddSingleLink(null, null, null, null, null); });
+        }
 
         [Test]
         public void When_calling_add_remove_single_link_with_empty_string_arg_Then_an_exception_is_thrown()
@@ -224,10 +229,13 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
                 Assert.AreEqual(targetId, links[0].TargetOriginId);
                 Assert.AreEqual(targetWiType, links[0].WiType);
             });
-
-
         }
 
+        [Test]
+        public void When_calling_add_remove_single_link_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { LinkMapperUtils.AddRemoveSingleLink(null, null, null, null, null); });
+        }
 
         [Test]
         public void When_calling_map_epic_child_link_with_empty_string_arg_Then_an_exception_is_thrown()
@@ -275,10 +283,13 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
                 Assert.AreEqual(targetId, links[0].TargetOriginId);
                 Assert.AreEqual(targetWiType, links[0].WiType);
             });
-
-
         }
 
+        [Test]
+        public void When_calling_map_epic_child_link_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { LinkMapperUtils.MapEpicChildLink(null, null, null, null, null); });
+        }
 
     }
 }

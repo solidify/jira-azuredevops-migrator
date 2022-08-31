@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
-		<RootNamespace>Migration.Wi_Import.Testss</RootNamespace>
+		<RootNamespace>Migration.Wi_Import.Tests</RootNamespace>
 
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>

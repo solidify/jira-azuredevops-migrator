@@ -15,12 +15,18 @@ namespace JiraExport
     {
         public static object MapRemainingWork(string seconds)
         {
+            if (seconds == null)
+                throw new ArgumentNullException(nameof(seconds));
+
             var secs = Convert.ToDouble(seconds);
             return TimeSpan.FromSeconds(secs).TotalHours;
         }
 
         public static (bool, object) MapTitle(JiraRevision r)
         {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+
             if (r.Fields.TryGetValue("summary", out object summary))
                 return (true, $"[{r.ParentItem.Key}] {summary}");
             else
@@ -28,6 +34,9 @@ namespace JiraExport
         }
         public static (bool, object) MapTitleWithoutKey(JiraRevision r)
         {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+
             if (r.Fields.TryGetValue("summary", out object summary))
                 return (true, summary);
             else
@@ -36,6 +45,12 @@ namespace JiraExport
 
         public static (bool, object) MapValue(JiraRevision r, string itemSource, string itemTarget, ConfigJson config)
         {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+
             var targetWit = (from t in config.TypeMap.Types where t.Source == r.Type select t.Target).FirstOrDefault();
 
             var hasFieldValue = r.Fields.TryGetValue(itemSource, out object value);
@@ -63,6 +78,12 @@ namespace JiraExport
 
         public static (bool, object) MapRenderedValue(JiraRevision r, string sourceField, bool isCustomField, string customFieldName, ConfigJson config)
         {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+
             sourceField = SetCustomFieldName(sourceField, isCustomField, customFieldName);
 
             var fieldName = sourceField + "$Rendered";
@@ -96,6 +117,9 @@ namespace JiraExport
 
         public static object MapTags(string labels)
         {
+            if (labels == null)
+                throw new ArgumentNullException(nameof(labels));
+
             if (string.IsNullOrWhiteSpace(labels))
                 return null;
 
@@ -108,6 +132,9 @@ namespace JiraExport
 
         public static object MapArray(string field)
         {
+            if (field == null)
+                throw new ArgumentNullException(nameof(field));
+
             if (string.IsNullOrWhiteSpace(field))
                 return null;
 
@@ -133,12 +160,15 @@ namespace JiraExport
 
         public static string CorrectRenderedHtmlvalue(object value, JiraRevision revision)
         {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+            if (revision == null)
+                throw new ArgumentNullException(nameof(revision));
+
             var htmlValue = value.ToString();
 
             if (string.IsNullOrWhiteSpace(htmlValue))
-            {
-                throw new ArgumentException(nameof(value));
-            }
+                throw new ArgumentNullException(nameof(value));
 
             foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
             {
@@ -155,7 +185,6 @@ namespace JiraExport
                 htmlValue = "<style>" + css + "</style>" + htmlValue;
 
             return htmlValue;
-
         }
 
         private static string ReadEmbeddedFile(string resourceName)

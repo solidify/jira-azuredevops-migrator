@@ -15,12 +15,12 @@ namespace JiraExport
         {
             if (String.IsNullOrWhiteSpace(field))
             {
-                throw new ArgumentException(nameof(field));
+                throw new ArgumentNullException(nameof(field));
             }
 
             if (String.IsNullOrWhiteSpace(type))
             {
-                throw new ArgumentException(nameof(type));
+                throw new ArgumentNullException(nameof(type));
             }
 
             if (r.Fields.TryGetValue(field, out object value))
@@ -45,12 +45,12 @@ namespace JiraExport
         {
             if (String.IsNullOrWhiteSpace(field))
             {
-                throw new ArgumentException(nameof(field));
+                throw new ArgumentNullException(nameof(field));
             }
 
             if (String.IsNullOrWhiteSpace(type))
             {
-                throw new ArgumentException(nameof(type));
+                throw new ArgumentNullException(nameof(type));
             }
 
             if (r.Fields.TryGetValue(field, out object value))
@@ -98,12 +98,12 @@ namespace JiraExport
         {
             if (String.IsNullOrWhiteSpace(field))
             {
-                throw new ArgumentException(nameof(field));
+                throw new ArgumentNullException(nameof(field));
             }
 
             if (String.IsNullOrWhiteSpace(type))
             {
-                throw new ArgumentException(nameof(type));
+                throw new ArgumentNullException(nameof(type));
             }
 
 
