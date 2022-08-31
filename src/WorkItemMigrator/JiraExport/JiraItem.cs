@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Atlassian.Jira;
-
+using Atlassian.Jira.Remote;
 using Migration.Common;
 using Migration.Common.Log;
 
@@ -133,15 +133,37 @@ namespace JiraExport
             return comments.Select((c, i) =>
             {
                 var rc = renderedFields.SelectToken($"$.[{i}].body");
-                return new JiraRevision(jiraItem)
-                {
-                    Author = c.AuthorUser.Username ?? GetAuthorIdentityOrDefault(c.AuthorUser.AccountId),
-                    Time = c.CreatedDate.Value,
-                    Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", rc.Value<string>() } },
-                    AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
-                    LinkActions = new List<RevisionAction<JiraLink>>()
-                };
+                return BuildCommentRevision(c, rc, jiraItem);
             }).ToList();
+        }
+
+        private static JiraRevision BuildCommentRevision(Comment c, JToken rc, JiraItem jiraItem)
+        {
+            var author = "NoAuthorDefined";
+            if (c.AuthorUser is null)
+            {
+                Logger.Log(LogLevel.Warning, $"c.AuthorUser is null in comment revision for jiraItem.Key: '{ jiraItem.Key}'. Using NoAuthorDefined as author. ");
+            }
+            else
+            {
+                if (c.AuthorUser.Username is null)
+                {
+                    author = GetAuthorIdentityOrDefault(c.AuthorUser.AccountId);
+                }
+                else
+                {
+                    author = c.AuthorUser.Username;
+                }
+            }
+
+            return new JiraRevision(jiraItem)
+            {
+                Author = author,
+                Time = c.CreatedDate.Value,
+                Fields = new Dictionary<string, object>() { { "comment", c.Body }, { "comment$Rendered", rc.Value<string>() } },
+                AttachmentActions = new List<RevisionAction<JiraAttachment>>(),
+                LinkActions = new List<RevisionAction<JiraLink>>()
+            };
         }
 
         private static void UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
