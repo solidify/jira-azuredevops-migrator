@@ -29,7 +29,7 @@ namespace WorkItemImport
             return _witClientWrapper.CreateWorkItem(type);
         }
 
-        public void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
+        public WorkItem SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
         {
             if (wi == null)
             {
@@ -55,14 +55,17 @@ namespace WorkItemImport
                 };
 
                 if (wi.Id.HasValue)
-                    _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
+                    return _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
                 else
+                {
                     throw new MissingFieldException($"Work item ID was null: {wi.Url}");
+                }
             }
             catch (AggregateException ex)
             {
                 Logger.Log(LogLevel.Error, ex.InnerException.Message);
             }
+            return null;
         }
 
         public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)

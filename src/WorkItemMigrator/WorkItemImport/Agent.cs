@@ -510,6 +510,17 @@ namespace WorkItemImport
 
                             break;
 
+                        case var s when s.Equals(WiFieldReference.State, StringComparison.InvariantCultureIgnoreCase):
+                            WorkItem workItemUpdated = _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
+                            if (wi.Fields[WiFieldReference.State].ToString() == "New"
+                                && workItemUpdated.Fields[WiFieldReference.State].ToString() != "New")
+                            {
+                                wi.Fields[WiFieldReference.State] = workItemUpdated.Fields[WiFieldReference.State];
+                                wi.Fields[WiFieldReference.Reason] = workItemUpdated.Fields[WiFieldReference.Reason];
+                                //wi.Fields[WiFieldReference.StateChangeDate] = workItemUpdated.Fields[WiFieldReference.ChangedDate];
+                            }
+                            break;
+
                         case var s when s.Equals(WiFieldReference.ActivatedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                              s.Equals(WiFieldReference.ActivatedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                             s.Equals(WiFieldReference.ClosedDate, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
