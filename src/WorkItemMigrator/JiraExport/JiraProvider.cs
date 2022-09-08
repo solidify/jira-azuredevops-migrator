@@ -28,6 +28,10 @@ namespace JiraExport
 
         private readonly string JiraApiV2 = "rest/api/2";
 
+        private Dictionary<string, string> JiraNameFieldCache = null;
+
+        private Dictionary<string, string> JiraKeyFieldCache = null;
+
         readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
 
         public Jira Jira { get; private set; }
@@ -405,26 +409,24 @@ namespace JiraExport
         public string GetCustomId(string propertyName)
         {
             var customId = string.Empty;
-            var response = (JArray)Jira.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
-            foreach (var item in response)
+            if (JiraNameFieldCache == null)
             {
-                var nameField = (JValue)item.SelectToken("name");
-                if (nameField.Value.ToString().ToLower() == propertyName.ToLower())
-                {
-                    var idField = (JValue)item.SelectToken("id");
-                    customId = idField.Value.ToString();
-                }
+                var response = (JArray)Jira.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                JiraNameFieldCache = response
+                    .Where(x => x.Value<string>("name") != null && x.Value<string>("id") != null)
+                    .Select(x => new { name = x.Value<string>("name").ToLower(), id = x.Value<string>("id").ToLower() })
+                    .ToDictionary(x => x.name, x => x.id);
+                JiraKeyFieldCache = response
+                    .Where(x => x.Value<string>("key") != null && x.Value<string>("id") != null)
+                    .Select(x => new { key = x.Value<string>("key").ToLower(), id = x.Value<string>("id").ToLower() })
+                    .ToDictionary(x => x.key, x => x.id);
+            }
 
-                if (string.IsNullOrEmpty(customId))
-                {
-                    var keyField = (JValue)item.SelectToken("key");
-                    if (keyField != null && keyField.Value != null
-                        && keyField.Value.ToString().ToLower() == propertyName.ToLower())
-                    {
-                        var idField = (JValue)item.SelectToken("id");
-                        customId = idField.Value.ToString();
-                    }
-                }
+            JiraNameFieldCache.TryGetValue(propertyName.ToLower(), out customId);
+
+            if (string.IsNullOrEmpty(customId))
+            {
+                JiraKeyFieldCache.TryGetValue(propertyName.ToLower(), out customId);
             }
             return customId;
         }
