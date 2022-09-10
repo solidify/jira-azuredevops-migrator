@@ -11,7 +11,6 @@ using Microsoft.Extensions.CommandLineUtils;
 using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
-
 using static JiraExport.JiraProvider;
 
 namespace JiraExport
@@ -93,7 +92,9 @@ namespace JiraExport
                     UsingJiraCloud = config.UsingJiraCloud
                 };
 
-                JiraProvider jiraProvider = new JiraProvider();
+                var jiraConnection = new JiraConnection().Initialize(jiraSettings);
+                JiraProvider jiraProvider = new JiraProvider(jiraConnection.RestClient, jiraConnection.Links, jiraConnection.Fields, 
+                    jiraConnection.Issues,jiraConnection.Users);
                 jiraProvider.Initialize(jiraSettings);
 
                 itemsCount = jiraProvider.GetItemCount(jiraSettings.JQL);

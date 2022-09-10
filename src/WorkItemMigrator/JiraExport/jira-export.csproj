@@ -114,6 +114,7 @@
   <ItemGroup>
     <Compile Include="IJiraProvider.cs" />
     <Compile Include="JiraCommandLine.cs" />
+    <Compile Include="JiraConnection.cs" />
     <Compile Include="JiraMapper.cs" />
     <Compile Include="JiraAttachment.cs" />
     <Compile Include="JiraChangeItem.cs" />
