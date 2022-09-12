@@ -50,7 +50,7 @@ namespace WorkItemImport
             WorkItem wiOut = null;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(patchDoc, TeamProject.Name, wiType).Result;
+                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:true).Result;
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
@@ -75,7 +75,7 @@ namespace WorkItemImport
 
         public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
         {
-            return WitClient.UpdateWorkItemAsync(patchDocument, workItemId).Result;
+            return WitClient.UpdateWorkItemAsync(document:patchDocument, id:workItemId, bypassRules:true).Result;
         }
 
         public TeamProject GetProject(string projectId)
