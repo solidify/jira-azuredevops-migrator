@@ -116,7 +116,7 @@ namespace Migration.Jira_Export.Tests
             //Assert
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(jiraServiceMock.RestClient.ReceivedCalls().Count(), 1);
+                Assert.AreEqual(1, jiraServiceMock.RestClient.ReceivedCalls().Count());
                 Assert.AreEqual(customFieldId1, actualId1);
                 Assert.AreEqual(customFieldId2, actualId2);
             });            

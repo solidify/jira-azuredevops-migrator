@@ -11,7 +11,7 @@ namespace JiraExport
 {
     public class JiraServiceWrapper : IJiraServiceWrapper
     {
-        private Jira _jira;
+        private readonly Jira _jira;
 
         public IIssueFieldService Fields => _jira.Fields;
         public IIssueService Issues => _jira.Issues;
