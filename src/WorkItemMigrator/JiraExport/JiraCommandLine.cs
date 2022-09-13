@@ -92,9 +92,8 @@ namespace JiraExport
                     UsingJiraCloud = config.UsingJiraCloud
                 };
 
-                var jiraConnection = new JiraConnection().Initialize(jiraSettings);
-                JiraProvider jiraProvider = new JiraProvider(jiraConnection.RestClient, jiraConnection.Links, jiraConnection.Fields, 
-                    jiraConnection.Issues,jiraConnection.Users);
+                var jiraServiceWrapper = new JiraServiceWrapper(jiraSettings);
+                JiraProvider jiraProvider = new JiraProvider(jiraServiceWrapper);
                 jiraProvider.Initialize(jiraSettings);
 
                 itemsCount = jiraProvider.GetItemCount(jiraSettings.JQL);

@@ -34,24 +34,15 @@ namespace JiraExport
 
         readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
 
-        private readonly IJiraRestClient _restClient;
-        private readonly IIssueLinkService _issueLinkService;
-        private readonly IIssueFieldService _issueFieldService;
-        private readonly IIssueService _issueService;
-        private readonly IJiraUserService _jiraUserService;
+        private readonly IJiraServiceWrapper _jiraServiceWrapper;
 
         public JiraSettings Settings { get; private set; }
 
         public IEnumerable<IssueLinkType> LinkTypes { get; private set; }
 
-        public JiraProvider(IJiraRestClient jiraRestClient, IIssueLinkService issueLinkService, IIssueFieldService issueFieldService, 
-            IIssueService issueService, IJiraUserService jiraUserService)
+        public JiraProvider(IJiraServiceWrapper jiraServiceWrapper)
         {
-            _restClient = jiraRestClient;
-            _issueLinkService = issueLinkService;
-            _issueFieldService = issueFieldService;
-            _issueService = issueService;
-            _jiraUserService = jiraUserService;
+            _jiraServiceWrapper = jiraServiceWrapper;
         }
 
         public void Initialize(JiraSettings settings)
@@ -61,7 +52,7 @@ namespace JiraExport
             Logger.Log(LogLevel.Info, "Retrieving Jira fields...");
             try
             {
-                _issueFieldService.GetCustomFieldsAsync().Wait();
+                _jiraServiceWrapper.Fields.GetCustomFieldsAsync().Wait();
             }
             catch (Exception e)
             {
@@ -71,7 +62,7 @@ namespace JiraExport
             Logger.Log(LogLevel.Info, "Retrieving Jira link types...");
             try
             {
-                LinkTypes = _issueLinkService.GetLinkTypesAsync().Result;
+                LinkTypes = _jiraServiceWrapper.Links.GetLinkTypesAsync().Result;
             }
 
             catch (Exception e)
@@ -92,19 +83,19 @@ namespace JiraExport
 
         public IEnumerable<Comment> GetCommentsByItemKey(string itemKey)
         {
-            return _issueService.GetCommentsAsync(itemKey).Result;
+            return _jiraServiceWrapper.Issues.GetCommentsAsync(itemKey).Result;
         }
 
         public bool GetCustomField(string fieldName, out CustomField customField)
         {
-            bool found = _restClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out CustomField cF);
+            bool found = _jiraServiceWrapper.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out CustomField cF);
             customField = cF;
             return found;
         }
 
         public bool GetCustomFieldSerializer(string customType, out ICustomFieldValueSerializer serializer)
         {
-            bool found = _restClient.Settings.CustomFieldSerializers.TryGetValue(customType, out ICustomFieldValueSerializer s);
+            bool found = _jiraServiceWrapper.RestClient.Settings.CustomFieldSerializers.TryGetValue(customType, out ICustomFieldValueSerializer s);
             serializer = s;
             return found;
         }
@@ -125,7 +116,7 @@ namespace JiraExport
 
             try
             {
-                var response = await _restClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/attachment/{id}");
+                var response = await _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/attachment/{id}");
                 var attObj = (JObject)response;
 
                 return new JiraAttachment
@@ -175,7 +166,7 @@ namespace JiraExport
 
         private async Task DownloadWithJiraRestClientAsync(string url, string fileFullPath)
         {
-            var attachmentData = _restClient.DownloadData(url);
+            var attachmentData = _jiraServiceWrapper.RestClient.DownloadData(url);
 
             using (var stream = new MemoryStream(attachmentData))
             {
@@ -208,7 +199,7 @@ namespace JiraExport
                 JToken response = null;
                 try
                 {
-                    response = _restClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
+                    response = _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
                 }
                 catch (Exception e)
                 {
@@ -297,7 +288,7 @@ namespace JiraExport
             Logger.Log(LogLevel.Debug, $"Get item count using query: '{jql}'");
             try
             {
-                var response = _restClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jql}&maxResults=0").Result;
+                var response = _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jql}&maxResults=0").Result;
 
                 return (int)response.SelectToken("$.total");
             }
@@ -311,13 +302,13 @@ namespace JiraExport
 
         public JiraVersion GetJiraVersion()
         {
-            var response = (JObject)_restClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/serverInfo").Result;
+            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/serverInfo").Result;
             return new JiraVersion((string)response.SelectToken("$.version"), (string)response.SelectToken("$.deploymentType"));
         }
 
         public IEnumerable<JObject> DownloadChangelog(string issueKey)
         {
-            var response = (JObject)_restClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{issueKey}?expand=changelog,renderedFields&fields=created").Result;
+            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{issueKey}?expand=changelog,renderedFields&fields=created").Result;
             return response.SelectTokens("$.changelog.histories[*]").Cast<JObject>();
         }
 
@@ -326,7 +317,7 @@ namespace JiraExport
             try
             {
                 var response =
-                    _restClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{key}?expand=renderedFields").Result;
+                    _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{key}?expand=renderedFields").Result;
 
                 var remoteItem = (JObject)response;
                 return remoteItem;
@@ -366,7 +357,7 @@ namespace JiraExport
 
         public int GetNumberOfComments(string key)
         {
-            return _issueService.GetCommentsAsync(key).Result.Count();
+            return _jiraServiceWrapper.Issues.GetCommentsAsync(key).Result.Count();
         }
 
         public string GetUserEmail(string usernameOrAccountId)
@@ -377,7 +368,7 @@ namespace JiraExport
             }
             try
             {
-                var user = _jiraUserService.GetUserAsync(usernameOrAccountId).Result;
+                var user = _jiraServiceWrapper.Users.GetUserAsync(usernameOrAccountId).Result;
                 var isUserEmailMissing = string.IsNullOrEmpty(user.Email);
                 if (isUserEmailMissing)
                 {
@@ -406,7 +397,7 @@ namespace JiraExport
             var customId = string.Empty;
             if (JiraNameFieldCache == null)
             {
-                var response = (JArray)_restClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                var response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
                 JiraNameFieldCache = response
                     .Where(x => x.Value<string>("name") != null && x.Value<string>("id") != null)
                     .Select(x => new { name = x.Value<string>("name").ToLower(), id = x.Value<string>("id").ToLower() })
