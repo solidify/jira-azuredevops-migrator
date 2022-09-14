@@ -516,14 +516,14 @@ namespace WorkItemImport
                             s.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                             s.Equals(WiFieldReference.Tags, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null:
 
-                            _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
+                            wi.Fields[fieldRef] = fieldValue;
                             break;
                         case var s when s.Equals(WiFieldReference.ChangedDate, StringComparison.InvariantCultureIgnoreCase):
                             break;
                         default:
                             if (fieldValue != null)
                             {
-                                _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
+                                wi.Fields[fieldRef] = fieldValue;
                             }
                             break;
                     }
