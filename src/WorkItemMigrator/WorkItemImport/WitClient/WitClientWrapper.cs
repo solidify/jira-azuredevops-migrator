@@ -55,7 +55,10 @@ namespace WorkItemImport
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
             }
-            
+
+            if (wiOut.Relations == null)
+                wiOut.Relations = new List<WorkItemRelation>();
+
             return wiOut;
         }
 
@@ -70,6 +73,8 @@ namespace WorkItemImport
                 // Work item was not found, return null
                 return null;
             }
+            if (wiOut.Relations == null)
+                wiOut.Relations = new List<WorkItemRelation>();
             return wiOut;
         }
 
