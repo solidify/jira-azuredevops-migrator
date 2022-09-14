@@ -518,6 +518,8 @@ namespace WorkItemImport
 
                             _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
                             break;
+                        case var s when s.Equals(WiFieldReference.ChangedDate, StringComparison.InvariantCultureIgnoreCase):
+                            break;
                         default:
                             if (fieldValue != null)
                             {
