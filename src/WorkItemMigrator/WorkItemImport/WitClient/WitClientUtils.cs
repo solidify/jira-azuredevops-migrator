@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 
@@ -197,7 +198,7 @@ namespace WorkItemImport
             string assignedTo = "";
             if(wi.Fields.ContainsKey(WiFieldReference.AssignedTo))
             {
-                assignedTo = wi.Fields[WiFieldReference.AssignedTo].ToString();
+                assignedTo = (wi.Fields[WiFieldReference.AssignedTo] as IdentityRef).UniqueName;
             }
 
             if (rev.Fields.HasAnyByRefName(WiFieldReference.AssignedTo))
