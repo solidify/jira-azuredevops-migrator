@@ -91,6 +91,9 @@ namespace WorkItemImport
                 if (rev.Fields.Any() && !UpdateWIFields(rev.Fields, wi))
                     incomplete = true;
 
+                if (rev.Fields.Any() && !UpdateWIHistoryField(rev.Fields, wi))
+                    incomplete = true;
+
                 if (rev.Links.Any() && !ApplyLinks(rev, wi))
                     incomplete = true;
 
@@ -445,6 +448,15 @@ namespace WorkItemImport
         #endregion
 
         #region Import Revision
+
+        private bool UpdateWIHistoryField(IEnumerable<WiField> fields, WorkItem wi)
+        {
+            if(fields.Where( i => i.ReferenceName == WiFieldReference.History).FirstOrDefault() == null )
+            {
+                wi.Fields.Remove(WiFieldReference.History);
+            }
+            return true;
+        }
 
         private bool UpdateWIFields(IEnumerable<WiField> fields, WorkItem wi)
         {
