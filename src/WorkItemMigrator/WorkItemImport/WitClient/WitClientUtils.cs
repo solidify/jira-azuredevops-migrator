@@ -541,6 +541,10 @@ namespace WorkItemImport
             JsonPatchDocument patchDocument = new JsonPatchDocument();
             foreach (string key in wi.Fields.Keys)
             {
+                if (new string[] {WiFieldReference.ChangedDate}.Contains(key))
+                    continue;
+
+
                 object val = wi.Fields[key];
 
                 patchDocument.Add(
