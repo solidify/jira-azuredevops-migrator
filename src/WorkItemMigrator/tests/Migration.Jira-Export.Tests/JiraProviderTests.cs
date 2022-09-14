@@ -92,6 +92,29 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
+        public void When_calling_getcustomid_and_multiple_fields_with_the_same_name_exist_Then_the_first_result_is_returned()
+        {
+            //Arrange
+            string firstId = "customfield_00001";
+            string fieldname = _fixture.Create<string>();
+
+            var apiResponse = JArray.Parse(
+                $"[{{ 'id': 'customfield_00001', 'name': '{fieldname}'}}, " +
+                $"{{ 'id': 'customfield_00002', 'name': '{fieldname}'}}]");
+
+            var jiraServiceMock = _fixture.Create<IJiraServiceWrapper>();
+            jiraServiceMock.RestClient.ExecuteRequestAsync(Method.GET, Arg.Any<string>()).Returns(apiResponse);
+
+            JiraProvider sut = new JiraProvider(jiraServiceMock);
+
+            //Act
+            var id = sut.GetCustomId(fieldname);
+
+            //Assert
+            Assert.AreEqual(firstId, id);
+        }
+
+        [Test]
         public void When_calling_getcustomid_multiple_times_Then_the_api_is_called_once()
         {
             //Arrange

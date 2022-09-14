@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Configuration;
 using Atlassian.Jira;
 using Atlassian.Jira.Remote;
 using Migration.Common;
@@ -28,9 +29,9 @@ namespace JiraExport
 
         private readonly string JiraApiV2 = "rest/api/2";
 
-        private Dictionary<string, string> JiraNameFieldCache = null;
+        private ILookup<string, string> JiraNameFieldCache = null;
 
-        private Dictionary<string, string> JiraKeyFieldCache = null;
+        private ILookup<string, string> JiraKeyFieldCache = null;
 
         readonly Dictionary<string, string> _userEmailCache = new Dictionary<string, string>();
 
@@ -401,18 +402,35 @@ namespace JiraExport
                 JiraNameFieldCache = response
                     .Where(x => x.Value<string>("name") != null && x.Value<string>("id") != null)
                     .Select(x => new { name = x.Value<string>("name").ToLower(), id = x.Value<string>("id").ToLower() })
-                    .ToDictionary(x => x.name, x => x.id);
+                    .ToLookup(l => l.name, l => l.id);
+
                 JiraKeyFieldCache = response
                     .Where(x => x.Value<string>("key") != null && x.Value<string>("id") != null)
                     .Select(x => new { key = x.Value<string>("key").ToLower(), id = x.Value<string>("id").ToLower() })
-                    .ToDictionary(x => x.key, x => x.id);
+                    .ToLookup(l => l.key, l => l.id);
             }
 
-            JiraNameFieldCache.TryGetValue(propertyName.ToLower(), out customId);
+            customId = GetItemFromFieldCache(propertyName, JiraNameFieldCache);
 
             if (string.IsNullOrEmpty(customId))
             {
-                JiraKeyFieldCache.TryGetValue(propertyName.ToLower(), out customId);
+                customId = GetItemFromFieldCache(propertyName, JiraKeyFieldCache);
+            }
+
+            return customId;
+        }
+
+        private string GetItemFromFieldCache(string propertyName, ILookup<string,string> cache)
+        {
+            string customId = null;
+            var query = cache.Where(x => x.Key.Equals(propertyName.ToLower())).FirstOrDefault();
+            if (query != null)
+            {
+                customId = query.Count() > 0 ? query.First() : null;
+                if (query.Count() > 1)
+                {
+                    Logger.Log(LogLevel.Warning, $"Multiple fields found for {propertyName}. Selecting {customId}.");
+                }
             }
             return customId;
         }
