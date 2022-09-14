@@ -742,6 +742,12 @@ namespace WorkItemImport
                 a.Rel == link.WiType
                 && int.Parse(a.Url.Split('/').Last()) == link.TargetWiId);
 
+            if (rel == null)
+            {
+                Logger.Log(LogLevel.Warning, "RemoveSingleLinkFromWorkItemAndSave(): rel was null");
+                return;
+            }
+
             // Create a patch document for a new work item.
             // Specify a relation to the existing work item.
             JsonPatchDocument linkPatchDocument = new JsonPatchDocument
