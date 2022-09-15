@@ -796,7 +796,7 @@ namespace WorkItemImport
                 WorkItemRelation reverseLink = new WorkItemRelation();
                 string reverseLinkTypeName = GetReverseLinkTypeReferenceName(link.Rel);
                 reverseLink.Rel = reverseLinkTypeName;
-                reverseLink.Url = reverseLink.Url.Replace(reverseLink.Url.Split('/').Last(), GetRelatedWorkItemIdFromLink(link).ToString());
+                reverseLink.Url = link.Url.Replace(link.Url.Split('/').Last(), GetRelatedWorkItemIdFromLink(link).ToString());
                 return reverseLink;
             }
 
