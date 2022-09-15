@@ -68,14 +68,9 @@ namespace WorkItemImport
 
         public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)
         {
-            if (links == null)
+            if (links == null || relatedLink == null)
             {
-                throw new ArgumentException(nameof(links));
-            }
-
-            if (relatedLink == null)
-            {
-                throw new ArgumentException(nameof(relatedLink));
+                return false;
             }
 
             var containsRelatedLink = links.Contains(relatedLink);
