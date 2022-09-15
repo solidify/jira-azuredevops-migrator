@@ -43,9 +43,19 @@ Example:
  - When using Jira Cloud then firstly make sure in the config the '"using-jira-cloud": true' is set. The mapping file the should have accountId/email value pairs. To use email value pairs the users email should be set to public in the user profile in Jira Cloud
  otherwise the tool cant get the email and will use accountId instead for mapping.
 
-        Some.JiraUser@domain.com=Some.AzureDevOpsUser@domain.com or JiraAccountId=Some.AzureDevOpsUser@domain.com
+        Jira.User1@some.domain=AzureDevOps.User1@some.domain
+        Jira.User2@some.domain=AzureDevOps.User2@some.domain
+        Jira.User3@some.domain=AzureDevOps.User3@some.domain
+        
+        or
+        
+        JiraAccountId1=AzureDevOps.User1@some.domain
+        JiraAccountId2=AzureDevOps.User2@some.domain
+        JiraAccountId3=AzureDevOps.User3@some.domain
 
  - When using Jira Server then firstly make sure in the config the ' "using-jira-cloud": false' is set. The mapping should look like the example below:
 
-    Some.JiraUser@domain.com=Some.AzureDevOpsUser@domain.com
+        Jira.User1@some.domain=AzureDevOps.User1@some.domain
+        Jira.User2@some.domain=AzureDevOps.User2@some.domain
+        Jira.User3@some.domain=AzureDevOps.User3@some.domain
 
