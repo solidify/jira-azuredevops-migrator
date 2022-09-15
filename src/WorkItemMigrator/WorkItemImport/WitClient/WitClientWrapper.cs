@@ -50,7 +50,7 @@ namespace WorkItemImport
             WorkItem wiOut = null;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:false).Result;
+                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:false, expand:WorkItemExpand.All).Result;
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
@@ -67,7 +67,7 @@ namespace WorkItemImport
             WorkItem wiOut;
             try
             {
-                wiOut = WitClient.GetWorkItemAsync(wiId).Result;
+                wiOut = WitClient.GetWorkItemAsync(wiId, expand: WorkItemExpand.All).Result;
             } catch (System.AggregateException)
             {
                 // Work item was not found, return null
@@ -80,7 +80,7 @@ namespace WorkItemImport
 
         public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
         {
-            return WitClient.UpdateWorkItemAsync(document:patchDocument, id:workItemId, bypassRules:true).Result;
+            return WitClient.UpdateWorkItemAsync(document:patchDocument, id:workItemId, bypassRules:true, expand: WorkItemExpand.All).Result;
         }
 
         public TeamProject GetProject(string projectId)
