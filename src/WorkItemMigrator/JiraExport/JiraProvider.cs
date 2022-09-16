@@ -422,10 +422,10 @@ namespace JiraExport
         private string GetItemFromFieldCache(string propertyName, ILookup<string,string> cache)
         {
             string customId = null;
-            var query = cache.Where(x => x.Key.Equals(propertyName.ToLower())).FirstOrDefault();
+            var query = cache.FirstOrDefault(x => x.Key.Equals(propertyName.ToLower()));
             if (query != null)
             {
-                customId = query.Count() > 0 ? query.First() : null;
+                customId = query.Any() ? query.First() : null;
                 if (query.Count() > 1)
                 {
                     Logger.Log(LogLevel.Warning, $"Multiple fields found for {propertyName}. Selecting {customId}.");
