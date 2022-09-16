@@ -84,7 +84,7 @@ namespace WorkItemImport
             return true;
         }
 
-        public bool AddLink(WiLink link, WorkItem wi)
+        public bool AddAndSaveLink(WiLink link, WorkItem wi)
         {
             if (link == null)
             {
@@ -111,6 +111,7 @@ namespace WorkItemImport
                     if (!IsDuplicateWorkItemLink(wi.Relations, relatedLink))
                     {
                         wi.Relations.Add(relatedLink);
+                        AddSingleLinkToWorkItemAndSave(link, wi, targetWorkItem, "Imported link from JIRA");
                         return true;
                     }
                     return false;
@@ -128,7 +129,7 @@ namespace WorkItemImport
 
         }
 
-        public bool RemoveLink(WiLink link, WorkItem wi)
+        public bool RemoveAndSaveLink(WiLink link, WorkItem wi)
         {
             if (link == null)
             {
@@ -148,9 +149,11 @@ namespace WorkItemImport
                 Logger.Log(LogLevel.Warning, $"{link.ToString()} - cannot identify link to remove for '{wi.Id}'.");
                 return false;
             }
+            RemoveSingleLinkFromWorkItemAndSave(link, wi);
             wi.Relations.Remove(linkToRemove);
             return true;
         }
+
         public void EnsureAuthorFields(WiRevision rev)
         {
             if(rev == null)
@@ -234,6 +237,7 @@ namespace WorkItemImport
                 }
                 else
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
+//                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
             }
 
         }
@@ -488,11 +492,7 @@ namespace WorkItemImport
             }
 
             SaveWorkItemAttachments(rev, newWorkItem);
-
-            SaveWorkItemLinks(rev, newWorkItem);
-
             SaveWorkItemFields(newWorkItem);
-
         }
 
         private void SaveWorkItemAttachments(WiRevision rev, WorkItem wi)
@@ -507,26 +507,6 @@ namespace WorkItemImport
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
                     RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi);
-                }
-            }
-        }
-
-        private void SaveWorkItemLinks(WiRevision rev, WorkItem wi)
-        {
-            foreach (WiLink link in rev.Links)
-            {
-                if (link.Change == ReferenceChangeType.Added)
-                {
-                    WorkItem targetWI = _witClientWrapper.GetWorkItem(link.TargetWiId);
-                    if (targetWI != null)
-                    {
-                        AddSingleLinkToWorkItemAndSave(link, wi, targetWI, "Imported link from JIRA");
-                    }
-
-                }
-                else if (link.Change == ReferenceChangeType.Removed)
-                {
-                    RemoveSingleLinkFromWorkItemAndSave(link, wi);
                 }
             }
         }
@@ -744,6 +724,8 @@ namespace WorkItemImport
                 return;
             }
 
+            int relIndex = sourceWI.Relations.IndexOf(rel);
+
             // Create a patch document for a new work item.
             // Specify a relation to the existing work item.
             JsonPatchDocument linkPatchDocument = new JsonPatchDocument
@@ -751,12 +733,7 @@ namespace WorkItemImport
                 new JsonPatchOperation()
                 {
                     Operation = Operation.Remove,
-                    Path = "/relations/-",
-                    Value = new
-                    {
-                        rel = rel.Rel,
-                        url = rel.Url
-                    }
+                    Path = "/relations/"+relIndex
                 }
             };
 

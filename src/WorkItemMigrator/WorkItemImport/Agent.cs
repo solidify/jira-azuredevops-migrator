@@ -94,7 +94,7 @@ namespace WorkItemImport
                 if (rev.Fields.Any() && !UpdateWIHistoryField(rev.Fields, wi))
                     incomplete = true;
 
-                if (rev.Links.Any() && !ApplyLinks(rev, wi))
+                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi))
                     incomplete = true;
 
                 if (incomplete)
@@ -550,7 +550,7 @@ namespace WorkItemImport
             return success;
         }
 
-        private bool ApplyLinks(WiRevision rev, WorkItem wi)
+        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi)
         {
             bool success = true;
 
@@ -572,11 +572,11 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddLink(link, wi))
+                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi))
                     {
                         success = false;
                     }

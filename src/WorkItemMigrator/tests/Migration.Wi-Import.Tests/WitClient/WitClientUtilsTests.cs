@@ -464,7 +464,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.AddLink(null, null),
+                () => wiUtils.AddAndSaveLink(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -485,7 +485,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -500,7 +500,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.RemoveLink(null, null),
+                () => wiUtils.RemoveAndSaveLink(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -515,7 +515,7 @@ namespace Migration.Wi_Import.Tests
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
 
-            bool result = wiUtils.RemoveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
 
             Assert.That(result, Is.EqualTo(false));
         }
@@ -537,9 +537,9 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI);
 
-            bool result = wiUtils.RemoveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
 
             Assert.That(result, Is.EqualTo(true));
             Assert.That(createdWI.Relations, Is.Empty);
