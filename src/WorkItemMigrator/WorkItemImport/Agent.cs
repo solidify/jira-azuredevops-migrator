@@ -451,7 +451,7 @@ namespace WorkItemImport
 
         private bool UpdateWIHistoryField(IEnumerable<WiField> fields, WorkItem wi)
         {
-            if(fields.Where( i => i.ReferenceName == WiFieldReference.History).FirstOrDefault() == null )
+            if(fields.FirstOrDefault( i => i.ReferenceName == WiFieldReference.History ) == null )
             {
                 wi.Fields.Remove(WiFieldReference.History);
             }
