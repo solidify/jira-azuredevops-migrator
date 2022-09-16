@@ -70,6 +70,9 @@ namespace Migration.Wi_Import.Tests
                             wiRelation.Rel = rel;
                             wiRelation.Url = url;
                             wiRelation.Attributes = new Dictionary<string, object>{ { "comment", comment } };
+
+                            if(wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
+                                wi.Relations.Add(wiRelation);
                         }
                     }
                     else if (op.Operation == Operation.Remove) {
@@ -804,17 +807,6 @@ namespace Migration.Wi_Import.Tests
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            // Add links
-            WiLink link = new WiLink();
-            link.WiType = "System.LinkTypes.Hierarchy-Forward";
-            link.SourceOriginId = "100";
-            link.SourceWiId = 1;
-            link.TargetOriginId = "101";
-            link.TargetWiId = 2;
-            link.Change = ReferenceChangeType.Added;
-
-            revision.Links.Add(link);
-
             // Perform save
 
             wiUtils.SaveWorkItem(revision, createdWI);
@@ -836,9 +828,6 @@ namespace Migration.Wi_Import.Tests
             Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
-
-            Assert.That(createdWI.Relations[1].Rel, Is.EqualTo(revision.Links[0].WiType));
-            Assert.That(createdWI.Relations[1].Url, Is.EqualTo($"https://example/workItems/{revision.Links[0].TargetWiId}"));
 
         }
     }
