@@ -91,7 +91,10 @@ namespace WorkItemImport
                 if (rev.Fields.Any() && !UpdateWIFields(rev.Fields, wi))
                     incomplete = true;
 
-                if (rev.Links.Any() && !ApplyLinks(rev, wi))
+                if (rev.Fields.Any() && !UpdateWIHistoryField(rev.Fields, wi))
+                    incomplete = true;
+
+                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi))
                     incomplete = true;
 
                 if (incomplete)
@@ -446,6 +449,15 @@ namespace WorkItemImport
 
         #region Import Revision
 
+        private bool UpdateWIHistoryField(IEnumerable<WiField> fields, WorkItem wi)
+        {
+            if(fields.FirstOrDefault( i => i.ReferenceName == WiFieldReference.History ) == null )
+            {
+                wi.Fields.Remove(WiFieldReference.History);
+            }
+            return true;
+        }
+
         private bool UpdateWIFields(IEnumerable<WiField> fields, WorkItem wi)
         {
             var success = true;
@@ -516,12 +528,14 @@ namespace WorkItemImport
                             s.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                             s.Equals(WiFieldReference.Tags, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null:
 
-                            _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
+                            wi.Fields[fieldRef] = fieldValue;
+                            break;
+                        case var s when s.Equals(WiFieldReference.ChangedDate, StringComparison.InvariantCultureIgnoreCase):
                             break;
                         default:
                             if (fieldValue != null)
                             {
-                                _witClientUtils.SetFieldValue(wi, fieldRef, fieldValue);
+                                wi.Fields[fieldRef] = fieldValue;
                             }
                             break;
                     }
@@ -536,7 +550,7 @@ namespace WorkItemImport
             return success;
         }
 
-        private bool ApplyLinks(WiRevision rev, WorkItem wi)
+        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi)
         {
             bool success = true;
 
@@ -558,11 +572,11 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddLink(link, wi))
+                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi))
                     {
                         success = false;
                     }
