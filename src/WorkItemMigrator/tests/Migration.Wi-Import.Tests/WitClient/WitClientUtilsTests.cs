@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch;
 using System.Linq;
 
 using Migration.Common;
+using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Migration.Wi_Import.Tests
 {
@@ -69,8 +70,6 @@ namespace Migration.Wi_Import.Tests
                             wiRelation.Rel = rel;
                             wiRelation.Url = url;
                             wiRelation.Attributes = new Dictionary<string, object>{ { "comment", comment } };
-
-                            wi.Relations.Add(wiRelation);
                         }
                     }
                     else if (op.Operation == Operation.Remove) {
@@ -81,12 +80,8 @@ namespace Migration.Wi_Import.Tests
                         }
                         else if (op.Path.StartsWith("/relations/"))
                         {
-                            WorkItemRelation referenceRelation = op.Value as WorkItemRelation;
-                            WorkItemRelation found = wi.Relations.SingleOrDefault(a => a.Rel == referenceRelation.Rel && a.Url == referenceRelation.Url);
-                            if(found != default(WorkItemRelation))
-                            {
-                                wi.Relations.Remove(op.Value as WorkItemRelation);
-                            }
+                            int removeAtIndex = int.Parse(op.Path.Split("/").Last());
+                            wi.Relations.RemoveAt(removeAtIndex);
                         }
                     }
                 }
@@ -211,19 +206,23 @@ namespace Migration.Wi_Import.Tests
         public void When_calling_ensure_assignee_field_with_first_revision_Then_assignee_is_added_to_fields()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            WitClientUtils sut = new WitClientUtils(witClientWrapper);
 
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
             rev.Index = 0;
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            createdWI.Fields[WiFieldReference.AssignedTo] = "Mr. Test";
+            WorkItem createdWI = sut.CreateWorkItem("User Story");
 
-            wiUtils.EnsureAssigneeField(rev, createdWI);
+            IdentityRef assignedTo = new IdentityRef();
+            assignedTo.UniqueName = "Mr. Test";
+
+            createdWI.Fields[WiFieldReference.AssignedTo] = assignedTo;
+
+            sut.EnsureAssigneeField(rev, createdWI);
 
             Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.AssignedTo));
-            Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
+            Assert.That(rev.Fields[0].Value, Is.EqualTo((createdWI.Fields[WiFieldReference.AssignedTo] as IdentityRef).UniqueName));
         }
 
         [Test]
@@ -260,7 +259,6 @@ namespace Migration.Wi_Import.Tests
             Assert.That(
                 DateTime.Parse(rev.Fields[1].Value.ToString()),
                 Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString())));
-            //Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
         }
 
         [Test]
@@ -392,10 +390,10 @@ namespace Migration.Wi_Import.Tests
         public void When_calling_is_duplicate_work_item_link_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
-            Assert.That(
-                () => wiUtils.IsDuplicateWorkItemLink(null, null),
-                Throws.InstanceOf<ArgumentException>());
+            WitClientUtils sut = new WitClientUtils(witClientWrapper);
+
+            var result = sut.IsDuplicateWorkItemLink(null, null);
+            Assert.That(result, Is.EqualTo(false));
         }
 
         [Test]
