@@ -47,13 +47,14 @@ namespace WorkItemImport
                 }
             };
 
-            WorkItem wiOut = null;
+            WorkItem wiOut;
             try
             {
                 wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:false, expand:WorkItemExpand.All).Result;
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
+                return null;
             }
 
             if (wiOut.Relations == null)
