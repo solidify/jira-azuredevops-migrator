@@ -124,8 +124,8 @@ namespace Migration.Jira_Export.Tests
             string propertyName2 = _fixture.Create<string>(); ;
 
             var apiResponse = JArray.Parse(
-                $"[{{ 'id': '{customFieldId1}', 'key': '{propertyName1}'}}, " +
-                $"{{ 'id': '{customFieldId2}', 'key': '{propertyName2}'}}]");
+                $"[{{ 'id': '{customFieldId1}', 'name': '{propertyName1}'}}, " +
+                $"{{ 'id': '{customFieldId2}', 'name': '{propertyName2}'}}]");
 
             var jiraServiceMock = _fixture.Create<IJiraServiceWrapper>();
             jiraServiceMock.RestClient.ExecuteRequestAsync(Method.GET, Arg.Any<string>()).Returns(apiResponse);
