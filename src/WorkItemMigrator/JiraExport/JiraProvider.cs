@@ -395,9 +395,11 @@ namespace JiraExport
         public string GetCustomId(string propertyName)
         {   
             var customId = string.Empty;
+            JArray response = null;
+
             if (JiraNameFieldCache == null)
             {
-                var response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
                 JiraNameFieldCache = CreateFieldCacheLookup(response, "name", "id");
             }
 
@@ -407,7 +409,7 @@ namespace JiraExport
             {
                 if (JiraKeyFieldCache == null)
                 {
-                    var response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                    response = response ?? (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
                     JiraKeyFieldCache = CreateFieldCacheLookup(response, "key", "id");
                 }
                 customId = GetItemFromFieldCache(propertyName, JiraKeyFieldCache);
