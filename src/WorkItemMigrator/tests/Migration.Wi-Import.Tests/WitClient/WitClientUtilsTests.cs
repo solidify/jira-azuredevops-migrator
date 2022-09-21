@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch;
 using System.Linq;
 
 using Migration.Common;
+using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Migration.Wi_Import.Tests
 {
@@ -70,7 +71,8 @@ namespace Migration.Wi_Import.Tests
                             wiRelation.Url = url;
                             wiRelation.Attributes = new Dictionary<string, object>{ { "comment", comment } };
 
-                            wi.Relations.Add(wiRelation);
+                            if(wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
+                                wi.Relations.Add(wiRelation);
                         }
                     }
                     else if (op.Operation == Operation.Remove) {
@@ -81,12 +83,8 @@ namespace Migration.Wi_Import.Tests
                         }
                         else if (op.Path.StartsWith("/relations/"))
                         {
-                            WorkItemRelation referenceRelation = op.Value as WorkItemRelation;
-                            WorkItemRelation found = wi.Relations.SingleOrDefault(a => a.Rel == referenceRelation.Rel && a.Url == referenceRelation.Url);
-                            if(found != default(WorkItemRelation))
-                            {
-                                wi.Relations.Remove(op.Value as WorkItemRelation);
-                            }
+                            int removeAtIndex = int.Parse(op.Path.Split("/").Last());
+                            wi.Relations.RemoveAt(removeAtIndex);
                         }
                     }
                 }
@@ -211,19 +209,23 @@ namespace Migration.Wi_Import.Tests
         public void When_calling_ensure_assignee_field_with_first_revision_Then_assignee_is_added_to_fields()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            WitClientUtils sut = new WitClientUtils(witClientWrapper);
 
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
             rev.Index = 0;
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            createdWI.Fields[WiFieldReference.AssignedTo] = "Mr. Test";
+            WorkItem createdWI = sut.CreateWorkItem("User Story");
 
-            wiUtils.EnsureAssigneeField(rev, createdWI);
+            IdentityRef assignedTo = new IdentityRef();
+            assignedTo.UniqueName = "Mr. Test";
+
+            createdWI.Fields[WiFieldReference.AssignedTo] = assignedTo;
+
+            sut.EnsureAssigneeField(rev, createdWI);
 
             Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.AssignedTo));
-            Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
+            Assert.That(rev.Fields[0].Value, Is.EqualTo((createdWI.Fields[WiFieldReference.AssignedTo] as IdentityRef).UniqueName));
         }
 
         [Test]
@@ -260,7 +262,6 @@ namespace Migration.Wi_Import.Tests
             Assert.That(
                 DateTime.Parse(rev.Fields[1].Value.ToString()),
                 Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString())));
-            //Assert.That(rev.Fields[0].Value, Is.EqualTo(createdWI.Fields[WiFieldReference.AssignedTo]));
         }
 
         [Test]
@@ -392,10 +393,10 @@ namespace Migration.Wi_Import.Tests
         public void When_calling_is_duplicate_work_item_link_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
-            Assert.That(
-                () => wiUtils.IsDuplicateWorkItemLink(null, null),
-                Throws.InstanceOf<ArgumentException>());
+            WitClientUtils sut = new WitClientUtils(witClientWrapper);
+
+            var result = sut.IsDuplicateWorkItemLink(null, null);
+            Assert.That(result, Is.EqualTo(false));
         }
 
         [Test]
@@ -464,7 +465,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.AddLink(null, null),
+                () => wiUtils.AddAndSaveLink(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -485,7 +486,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -500,7 +501,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.RemoveLink(null, null),
+                () => wiUtils.RemoveAndSaveLink(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -515,7 +516,7 @@ namespace Migration.Wi_Import.Tests
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
 
-            bool result = wiUtils.RemoveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
 
             Assert.That(result, Is.EqualTo(false));
         }
@@ -537,9 +538,9 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI);
 
-            bool result = wiUtils.RemoveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
 
             Assert.That(result, Is.EqualTo(true));
             Assert.That(createdWI.Relations, Is.Empty);
@@ -806,17 +807,6 @@ namespace Migration.Wi_Import.Tests
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            // Add links
-            WiLink link = new WiLink();
-            link.WiType = "System.LinkTypes.Hierarchy-Forward";
-            link.SourceOriginId = "100";
-            link.SourceWiId = 1;
-            link.TargetOriginId = "101";
-            link.TargetWiId = 2;
-            link.Change = ReferenceChangeType.Added;
-
-            revision.Links.Add(link);
-
             // Perform save
 
             wiUtils.SaveWorkItem(revision, createdWI);
@@ -838,9 +828,6 @@ namespace Migration.Wi_Import.Tests
             Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
-
-            Assert.That(createdWI.Relations[1].Rel, Is.EqualTo(revision.Links[0].WiType));
-            Assert.That(createdWI.Relations[1].Url, Is.EqualTo($"https://example/workItems/{revision.Links[0].TargetWiId}"));
 
         }
     }

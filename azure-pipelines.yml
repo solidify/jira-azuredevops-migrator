@@ -7,8 +7,8 @@ pool:
 variables:
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
-  major: 2
-  minor: 3
+  major: 3
+  minor: 0
 
 name: $(major).$(minor)$(rev:.r)
 

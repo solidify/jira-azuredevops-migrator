@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 
@@ -67,14 +68,9 @@ namespace WorkItemImport
 
         public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)
         {
-            if (links == null)
+            if (links == null || relatedLink == null)
             {
-                throw new ArgumentException(nameof(links));
-            }
-
-            if (relatedLink == null)
-            {
-                throw new ArgumentException(nameof(relatedLink));
+                return false;
             }
 
             var containsRelatedLink = links.Contains(relatedLink);
@@ -88,7 +84,7 @@ namespace WorkItemImport
             return true;
         }
 
-        public bool AddLink(WiLink link, WorkItem wi)
+        public bool AddAndSaveLink(WiLink link, WorkItem wi)
         {
             if (link == null)
             {
@@ -115,6 +111,7 @@ namespace WorkItemImport
                     if (!IsDuplicateWorkItemLink(wi.Relations, relatedLink))
                     {
                         wi.Relations.Add(relatedLink);
+                        AddSingleLinkToWorkItemAndSave(link, wi, targetWorkItem, "Imported link from JIRA");
                         return true;
                     }
                     return false;
@@ -132,7 +129,7 @@ namespace WorkItemImport
 
         }
 
-        public bool RemoveLink(WiLink link, WorkItem wi)
+        public bool RemoveAndSaveLink(WiLink link, WorkItem wi)
         {
             if (link == null)
             {
@@ -152,9 +149,11 @@ namespace WorkItemImport
                 Logger.Log(LogLevel.Warning, $"{link.ToString()} - cannot identify link to remove for '{wi.Id}'.");
                 return false;
             }
+            RemoveSingleLinkFromWorkItemAndSave(link, wi);
             wi.Relations.Remove(linkToRemove);
             return true;
         }
+
         public void EnsureAuthorFields(WiRevision rev)
         {
             if(rev == null)
@@ -197,7 +196,7 @@ namespace WorkItemImport
             string assignedTo = "";
             if(wi.Fields.ContainsKey(WiFieldReference.AssignedTo))
             {
-                assignedTo = wi.Fields[WiFieldReference.AssignedTo].ToString();
+                assignedTo = (wi.Fields[WiFieldReference.AssignedTo] as IdentityRef).UniqueName;
             }
 
             if (rev.Fields.HasAnyByRefName(WiFieldReference.AssignedTo))
@@ -492,11 +491,7 @@ namespace WorkItemImport
             }
 
             SaveWorkItemAttachments(rev, newWorkItem);
-
-            SaveWorkItemLinks(rev, newWorkItem);
-
             SaveWorkItemFields(newWorkItem);
-
         }
 
         private void SaveWorkItemAttachments(WiRevision rev, WorkItem wi)
@@ -515,32 +510,16 @@ namespace WorkItemImport
             }
         }
 
-        private void SaveWorkItemLinks(WiRevision rev, WorkItem wi)
-        {
-            foreach (WiLink link in rev.Links)
-            {
-                if (link.Change == ReferenceChangeType.Added)
-                {
-                    WorkItem targetWI = _witClientWrapper.GetWorkItem(link.TargetWiId);
-                    if (targetWI != null)
-                    {
-                        AddSingleLinkToWorkItemAndSave(link, wi, targetWI, "Imported link from JIRA");
-                    }
-
-                }
-                else if (link.Change == ReferenceChangeType.Removed)
-                {
-                    RemoveSingleLinkFromWorkItemAndSave(link, wi);
-                }
-            }
-        }
-
         private void SaveWorkItemFields(WorkItem wi)
         {
             // Build json patch document from fields
             JsonPatchDocument patchDocument = new JsonPatchDocument();
             foreach (string key in wi.Fields.Keys)
             {
+                if (new string[] {WiFieldReference.ChangedDate}.Contains(key))
+                    continue;
+
+
                 object val = wi.Fields[key];
 
                 patchDocument.Add(
@@ -738,6 +717,14 @@ namespace WorkItemImport
                 a.Rel == link.WiType
                 && int.Parse(a.Url.Split('/').Last()) == link.TargetWiId);
 
+            if (rel == null)
+            {
+                Logger.Log(LogLevel.Warning, "RemoveSingleLinkFromWorkItemAndSave(): rel was null");
+                return;
+            }
+
+            int relIndex = sourceWI.Relations.IndexOf(rel);
+
             // Create a patch document for a new work item.
             // Specify a relation to the existing work item.
             JsonPatchDocument linkPatchDocument = new JsonPatchDocument
@@ -745,12 +732,7 @@ namespace WorkItemImport
                 new JsonPatchOperation()
                 {
                     Operation = Operation.Remove,
-                    Path = "/relations/-",
-                    Value = new
-                    {
-                        rel = rel.Rel,
-                        url = rel.Url
-                    }
+                    Path = "/relations/"+relIndex
                 }
             };
 
@@ -790,7 +772,7 @@ namespace WorkItemImport
                 WorkItemRelation reverseLink = new WorkItemRelation();
                 string reverseLinkTypeName = GetReverseLinkTypeReferenceName(link.Rel);
                 reverseLink.Rel = reverseLinkTypeName;
-                reverseLink.Url = reverseLink.Url.Replace(reverseLink.Url.Split('/').Last(), GetRelatedWorkItemIdFromLink(link).ToString());
+                reverseLink.Url = link.Url.Replace(link.Url.Split('/').Last(), GetRelatedWorkItemIdFromLink(link).ToString());
                 return reverseLink;
             }
 

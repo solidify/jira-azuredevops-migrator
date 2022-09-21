@@ -47,15 +47,19 @@ namespace WorkItemImport
                 }
             };
 
-            WorkItem wiOut = null;
+            WorkItem wiOut;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(patchDoc, TeamProject.Name, wiType).Result;
+                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:false, expand:WorkItemExpand.All).Result;
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
+                return null;
             }
-            
+
+            if (wiOut.Relations == null)
+                wiOut.Relations = new List<WorkItemRelation>();
+
             return wiOut;
         }
 
@@ -64,18 +68,20 @@ namespace WorkItemImport
             WorkItem wiOut;
             try
             {
-                wiOut = WitClient.GetWorkItemAsync(wiId).Result;
+                wiOut = WitClient.GetWorkItemAsync(wiId, expand: WorkItemExpand.All).Result;
             } catch (System.AggregateException)
             {
                 // Work item was not found, return null
                 return null;
             }
+            if (wiOut.Relations == null)
+                wiOut.Relations = new List<WorkItemRelation>();
             return wiOut;
         }
 
         public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
         {
-            return WitClient.UpdateWorkItemAsync(patchDocument, workItemId).Result;
+            return WitClient.UpdateWorkItemAsync(document:patchDocument, id:workItemId, bypassRules:true, expand: WorkItemExpand.All).Result;
         }
 
         public TeamProject GetProject(string projectId)
