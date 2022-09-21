@@ -393,30 +393,37 @@ namespace JiraExport
         }
 
         public string GetCustomId(string propertyName)
-        {
+        {   
             var customId = string.Empty;
+            JArray response = null;
+
             if (JiraNameFieldCache == null)
             {
-                var response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
-                JiraNameFieldCache = response
-                    .Where(x => x.Value<string>("name") != null && x.Value<string>("id") != null)
-                    .Select(x => new { name = x.Value<string>("name").ToLower(), id = x.Value<string>("id").ToLower() })
-                    .ToLookup(l => l.name, l => l.id);
-
-                JiraKeyFieldCache = response
-                    .Where(x => x.Value<string>("key") != null && x.Value<string>("id") != null)
-                    .Select(x => new { key = x.Value<string>("key").ToLower(), id = x.Value<string>("id").ToLower() })
-                    .ToLookup(l => l.key, l => l.id);
+                response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                JiraNameFieldCache = CreateFieldCacheLookup(response, "name", "id");
             }
 
             customId = GetItemFromFieldCache(propertyName, JiraNameFieldCache);
 
             if (string.IsNullOrEmpty(customId))
             {
+                if (JiraKeyFieldCache == null)
+                {
+                    response = response ?? (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                    JiraKeyFieldCache = CreateFieldCacheLookup(response, "key", "id");
+                }
                 customId = GetItemFromFieldCache(propertyName, JiraKeyFieldCache);
             }
 
             return customId;
+        }
+
+        private ILookup<string, string> CreateFieldCacheLookup(JArray response, string key, string value)
+        {
+            return response
+                .Where(field => field.Value<string>(key) != null && field.Value<string>(value) != null)
+                .Select(field => new { key = field.Value<string>(key).ToLower(), value = field.Value<string>(value).ToLower() })
+                .ToLookup(l => l.key, l => l.value);
         }
 
         private string GetItemFromFieldCache(string propertyName, ILookup<string,string> cache)
