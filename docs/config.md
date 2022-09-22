@@ -15,27 +15,28 @@ The migration configuration file is defined in a json file with the properties d
 
 ## Properties
 
-|Name|Required|Type|Description|
-|---|---|---|---|
-|**source-project**|True|string|Short name of the project to migrate from.|
-|**target-project**|True|string|Name of the project to migrate to.|
-|**query**|True|string|Name of the JQL query to use for identifying work items to migrate.|
-|**using-jira-cloud**|False|boolean|Set to False if connected to Jira Server instance, by default it is True|
-|**workspace**|True|string|Location where logs and export data are saved on disk.|
-|**epic-link-field**|False|string|Jira name of epic link field. Default = "Epic Link". **Note:** requires customization per account and sometimes project|
-|**sprint-field**|False|string|Jira name of sprint field. Default = "Sprint". **Note:** requires customization per account and sometimes project|
-|**batch-size**|False|integer|Number of items to retrieve with one call. Default = 20.|
-|**download-options**|False|integer|Type of related issues to migrate, see **Download options** below|
-|**log-level**|False|string|Debug, Info, Warning, Error or Critical. Default = "Debug".|
-|**attachment-folder**|True|string|Location to store attachments.|
-|**user-mapping-file**|False|string|Name of user mapping file. If no specific path is set the program expects it to be located in the "workspace" folder.|
-|**base-area-path**|False|string|Area path. Default is empty.|
-|**base-iteration-path**|False|string|Iteration path. Default is empty.|
-|**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|
-|**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
-|**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
-|**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
-|**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
+|Name|Required|Type|Description|Default|
+|---|---|---|---|---|
+|**source-project**|True|string|Short name of the project to migrate from.||
+|**target-project**|True|string|Name of the project to migrate to.||
+|**query**|True|string|Name of the JQL query to use for identifying work items to migrate.||
+|**using-jira-cloud**|False|boolean|Set to False if connected to Jira Server instance|True|
+|**workspace**|True|string|Location where logs and export data are saved on disk.||
+|**epic-link-field**|False|string|Jira name of epic link field. **Note:** requires customization per account and sometimes project|Epic Link|
+|**sprint-field**|False|string|Jira name of sprint field. **Note:** requires customization per account and sometimes project|Sprint|
+|**batch-size**|False|integer|Number of items to retrieve with one call.|20|
+|**download-options**|False|integer|Type of related issues to migrate, see **Download options** below|All|
+|**log-level**|False|string|Debug, Info, Warning, Error or Critical.|Debug|
+|**attachment-folder**|True|string|Location to store attachments.||
+|**user-mapping-file**|False|string|Name of user mapping file. If no specific path is set the program expects it to be located in the "workspace" folder.|Workspace|
+|**base-area-path**|False|string|Area path.|Empty|
+|**base-iteration-path**|False|string|Iteration path.|Empty|
+|**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored.|False|
+|**exclude-empty-revisions**|False|boolean|Set to true if empty revisions (caused by changes to non-mapped fields) are to be ignored.|False|
+|**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI.|Scrum|
+|**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.||
+|**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.||
+|**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.||
 
 ## Download options
 This option allows the tool to download related issues to cover cases where these are not included in the section query (like a parent issue).

@@ -10,6 +10,7 @@ using Migration.Common;
 using Migration.Common.Config;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using System.Linq;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests
@@ -46,6 +47,114 @@ namespace Migration.Jira_Export.Tests
             {
                 Assert.AreEqual(expected.OriginId, actual.OriginId);
                 Assert.AreEqual(expected.Type, actual.Type);
+                Assert.AreEqual(1, actual.Revisions.Count);
+            });
+        }
+
+        [Test]
+        public void When_calling_map_but_no_fields_are_mapped_Then_no_revision_is_returned()
+        {
+            JiraItem jiraItem = createJiraItem();
+
+            WiItem expectedWiItem = new WiItem();
+            expectedWiItem.Type = "User Story";
+            expectedWiItem.OriginId = "issue_key";
+
+            ConfigJson config = new ConfigJson();
+            config.ExcludeEmptyRevisions = true;
+            JiraMapper sut = createJiraMapper(null, config);
+
+            WiItem expected = expectedWiItem;
+            WiItem actual = sut.Map(jiraItem);
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(expected.OriginId, actual.OriginId);
+                Assert.AreEqual(expected.Type, actual.Type);
+                Assert.AreEqual(0, actual.Revisions.Count);
+            });
+        }
+
+        [Test]
+        public void When_calling_map_Then_sequential_revisions_should_be_returned()
+        {
+            //Arrange
+            var extraFields = new Dictionary<string, string>();
+            for (int i = 0; i < 10; i++)
+            {
+                extraFields.Add(_fixture.Create<string>(), _fixture.Create<string>());
+            }
+            JiraItem jiraItem = createJiraItem(extraFields);
+
+            //Add a revision updating each extra field with a new value
+            for (int i = 0; i < 10; i++)
+            {
+                AddUpdateFieldRevisionToJiraItem(jiraItem, extraFields.ElementAt(i).Key, _fixture.Create<string>());
+            }
+
+            WiItem expectedWiItem = new WiItem();
+            expectedWiItem.Type = "User Story";
+            expectedWiItem.OriginId = "issue_key";
+
+            ConfigJson config = new ConfigJson();
+            config.ExcludeEmptyRevisions = true;
+
+            //Only map extraFields 3 and 7
+            FieldMap fieldMap = new FieldMap();
+            fieldMap.Fields = new List<Field>();
+            foreach (int i in new int[] { 3, 7 })
+            {
+                fieldMap.Fields.Add(new Field()
+                {
+                    Source = extraFields.ElementAt(i).Key,
+                    Target = extraFields.ElementAt(i).Value
+                }
+                );
+            };
+
+            JiraMapper sut = createJiraMapper(fieldMap, config);
+
+            WiItem expected = expectedWiItem;
+            WiItem actual = sut.Map(jiraItem);
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(3, actual.Revisions.Count);
+                //Index starts at 0
+                Assert.AreEqual(0, actual.Revisions[0].Index);
+                //Revision Indexes are sequential [0,1,2,3...]
+                Assert.IsTrue(Enumerable.Range(0, actual.Revisions.Count)
+                    .All(i => actual.Revisions[i].Index == actual.Revisions[0].Index + i));
+            });
+        }
+
+        [Test]
+        public void When_calling_map_and_fields_are_mapped_Then_the_expected_result_is_returned()
+        {
+            JiraItem jiraItem = createJiraItem();
+
+            WiItem expectedWiItem = new WiItem();
+            expectedWiItem.Type = "User Story";
+            expectedWiItem.OriginId = "issue_key";
+
+            Field field = new Field();
+            field.Source = "description";
+            field.Target = "System.Description";
+            FieldMap fieldMap = new FieldMap();
+            fieldMap.Fields = new List<Field>() { field };
+            ConfigJson config = new ConfigJson();
+            config.ExcludeEmptyRevisions = true;
+            JiraMapper sut = createJiraMapper(fieldMap, config);
+
+
+            WiItem expected = expectedWiItem;
+            WiItem actual = sut.Map(jiraItem);
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(expected.OriginId, actual.OriginId);
+                Assert.AreEqual(expected.Type, actual.Type);
+                Assert.AreEqual(1, actual.Revisions.Count);
             });
         }
 
@@ -101,7 +210,7 @@ namespace Migration.Jira_Export.Tests
             JiraItem jiraItem = createJiraItem();
             JiraMapper sut = createJiraMapper();
 
-            Assert.Throws<System.ArgumentNullException>(() => { sut.MapAttachments (null); });
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapAttachments(null); });
         }
 
         [Test]
@@ -152,12 +261,12 @@ namespace Migration.Jira_Export.Tests
             return settings;
         }
 
-        private JiraMapper createJiraMapper()
+        private JiraMapper createJiraMapper(FieldMap fieldMap = null, ConfigJson config = null)
         {
             var provider = _fixture.Freeze<IJiraProvider>();
             provider.GetSettings().ReturnsForAnyArgs(createJiraSettings());
 
-            ConfigJson cjson = new ConfigJson();
+            ConfigJson cjson = config ?? new ConfigJson();
             TypeMap t = new TypeMap();
             t.Types = new List<Type>();
             FieldMap f = new FieldMap();
@@ -167,24 +276,36 @@ namespace Migration.Jira_Export.Tests
             type.Source = "Story";
             type.Target = "User Story";
             t.Types.Add(type);
-            cjson.FieldMap = f;
+            cjson.FieldMap = fieldMap ?? f;
 
             JiraMapper sut = new JiraMapper(provider, cjson);
 
             return sut;
         }
 
-        private JiraItem createJiraItem()
+        private JiraItem createJiraItem(Dictionary<string, string> extraFields = null)
         {
             var provider = _fixture.Freeze<IJiraProvider>();
 
-            var issueType = JObject.Parse(@"{ 'issuetype': {'name': 'Story'}}");
-            var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
+            var fields = JObject.Parse($"{{ 'issuetype': {{'name': 'Story'}}, " +
+                $"'custom_field_name': 'SomeValue', " +
+                $"'description': 'RenderedDescription'}}");
+
+            if (extraFields != null)
+            {
+                foreach (var field in extraFields)
+                {
+                    fields[field.Key] = field.Value;
+                }
+            }
+
+            var renderedFields = JObject.Parse($"{{ 'custom_field_name': 'SomeValue', " +
+                $"'description': 'RenderedDescription' }}");
             string issueKey = "issue_key";
 
             JObject remoteIssue = new JObject
             {
-                { "fields", issueType },
+                { "fields", fields },
                 { "renderedFields", renderedFields },
                 { "key", issueKey }
             };
@@ -195,6 +316,15 @@ namespace Migration.Jira_Export.Tests
             JiraItem jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             return jiraItem;
+        }
+
+        private void AddUpdateFieldRevisionToJiraItem(JiraItem parentItem, string fieldName, string fieldValue)
+        {
+            JiraRevision revision = new JiraRevision(parentItem);
+            revision.Index = parentItem.Revisions.Count;
+            revision.Fields = new Dictionary<string, object>();
+            revision.Fields[fieldName] = fieldValue;
+            parentItem.Revisions.Add(revision);
         }
     }
 }

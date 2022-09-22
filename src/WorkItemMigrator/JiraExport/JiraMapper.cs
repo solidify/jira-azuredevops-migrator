@@ -44,10 +44,15 @@ namespace JiraExport
 
                 if (type != null)
                 {
-                    var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
+                    var revisions = issue.Revisions.Select(r => MapRevision(r));
+                    if (_config.ExcludeEmptyRevisions)
+                    {
+                        revisions = revisions.Where(r => !r.IsEmpty())
+                                    .Select((r, index) => { r.Index = index; return r; });
+                    }
                     wiItem.OriginId = issue.Key;
                     wiItem.Type = type;
-                    wiItem.Revisions = revisions;
+                    wiItem.Revisions = revisions.ToList();
                 }
                 else
                 {
@@ -301,7 +306,7 @@ namespace JiraExport
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
-
+            
             return new WiRevision()
             {
                 ParentOriginId = r.ParentItem.Key,

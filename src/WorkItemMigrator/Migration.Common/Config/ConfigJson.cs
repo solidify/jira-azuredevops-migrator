@@ -63,8 +63,10 @@ namespace Common.Config
         [JsonProperty(PropertyName = "rendered-fields")]
         public string[] RenderedFields { get; set; } = new string[] { "description", "comment" };
 
-
         [JsonProperty(PropertyName = "using-jira-cloud")]
         public bool UsingJiraCloud { get; set; } = true;
+
+        [JsonProperty(PropertyName = "exclude-empty-revisions")]
+        public bool ExcludeEmptyRevisions { get; set; } = false;
     }
 }

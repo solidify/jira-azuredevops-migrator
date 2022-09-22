@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace Migration.WIContract
 {
@@ -35,6 +36,12 @@ namespace Migration.WIContract
         public override string ToString()
         {
             return $"'{ParentOriginId}', rev {Index}";
+        }
+
+        public bool IsEmpty()
+        {
+            return !(Attachments.Any() || Fields.Any() || Links.Any() || AttachmentReferences == true);
+                
         }
     }
 }
