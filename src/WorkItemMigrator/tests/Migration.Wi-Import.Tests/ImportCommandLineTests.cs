@@ -4,10 +4,12 @@ using AutoFixture.AutoNSubstitute;
 using AutoFixture;
 using System;
 using WorkItemImport;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Wi_Import.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class ImportCommandLineTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 

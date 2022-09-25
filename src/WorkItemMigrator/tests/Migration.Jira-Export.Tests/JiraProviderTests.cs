@@ -7,10 +7,12 @@ using Newtonsoft.Json.Linq;
 using NSubstitute;
 using RestSharp;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class JiraProviderTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
