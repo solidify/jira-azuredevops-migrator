@@ -596,7 +596,7 @@ namespace WorkItemImport
         private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
         {
             // Upload attachment
-            AttachmentReference attachment = _witClientWrapper.CreateAttachment(att.FilePath);
+            AttachmentReference attachment = _witClientWrapper.CreateAttachment(att);
             Logger.Log(LogLevel.Info, "Attachment created");
             Logger.Log(LogLevel.Info, $"ID: { attachment.Id}");
             Logger.Log(LogLevel.Info, $"URL: '{attachment.Url}'");

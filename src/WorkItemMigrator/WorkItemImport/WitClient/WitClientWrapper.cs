@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
@@ -94,9 +96,10 @@ namespace WorkItemImport
             return WitClient.GetRelationTypesAsync().Result;
         }
 
-        public AttachmentReference CreateAttachment(string filePath)
+        public AttachmentReference CreateAttachment(WiAttachment attachment)
         {
-            return WitClient.CreateAttachmentAsync(filePath).Result;
+            using (FileStream uploadStream = File.Open(attachment.FilePath, FileMode.Open, FileAccess.Read))
+                return WitClient.CreateAttachmentAsync(uploadStream, attachment.FileName, null, null, null, new CancellationToken()).Result;
         }
     }
 }
