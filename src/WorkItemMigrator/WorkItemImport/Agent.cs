@@ -19,6 +19,7 @@ using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using System.IO;
 
 namespace WorkItemImport
 {
@@ -149,6 +150,12 @@ namespace WorkItemImport
             catch (AbortMigrationException)
             {
                 throw;
+            }
+            catch (FileNotFoundException ex)
+            {
+                Logger.Log(LogLevel.Error, ex.Message);
+                Logger.Log(LogLevel.Error, $"Failed to import revision '{rev.Index}' of '{rev.ParentOriginId}'.");
+                return false;
             }
             catch (Exception ex)
             {
