@@ -308,16 +308,16 @@ namespace WorkItemImport
                     Logger.Log(LogLevel.Debug, $"Adding attachment '{att.ToString()}'.");
                     if (att.Change == ReferenceChangeType.Added)
                     {
-                        AddRemoveAttachment(wi, att.FilePath, att.Comment, AttachmentOperation.ADD);
+                        AddRemoveAttachment(wi, att, AttachmentOperation.ADD);
 
                         attachmentMap.Add(att.AttOriginId, att);
                     }
                     else if (att.Change == ReferenceChangeType.Removed)
                     {
-                        WorkItemRelation existingAttachment = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
+                        WorkItemRelation existingAttachment = IdentifyAttachment(att, wi);
                         if (existingAttachment != null)
                         {
-                            AddRemoveAttachment(wi, att.FilePath, att.Comment, AttachmentOperation.REMOVE);
+                            AddRemoveAttachment(wi, att, AttachmentOperation.REMOVE);
                         }
                         else
                         {
@@ -349,7 +349,7 @@ namespace WorkItemImport
             REMOVE
         }
 
-        private void AddRemoveAttachment(WorkItem wi, string filePath, string comment, AttachmentOperation op)
+        private void AddRemoveAttachment(WorkItem wi, WiAttachment att, AttachmentOperation op)
         {
             if (wi == null)
             {
@@ -360,11 +360,13 @@ namespace WorkItemImport
                 WorkItemRelation attachmentRelation = new WorkItemRelation();
                 attachmentRelation.Rel = "AttachedFile";
                 attachmentRelation.Attributes = new Dictionary<string, object>();
-                attachmentRelation.Attributes["filePath"] = filePath;
-                attachmentRelation.Attributes["comment"] = comment;
+                attachmentRelation.Attributes["filePath"] = att.FilePath;
+                attachmentRelation.Attributes["comment"] = att.Comment;
                 wi.Relations.Add(attachmentRelation);
             } else {
-                WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(e => e.Rel == "AttachedFile" && e.Attributes["filePath"].ToString() == filePath);
+                WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(e => e.Rel == "AttachedFile" &&
+                                                        e.Attributes.ContainsKey("name") &&
+                                                        e.Attributes["name"].ToString() == att.FileName);
                 if(attachmentRelation != default(WorkItemRelation))
                 {
                     wi.Relations.Remove(attachmentRelation);
@@ -535,15 +537,20 @@ namespace WorkItemImport
             {
                 var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
                 var encodedFileName = HttpUtility.UrlEncode(fileName);
-                if (textField.Contains(fileName) || textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0 || textField.Contains("_thumb_" + att.AttOriginId))
+                if (textField.Contains(fileName) || 
+                    textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0 || 
+                    textField.Contains("_thumb_" + att.AttOriginId))
                 {
-                    var tfsAtt = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
+                    var tfsAtt = IdentifyAttachment(att, wi);
 
                     if (tfsAtt != null)
                     {
                         string imageSrcPattern = $"src.*?=.*?\"([^\"])(?=.*{att.AttOriginId}).*?\"";
-                        textField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
-                        isUpdated = true;
+                        var newTextField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
+                        if (!textField.Equals(newTextField))
+                        {
+                            isUpdated = true;
+                        }
                     }
                     else
                         Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
@@ -725,13 +732,11 @@ namespace WorkItemImport
             return linkType;
         }
 
-        private WorkItemRelation IdentifyAttachment(WiAttachment att, WorkItem wi, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        private WorkItemRelation IdentifyAttachment(WiAttachment att, WorkItem wi)
         {
-            if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
-            {
-                return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["filePath"].ToString() == att.FilePath);
-            }
-            return null;
+            return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" &&
+                                                    a.Attributes.ContainsKey("name") &&
+                                                    a.Attributes["name"].ToString() == att.FileName);
         }
 
         private WorkItemRelation ResolveCyclicalLinks(WorkItemRelation link, WorkItem wi)

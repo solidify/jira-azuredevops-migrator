@@ -606,8 +606,11 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_correct_comment_with_valid_args_Then_history_is_updated_with_correct_image_urls()
         {
-            string commentBeforeTransformation = "My comment, including file: <img src=\"my_image.png\">";
-            string commentAfterTransformation = "My comment, including file: <img src=\"https://example.com/my_image.png\">";
+            string fileName = "my_image.png";
+            string attachmentFilePath = $"C:\\Temp\\MyFiles\\{fileName}";
+            string devOpsAttachmentUrl = $"https://example.com/{fileName}";
+            string commentBeforeTransformation = $"My comment, including file: <img src=\"{fileName}\">";
+            string commentAfterTransformation = $"My comment, including file: <img src=\"{devOpsAttachmentUrl}\">";
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
@@ -616,13 +619,16 @@ namespace Migration.Wi_Import.Tests
             createdWI.Fields[WiFieldReference.History] = commentBeforeTransformation;
             createdWI.Relations.Add(new WorkItemRelation() {
                 Rel= "AttachedFile",
-                Url= "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+                Url= devOpsAttachmentUrl,
+                Attributes = new Dictionary<string, object>() {
+                    { "id", _fixture.Create<string>() },
+                    { "name", fileName }
+                }
             });
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.FilePath = attachmentFilePath;
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -650,8 +656,11 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_correct_description_for_user_story_Then_description_is_updated_with_correct_image_urls()
         {
-            string descriptionBeforeTransformation = "My description, including file: <img src=\"my_image.png\">";
-            string descriptionAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
+            string fileName = _fixture.Create<string>();
+            string filePath = $"c:\\temp\\MyFies\\{fileName}";
+            string devOpsAttachmentUrl = $"https://example.com/{fileName}";
+            string descriptionBeforeTransformation = $"My description, including file: <img src=\"{fileName}\">";
+            string descriptionAfterTransformation = $"My description, including file: <img src=\"{devOpsAttachmentUrl}\">";
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
@@ -661,13 +670,16 @@ namespace Migration.Wi_Import.Tests
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
-                Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+                Url = devOpsAttachmentUrl,
+                Attributes = new Dictionary<string, object>() {
+                    { "id", _fixture.Create<string>() },
+                    { "name", $"{fileName}" }
+                }
             });
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.FilePath = filePath;
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -684,8 +696,11 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_correct_description_for_bug_Then_repro_steps_is_updated_with_correct_image_urls()
         {
-            string reproStepsBeforeTransformation = "My description, including file: <img src=\"my_image.png\">";
-            string reproStepsAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
+            string fileName = _fixture.Create<string>();
+            string filePath = $"c:\\temp\\MyFiles\\{fileName}";
+            string devOpsAttachmentUrl = $"https://example.com/{fileName}";
+            string reproStepsBeforeTransformation = $"My description, including file: <img src=\"{fileName}\">";
+            string reproStepsAfterTransformation = $"My description, including file: <img src=\"{devOpsAttachmentUrl}\">";
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
@@ -695,13 +710,16 @@ namespace Migration.Wi_Import.Tests
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
-                Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+                Url = devOpsAttachmentUrl,
+                Attributes = new Dictionary<string, object>() {
+                    { "id", _fixture.Create<string>() },
+                    { "name", fileName } 
+                }
             });
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.FilePath = filePath;
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -755,7 +773,9 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_apply_attachments_with_change_equal_to_removed_Then_workitem_is_updated_with_removed_attachment()
         {
-            string attachmentFilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            string fileName = "my_image.png";
+            string attachmentFilePath = $"C:\\Temp\\MyFiles\\{fileName}";
+            string devOpsAttachmentUrl = $"https://example.com/{fileName}";
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
@@ -764,8 +784,11 @@ namespace Migration.Wi_Import.Tests
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
-                Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", attachmentFilePath } }
+                Url = devOpsAttachmentUrl,
+                Attributes = new Dictionary<string, object>() {
+                    { "id", _fixture.Create<string>() },
+                    { "name", fileName } 
+                }
             });
 
             WiAttachment att = new WiAttachment();
@@ -854,7 +877,6 @@ namespace Migration.Wi_Import.Tests
             revision.Attachments.Add(att);
 
             // Perform save
-
             wiUtils.SaveWorkItem(revision, createdWI);
 
             WorkItem updatedWI = null;
@@ -874,7 +896,6 @@ namespace Migration.Wi_Import.Tests
             Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
-
         }
     }
 }
