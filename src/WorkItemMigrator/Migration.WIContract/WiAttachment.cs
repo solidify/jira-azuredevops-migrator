@@ -22,10 +22,9 @@ namespace Migration.WIContract
                 FileName = Path.GetFileName(value);
             }
         }
-
         public override string ToString()
         {
-            return $"[{Change.ToString()}] {AttOriginId}/{Path.GetFileName(FilePath)}";
+            return $"[{Change.ToString()}] {AttOriginId}/{FileName}";
         }
     }
 }
