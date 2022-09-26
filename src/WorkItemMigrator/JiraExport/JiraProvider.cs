@@ -147,8 +147,6 @@ namespace JiraExport
                         var path = Path.Combine(Settings.AttachmentsDir, att.Id, att.Filename);
                         EnsurePath(path);
 
-                        att.Url = HttpUtility.UrlEncode(att.Url);
-
                         await DownloadWithJiraRestClientAsync(att.Url, path);
 
                         att.LocalPath = path;
