@@ -10,10 +10,12 @@ using Migration.Common;
 using Migration.Common.Config;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class JiraMapperTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 

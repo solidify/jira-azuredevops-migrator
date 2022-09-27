@@ -14,10 +14,12 @@ using System.Linq;
 
 using Migration.Common;
 using Microsoft.VisualStudio.Services.WebApi;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Wi_Import.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class WitClientUtilsTests
     {
         private class MockedWitClientWrapper : IWitClientWrapper

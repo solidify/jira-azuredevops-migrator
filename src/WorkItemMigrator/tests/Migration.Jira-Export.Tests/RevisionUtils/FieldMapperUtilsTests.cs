@@ -8,10 +8,12 @@ using NSubstitute;
 using System.Collections.Generic;
 using JiraExport;
 using Common.Config;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class FieldMapperUtilsTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 

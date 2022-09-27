@@ -10,10 +10,12 @@ using JiraExport;
 using Migration.WIContract;
 using Common.Config;
 using Migration.Common.Config;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class LinkMapperUtilsTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
