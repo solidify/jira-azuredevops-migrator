@@ -4,10 +4,12 @@ using AutoFixture.AutoNSubstitute;
 using AutoFixture;
 using Common.Config;
 using System.IO;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Common.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class MigrationContextTests
     {
         private Fixture _fixture;

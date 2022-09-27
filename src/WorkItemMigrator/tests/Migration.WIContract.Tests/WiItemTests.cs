@@ -2,10 +2,12 @@ using NUnit.Framework;
 
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.WIContract.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class WiItemTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 

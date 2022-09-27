@@ -4,10 +4,12 @@ using AutoFixture.AutoNSubstitute;
 using AutoFixture;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Common.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class JsonExtensionsTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 

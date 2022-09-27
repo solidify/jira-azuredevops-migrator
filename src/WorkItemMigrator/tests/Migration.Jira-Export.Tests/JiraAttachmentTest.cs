@@ -3,10 +3,12 @@
 using JiraExport;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class JiraAttachmentTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 

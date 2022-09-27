@@ -5,10 +5,12 @@ using AutoFixture;
 using System.Collections.Generic;
 using NSubstitute;
 using System.IO.Abstractions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Common.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class MigrationCommonTests
     {
         private Fixture _fixture;

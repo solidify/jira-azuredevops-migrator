@@ -5,10 +5,12 @@ using AutoFixture;
 using System.Collections.Generic;
 using System;
 using Migration.WIContract;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Common.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class RevisionUtilityTests
     {
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
