@@ -126,7 +126,7 @@ namespace Migration.Wi_Import.Tests
                 return outList;
             }
 
-            public AttachmentReference CreateAttachment(string filePath)
+            public AttachmentReference CreateAttachment(WiAttachment wiAttachment)
             {
                 AttachmentReference att = new AttachmentReference();
                 att.Id = Guid.NewGuid();

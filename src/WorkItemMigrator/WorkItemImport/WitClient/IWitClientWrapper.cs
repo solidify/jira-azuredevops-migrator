@@ -2,6 +2,7 @@
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using Migration.WIContract;
 
 namespace WorkItemImport
 {
@@ -12,6 +13,6 @@ namespace WorkItemImport
         WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId);
         TeamProject GetProject(string projectId);
         List<WorkItemRelationType> GetRelationTypes();
-        AttachmentReference CreateAttachment(string filePath);
+        AttachmentReference CreateAttachment(WiAttachment attachment);
     }
 }
