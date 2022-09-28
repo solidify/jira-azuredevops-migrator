@@ -549,6 +549,7 @@ namespace WorkItemImport
                         var newTextField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
                         if (!textField.Equals(newTextField))
                         {
+                            textField = newTextField;
                             isUpdated = true;
                         }
                     }

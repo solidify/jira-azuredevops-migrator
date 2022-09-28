@@ -25,6 +25,7 @@ namespace Migration.Wi_Import.Tests
         private class MockedWitClientWrapper : IWitClientWrapper
         {
             private int _wiIdCounter = 1;
+            private Dictionary<AttachmentReference, WiAttachment> _attachmentsInStore = new Dictionary<AttachmentReference, WiAttachment>();
             public Dictionary<int, WorkItem> _wiCache = new Dictionary<int, WorkItem>();
 
             public MockedWitClientWrapper()
@@ -52,9 +53,9 @@ namespace Migration.Wi_Import.Tests
             public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
             {
                 WorkItem wi = _wiCache[workItemId];
-                foreach(JsonPatchOperation op in patchDocument)
+                foreach (JsonPatchOperation op in patchDocument)
                 {
-                    if(op.Operation == Operation.Add)
+                    if (op.Operation == Operation.Add)
                     {
                         if (op.Path.StartsWith("/fields/"))
                         {
@@ -65,19 +66,25 @@ namespace Migration.Wi_Import.Tests
                         {
                             string rel = op.Value.GetType().GetProperty("rel")?.GetValue(op.Value, null).ToString();
                             string url = op.Value.GetType().GetProperty("url")?.GetValue(op.Value, null).ToString();
+                            var referencedSourceAttachment = _attachmentsInStore.Single(a => a.Key.Url == url).Value;
                             object attributes = op.Value.GetType().GetProperty("attributes")?.GetValue(op.Value, null);
                             string comment = attributes.GetType().GetProperty("comment")?.GetValue(attributes, null).ToString();
 
                             WorkItemRelation wiRelation = new WorkItemRelation();
                             wiRelation.Rel = rel;
                             wiRelation.Url = url;
-                            wiRelation.Attributes = new Dictionary<string, object>{ { "comment", comment } };
+                            wiRelation.Attributes = new Dictionary<string, object>{
+                                { "id", Guid.NewGuid() },
+                                { "name", referencedSourceAttachment.FileName },
+                                { "comment", comment }
+                            };
 
-                            if(wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
+                            if (wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
                                 wi.Relations.Add(wiRelation);
                         }
                     }
-                    else if (op.Operation == Operation.Remove) {
+                    else if (op.Operation == Operation.Remove)
+                    {
                         if (op.Path.StartsWith("/fields/"))
                         {
                             string field = op.Path.Replace("/fields/", "");
@@ -97,7 +104,7 @@ namespace Migration.Wi_Import.Tests
             {
                 TeamProject tp = new TeamProject();
                 Guid projGuid;
-                if(Guid.TryParse(projectId, out projGuid))
+                if (Guid.TryParse(projectId, out projGuid))
                 {
                     tp.Id = projGuid;
                 }
@@ -131,6 +138,7 @@ namespace Migration.Wi_Import.Tests
                 AttachmentReference att = new AttachmentReference();
                 att.Id = Guid.NewGuid();
                 att.Url = "https://example.com";
+                _attachmentsInStore.Add(att, wiAttachment);
                 return att;
             }
         }
@@ -617,9 +625,10 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = wiUtils.CreateWorkItem("Task");
             createdWI.Fields[WiFieldReference.History] = commentBeforeTransformation;
-            createdWI.Relations.Add(new WorkItemRelation() {
-                Rel= "AttachedFile",
-                Url= devOpsAttachmentUrl,
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = devOpsAttachmentUrl,
                 Attributes = new Dictionary<string, object>() {
                     { "id", _fixture.Create<string>() },
                     { "name", fileName }
@@ -713,7 +722,7 @@ namespace Migration.Wi_Import.Tests
                 Url = devOpsAttachmentUrl,
                 Attributes = new Dictionary<string, object>() {
                     { "id", _fixture.Create<string>() },
-                    { "name", fileName } 
+                    { "name", fileName }
                 }
             });
 
@@ -787,7 +796,7 @@ namespace Migration.Wi_Import.Tests
                 Url = devOpsAttachmentUrl,
                 Attributes = new Dictionary<string, object>() {
                     { "id", _fixture.Create<string>() },
-                    { "name", fileName } 
+                    { "name", fileName }
                 }
             });
 
@@ -858,7 +867,6 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
 
             // Add fields
             createdWI.Fields[WiFieldReference.Title] = "My work item";
@@ -866,7 +874,6 @@ namespace Migration.Wi_Import.Tests
             createdWI.Fields[WiFieldReference.Priority] = "1";
 
             // Add attachment
-
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
             att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
@@ -887,13 +894,13 @@ namespace Migration.Wi_Import.Tests
             }
 
             // Assertions
-
             Assert.That(updatedWI.Fields[WiFieldReference.Title], Is.EqualTo(createdWI.Fields[WiFieldReference.Title]));
             Assert.That(updatedWI.Fields[WiFieldReference.Description], Is.EqualTo(createdWI.Fields[WiFieldReference.Description]));
             Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
 
             Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
             Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
+            Assert.That(createdWI.Relations[0].Attributes["name"].ToString(), Is.EqualTo(att.FileName));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
             Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
         }
