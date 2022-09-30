@@ -1,14 +1,13 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Support issue
+about: Create a support issue or a bug report
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Describe the problem**
+A clear and concise description of what the problem/bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
@@ -17,22 +16,16 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Tool version**
+ - Version of the jira-azuredevops-migrator tool [e.g. 2.3.117]
+
+**Attachments**
+
+Please attach the following files:
+
+- config.json
+- jira-export-log.txt
+- wi-import-log.txt
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
-
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
-
-**Additional context**
-Add any other context about the problem here.
