@@ -79,7 +79,7 @@ namespace JiraExport
                         else
                             fields[epicLinkField] = item.FromString;
                     }
-                    if (item.Field == "Parent")
+                    else if (item.Field == "Parent")
                     {
                         fieldChanges["parent"] = item.ToString;
 
@@ -89,7 +89,7 @@ namespace JiraExport
                         else
                             fields["parent"] = item.FromString;
                     }
-                    if (item.Field == "Link")
+                    else if (item.Field == "Link")
                     {
                         var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
                         if (linkChange == null)
