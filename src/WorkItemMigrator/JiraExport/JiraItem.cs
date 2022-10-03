@@ -33,7 +33,7 @@ namespace JiraExport
 
         }
 
-        public static List<JiraRevision> BuildRevisions(JiraItem jiraItem, IJiraProvider jiraProvider)
+        private static List<JiraRevision> BuildRevisions(JiraItem jiraItem, IJiraProvider jiraProvider)
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
