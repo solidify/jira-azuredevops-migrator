@@ -497,6 +497,76 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
+        public void When_calling_add_link_with_valid_args_and_an_attachment_is_present_on_the_created_wi_Then_a_link_is_added()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            var attachment = new WorkItemRelation();
+            attachment.Title = "LinkTitle";
+            attachment.Rel = "AttachedFile";
+            attachment.Url = $"https://dev.azure.com/someorg/someattachment/{System.Guid.NewGuid()}";
+            attachment.Attributes = new Dictionary<string, object>()
+            {
+                    { "id", _fixture.Create<string>() },
+                    { "name", "filename.png" }
+            };
+            createdWI.Relations.Add(attachment);
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+
+            WiLink link = new WiLink();
+            link.WiType = "System.LinkTypes.Hierarchy-Forward";
+            link.SourceOriginId = "100";
+            link.SourceWiId = 1;
+            link.TargetOriginId = "101";
+            link.TargetWiId = 2;
+            link.Change = ReferenceChangeType.Added;
+
+            wiUtils.AddAndSaveLink(link, createdWI);
+
+            WorkItemRelation rel = createdWI.Relations.Where(rl => rl.Rel != "AttachedFile").Single();
+
+            Assert.That(rel.Rel, Is.EqualTo(link.WiType));
+            Assert.That(rel.Url, Is.EqualTo(linkedWI.Url));
+        }
+
+        [Test]
+        public void When_calling_add_link_with_valid_args_and_an_attachment_is_present_on_the_linked_wi_Then_a_link_is_added()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            var attachment = new WorkItemRelation();
+            attachment.Title = "LinkTitle";
+            attachment.Rel = "AttachedFile";
+            attachment.Url = $"https://dev.azure.com/someorg/someattachment/{System.Guid.NewGuid()}";
+            attachment.Attributes = new Dictionary<string, object>()
+            {
+                    { "id", _fixture.Create<string>() },
+                    { "name", "filename.png" }
+            };
+            linkedWI.Relations.Add(attachment);
+
+            WiLink link = new WiLink();
+            link.WiType = "System.LinkTypes.Hierarchy-Forward";
+            link.SourceOriginId = "100";
+            link.SourceWiId = 1;
+            link.TargetOriginId = "101";
+            link.TargetWiId = 2;
+            link.Change = ReferenceChangeType.Added;
+
+            wiUtils.AddAndSaveLink(link, createdWI);
+
+            WorkItemRelation rel = createdWI.Relations[0];
+
+            Assert.That(rel.Rel, Is.EqualTo(link.WiType));
+            Assert.That(rel.Url, Is.EqualTo(linkedWI.Url));
+        }
+
+        [Test]
         public void When_calling_remove_link_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
