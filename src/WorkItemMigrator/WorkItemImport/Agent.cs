@@ -86,7 +86,7 @@ namespace WorkItemImport
                 _witClientUtils.EnsureWorkItemFieldsInitialized(rev, wi);
 
                 var attachmentMap = new Dictionary<string, WiAttachment>();
-                if (rev.Attachments.Any() && !_witClientUtils.ApplyAttachments(rev, wi, attachmentMap, _context.Journal.IsAttachmentMigrated))
+                if (rev.Attachments.Any() && !_witClientUtils.ApplyAttachments(rev, wi, attachmentMap))
                     incomplete = true;
 
                 if (rev.Fields.Any() && !UpdateWIFields(rev.Fields, wi))
@@ -104,12 +104,12 @@ namespace WorkItemImport
                 if (rev.Attachments.All(a => a.Change != ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
-                    _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev);
                 }
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
-                    _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev);
                 }
 
                 _witClientUtils.SaveWorkItem(rev, wi);
@@ -126,7 +126,7 @@ namespace WorkItemImport
 
                     try
                     {
-                        if (_witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
+                        if (_witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev))
                             _witClientUtils.SaveWorkItem(rev, wi);
                     }
                     catch (Exception ex)

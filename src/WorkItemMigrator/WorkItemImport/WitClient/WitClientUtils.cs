@@ -23,8 +23,6 @@ namespace WorkItemImport
             _witClientWrapper = witClientWrapper;
         }
 
-        public delegate V IsAttachmentMigratedDelegate<in T, U, out V>(T input, out U output);
-
         public WorkItem CreateWorkItem(string type)
         {
             return _witClientWrapper.CreateWorkItem(type);
@@ -287,7 +285,7 @@ namespace WorkItemImport
                     wi.Fields[descriptionFieldRef] = "";
         }
 
-        public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, WiAttachment> attachmentMap, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, WiAttachment> attachmentMap)
         {
             if (rev == null)
             {
@@ -374,7 +372,7 @@ namespace WorkItemImport
             }
         }
 
-        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev)
         {
             if (wi == null)
             {
@@ -397,7 +395,7 @@ namespace WorkItemImport
 
             bool descUpdated = false;
 
-            CorrectImagePath(wi, wiItem, rev, ref description, ref descUpdated, isAttachmentMigratedDelegate);
+            CorrectImagePath(wi, wiItem, rev, ref description, ref descUpdated);
 
             if (descUpdated)
             {
@@ -414,7 +412,7 @@ namespace WorkItemImport
             return descUpdated;
         }
 
-        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev)
         {
             if (wi == null)
             {
@@ -433,7 +431,7 @@ namespace WorkItemImport
 
             string currentComment = wi.Fields[WiFieldReference.History].ToString();
             bool commentUpdated = false;
-            CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated, isAttachmentMigratedDelegate);
+            CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated);
 
             if (commentUpdated)
                 wi.Fields[WiFieldReference.History] = currentComment;
@@ -516,7 +514,7 @@ namespace WorkItemImport
             }
         }
 
-        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated)
         {
             if (wi == null)
             {

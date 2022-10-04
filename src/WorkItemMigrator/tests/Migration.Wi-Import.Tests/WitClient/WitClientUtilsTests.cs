@@ -142,17 +142,6 @@ namespace Migration.Wi_Import.Tests
                 return att;
             }
         }
-        private bool MockedIsAttachmentMigratedDelegateTrue(string _attOriginId, out string attWiId)
-        {
-            attWiId = "1";
-            return true;
-        }
-
-        private bool MockedIsAttachmentMigratedDelegateFalse(string _attOriginId, out string attWiId)
-        {
-            attWiId = "1";
-            return false;
-        }
 
         // use auto fixture to help mock and instantiate with dummy data with nsubsitute. 
         private Fixture _fixture;
@@ -607,7 +596,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectComment(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                () => wiUtils.CorrectComment(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -646,7 +635,7 @@ namespace Migration.Wi_Import.Tests
             wiItem.Revisions = new List<WiRevision>();
             wiItem.Revisions.Add(revision);
 
-            wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.CorrectComment(createdWI, wiItem, revision);
 
             Assert.That(createdWI.Fields[WiFieldReference.History], Is.EqualTo(commentAfterTransformation));
         }
@@ -658,7 +647,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectDescription(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                () => wiUtils.CorrectDescription(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -697,7 +686,7 @@ namespace Migration.Wi_Import.Tests
             wiItem.Revisions = new List<WiRevision>();
             wiItem.Revisions.Add(revision);
 
-            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.CorrectDescription(createdWI, wiItem, revision);
 
             Assert.That(createdWI.Fields[WiFieldReference.Description], Is.EqualTo(descriptionAfterTransformation));
         }
@@ -737,7 +726,7 @@ namespace Migration.Wi_Import.Tests
             wiItem.Revisions = new List<WiRevision>();
             wiItem.Revisions.Add(revision);
 
-            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.CorrectDescription(createdWI, wiItem, revision);
 
             Assert.That(createdWI.Fields[WiFieldReference.ReproSteps], Is.EqualTo(reproStepsAfterTransformation));
         }
@@ -749,7 +738,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.ApplyAttachments(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                () => wiUtils.ApplyAttachments(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -772,7 +761,7 @@ namespace Migration.Wi_Import.Tests
 
             Dictionary<string, WiAttachment> attachmentMap = new Dictionary<string, WiAttachment>();
 
-            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap);
 
             Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
             Assert.That(createdWI.Relations[0].Attributes["filePath"], Is.EqualTo(att.FilePath));
@@ -811,7 +800,7 @@ namespace Migration.Wi_Import.Tests
 
             Dictionary<string, WiAttachment> attachmentMap = new Dictionary<string, WiAttachment>();
 
-            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap);
 
             Assert.That(createdWI.Relations, Is.Empty);
         }
@@ -843,7 +832,7 @@ namespace Migration.Wi_Import.Tests
 
             Dictionary<string, WiAttachment> attachmentMap = new Dictionary<string, WiAttachment>();
 
-            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateFalse);
+            wiUtils.ApplyAttachments(revision, createdWI, attachmentMap);
 
             Assert.That(createdWI.Relations.Count, Is.EqualTo(2));
         }

@@ -103,10 +103,5 @@ namespace Migration.Common
 
             return wiId;
         }
-
-        public bool IsAttachmentMigrated(string attOriginId, out string attWiId)
-        {
-            return ProcessedAttachments.TryGetValue(attOriginId, out attWiId);
-        }
     }
 }
