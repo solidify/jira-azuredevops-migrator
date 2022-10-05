@@ -104,12 +104,12 @@ namespace WorkItemImport
                 if (rev.Attachments.All(a => a.Change != ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
-                    _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev);
+                    _witClientUtils.CorrectDescription(wi, rev);
                 }
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
-                    _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev);
+                    _witClientUtils.CorrectComment(wi, rev);
                 }
 
                 _witClientUtils.SaveWorkItem(rev, wi);
@@ -126,7 +126,7 @@ namespace WorkItemImport
 
                     try
                     {
-                        if (_witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev))
+                        if (_witClientUtils.CorrectDescription(wi, rev))
                             _witClientUtils.SaveWorkItem(rev, wi);
                     }
                     catch (Exception ex)

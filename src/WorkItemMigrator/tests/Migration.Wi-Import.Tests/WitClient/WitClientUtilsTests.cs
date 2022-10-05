@@ -596,7 +596,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectComment(null, null, null),
+                () => wiUtils.CorrectComment(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -631,11 +631,7 @@ namespace Migration.Wi_Import.Tests
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>();
-            wiItem.Revisions.Add(revision);
-
-            wiUtils.CorrectComment(createdWI, wiItem, revision);
+            wiUtils.CorrectComment(createdWI, revision);
 
             Assert.That(createdWI.Fields[WiFieldReference.History], Is.EqualTo(commentAfterTransformation));
         }
@@ -647,7 +643,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectDescription(null, null, null),
+                () => wiUtils.CorrectDescription(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -682,11 +678,7 @@ namespace Migration.Wi_Import.Tests
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>();
-            wiItem.Revisions.Add(revision);
-
-            wiUtils.CorrectDescription(createdWI, wiItem, revision);
+            wiUtils.CorrectDescription(createdWI, revision);
 
             Assert.That(createdWI.Fields[WiFieldReference.Description], Is.EqualTo(descriptionAfterTransformation));
         }
@@ -722,11 +714,7 @@ namespace Migration.Wi_Import.Tests
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>();
-            wiItem.Revisions.Add(revision);
-
-            wiUtils.CorrectDescription(createdWI, wiItem, revision);
+            wiUtils.CorrectDescription(createdWI, revision);
 
             Assert.That(createdWI.Fields[WiFieldReference.ReproSteps], Is.EqualTo(reproStepsAfterTransformation));
         }

@@ -374,18 +374,12 @@ namespace WorkItemImport
             }
         }
 
-        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev)
+        public bool CorrectDescription(WorkItem wi, WiRevision rev)
         {
             if (wi == null)
             {
                 throw new ArgumentException(nameof(wi));
             }
-
-            if (wiItem == null)
-            {
-                throw new ArgumentException(nameof(wiItem));
-            }
-
             if (rev == null)
             {
                 throw new ArgumentException(nameof(rev));
@@ -397,7 +391,7 @@ namespace WorkItemImport
 
             bool descUpdated = false;
 
-            CorrectImagePath(wi, wiItem, rev, ref description, ref descUpdated);
+            CorrectImagePath(wi, rev, ref description, ref descUpdated);
 
             if (descUpdated)
             {
@@ -414,18 +408,12 @@ namespace WorkItemImport
             return descUpdated;
         }
 
-        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev)
+        public void CorrectComment(WorkItem wi, WiRevision rev)
         {
             if (wi == null)
             {
                 throw new ArgumentException(nameof(wi));
             }
-
-            if (wiItem == null)
-            {
-                throw new ArgumentException(nameof(wiItem));
-            }
-
             if (rev == null)
             {
                 throw new ArgumentException(nameof(rev));
@@ -433,7 +421,7 @@ namespace WorkItemImport
 
             string currentComment = wi.Fields[WiFieldReference.History].ToString();
             bool commentUpdated = false;
-            CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated);
+            CorrectImagePath(wi, rev, ref currentComment, ref commentUpdated);
 
             if (commentUpdated)
                 wi.Fields[WiFieldReference.History] = currentComment;
@@ -516,55 +504,41 @@ namespace WorkItemImport
             }
         }
 
-        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated)
+        private void CorrectImagePath(WorkItem wi, WiRevision rev, ref string textField, ref bool isUpdated)
         {
             if (wi == null)
             {
                 throw new ArgumentException(nameof(wi));
             }
-
-            if (wiItem == null)
-            {
-                throw new ArgumentException(nameof(wiItem));
-            }
-
             if (rev == null)
             {
                 throw new ArgumentException(nameof(rev));
             }
 
-            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
+            foreach (var originAtt in rev.Attachments)
             {
-                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                var encodedFileName = HttpUtility.UrlEncode(fileName);
-                if (textField.Contains(fileName) ||
-                    textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    textField.Contains("_thumb_" + att.AttOriginId))
+                var matchedAttachment = IdentifyAttachment(originAtt, wi);
+                if (matchedAttachment != null)
                 {
-                    var tfsAtt = IdentifyAttachment(att, wi);
-
-                    if (tfsAtt != null)
+                    var fileName = matchedAttachment.Attributes["name"].ToString();
+                    var encodedFileName = HttpUtility.UrlEncode(fileName);
+                    if (textField.Contains(fileName) ||
+                        textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        textField.Contains("_thumb_" + originAtt.AttOriginId))
                     {
-                        string imageSrcPattern = $"src.*?=.*?\"([^\"])(?=.*{att.AttOriginId}).*?\"";
-                        var newTextField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
+                        string imageSrcPattern = $"src.*?=.*?\"([^\"])(?=.*{originAtt.AttOriginId}).*?\"";
+                        var newTextField = Regex.Replace(textField, imageSrcPattern, $"src=\"{matchedAttachment.Url}\"");
                         if (!textField.Equals(newTextField))
                         {
                             textField = newTextField;
                             isUpdated = true;
                         }
                     }
-                    else
-                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
                 }
             }
             if (isUpdated)
             {
-                DateTime changedDate;
-                if (wiItem.Revisions.Count > rev.Index + 1)
-                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time, wiItem.Revisions[rev.Index + 1].Time);
-                else
-                    changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
-
+                DateTime changedDate = RevisionUtility.NextValidDeltaRev(rev.Time);
                 wi.Fields[WiFieldReference.ChangedDate] = changedDate;
                 wi.Fields[WiFieldReference.ChangedBy] = rev.Author;
             }
