@@ -385,11 +385,24 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(rev));
             }
 
-            string description = wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug" ? wi.Fields[WiFieldReference.ReproSteps].ToString() : wi.Fields[WiFieldReference.Description].ToString();
+            bool descUpdated = false;
+            string description = null;
+            if (wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug")
+            {
+                if (wi.Fields.ContainsKey(WiFieldReference.ReproSteps))
+                {
+                    description = wi.Fields[WiFieldReference.ReproSteps].ToString();
+                }
+            }
+            else
+            {
+                if (wi.Fields.ContainsKey(WiFieldReference.Description))
+                {
+                    description = wi.Fields[WiFieldReference.Description].ToString();
+                }
+            }
             if (string.IsNullOrWhiteSpace(description))
                 return false;
-
-            bool descUpdated = false;
 
             CorrectImagePath(wi, rev, ref description, ref descUpdated);
 

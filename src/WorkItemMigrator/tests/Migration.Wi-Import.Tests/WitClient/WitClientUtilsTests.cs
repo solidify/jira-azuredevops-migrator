@@ -684,6 +684,40 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
+        public void When_calling_correct_description_and_there_is_no_description_Then_the_correct_result_is_returned()
+        {
+            string fileName = _fixture.Create<string>();
+            string filePath = $"c:\\temp\\MyFies\\{fileName}";
+            string devOpsAttachmentUrl = $"https://example.com/{fileName}";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            //When a type does not return a description by default
+            WorkItem createdWI = wiUtils.CreateWorkItem("Feature");
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = devOpsAttachmentUrl,
+                Attributes = new Dictionary<string, object>() {
+                    { "id", _fixture.Create<string>() },
+                    { "name", $"{fileName}" }
+                }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = filePath;
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            wiUtils.CorrectDescription(createdWI, revision);
+
+            Assert.IsFalse(createdWI.Fields.ContainsKey(WiFieldReference.Description));
+        }
+
+        [Test]
         public void When_calling_correct_description_for_bug_Then_repro_steps_is_updated_with_correct_image_urls()
         {
             string fileName = _fixture.Create<string>();
