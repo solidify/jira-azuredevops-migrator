@@ -34,6 +34,9 @@
         public static string History => "System.History";
         public static string Reason => "System.Reason";
         public static string Priority => "System.Priority";
+        public static string BoardColumn => "System.BoardColumn";
+        public static string BoardColumnDone => "System.BoardColumnDone";
+        public static string BoardLane => "System.BoardLane";
 
     }
 }
