@@ -17,6 +17,12 @@ namespace WorkItemImport
     public class WitClientUtils
     {
         private readonly IWitClientWrapper _witClientWrapper;
+        private List<string> readOnlyFields = new List<string>()
+        {
+            "System.BoardColumn",
+            "System.BoardColumnDone",
+            "System.BoardLane"
+        };
 
         public WitClientUtils(IWitClientWrapper witClientWrapper)
         {
@@ -516,7 +522,10 @@ namespace WorkItemImport
             JsonPatchDocument patchDocument = new JsonPatchDocument();
             foreach (string key in wi.Fields.Keys)
             {
-                if (new string[] {WiFieldReference.ChangedDate}.Contains(key))
+                if (readOnlyFields.Contains(key))
+                    continue;
+
+                if (new string[] { WiFieldReference.ChangedDate }.Contains(key))
                     continue;
 
 
