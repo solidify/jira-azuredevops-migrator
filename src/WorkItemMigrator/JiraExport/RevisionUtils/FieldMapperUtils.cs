@@ -121,11 +121,11 @@ namespace JiraExport
                 throw new ArgumentNullException(nameof(labels));
 
             if (string.IsNullOrWhiteSpace(labels))
-                return null;
+                return string.Empty;
 
             var tags = labels.Split(' ');
             if (!tags.Any())
-                return null;
+                return string.Empty;
             else
                 return string.Join(";", tags);
         }

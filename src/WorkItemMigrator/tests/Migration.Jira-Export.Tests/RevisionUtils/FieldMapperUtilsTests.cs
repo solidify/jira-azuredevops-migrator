@@ -140,8 +140,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         public void When_calling_map_tags_with_empty_string_arg_Then_null_is_returned()
         {
             object output = FieldMapperUtils.MapTags("");
-
-            Assert.That(output, Is.Null);
+            Assert.AreEqual(string.Empty, output);
         }
 
         [Test]
