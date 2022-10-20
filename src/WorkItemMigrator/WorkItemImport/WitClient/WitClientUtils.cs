@@ -480,7 +480,12 @@ namespace WorkItemImport
             JsonPatchDocument patchDocument = new JsonPatchDocument();
             foreach (string key in wi.Fields.Keys)
             {
-                if (new string[] {WiFieldReference.ChangedDate}.Contains(key))
+                if (new string[] { 
+                    WiFieldReference.ChangedDate,
+                    WiFieldReference.BoardColumn,
+                    WiFieldReference.BoardColumnDone,
+                    WiFieldReference.BoardLane,
+                }.Contains(key))
                     continue;
 
 
