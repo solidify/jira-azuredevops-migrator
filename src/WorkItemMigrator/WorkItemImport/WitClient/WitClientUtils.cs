@@ -30,42 +30,6 @@ namespace WorkItemImport
             return _witClientWrapper.CreateWorkItem(type);
         }
 
-        public void SetFieldValue(WorkItem wi, string fieldRef, object fieldValue)
-        {
-            if (wi == null)
-            {
-                throw new ArgumentException(nameof(wi));
-            }
-
-            string fieldValOut = "";
-            if(fieldValue!=null)
-            {
-                fieldValOut = fieldValue.ToString();
-            }
-
-            try
-            {
-                JsonPatchDocument patchDocument = new JsonPatchDocument
-                {
-                    new JsonPatchOperation()
-                    {
-                        Operation = Operation.Add,
-                        Path = "/fields/"+fieldRef,
-                        Value = fieldValOut
-                    }
-                };
-
-                if (wi.Id.HasValue)
-                    _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
-                else
-                    throw new MissingFieldException($"Work item ID was null: {wi.Url}");
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Log(LogLevel.Error, ex.InnerException.Message);
-            }
-        }
-
         public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)
         {
             if (links == null || relatedLink == null)
@@ -790,7 +754,9 @@ namespace WorkItemImport
             do
             {
                 var nextWi = GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
-                nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
+                nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().
+                    Where(rl => rl.Rel != "AttachedFile").
+                    FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
 
                 if (nextWiLink != null && GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
                     return true;
