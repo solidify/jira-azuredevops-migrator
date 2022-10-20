@@ -749,7 +749,9 @@ namespace WorkItemImport
             do
             {
                 var nextWi = GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
-                nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
+                nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().
+                    Where(rl => rl.Rel != "AttachedFile").
+                    FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
 
                 if (nextWiLink != null && GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
                     return true;
