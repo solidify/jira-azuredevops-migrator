@@ -435,32 +435,6 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
-        public void When_calling_set_field_value_with_empty_args_Then_an_exception_is_thrown()
-        {
-            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
-
-            Assert.That(
-                () => wiUtils.SetFieldValue(null, "", ""),
-                Throws.InstanceOf<ArgumentException>());
-        }
-
-        [Test]
-        public void When_calling_set_field_value_with_valid_args_Then_a_field_is_added()
-        {
-            string iterationPathValue = "My/Iteration/Path";
-
-            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
-            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
-
-            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
-
-            wiUtils.SetFieldValue(createdWI, WiFieldReference.IterationPath, iterationPathValue);
-
-            Assert.That(createdWI.Fields[WiFieldReference.IterationPath], Is.EqualTo(iterationPathValue));
-        }
-
-        [Test]
         public void When_calling_add_link_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
