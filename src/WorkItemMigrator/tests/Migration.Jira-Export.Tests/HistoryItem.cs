@@ -3,6 +3,9 @@ using System;
 
 namespace Migration.Jira_Export.Tests
 {
+    /// <summary>
+    /// Represents an item in the changelog.histories[*] field of an issue
+    /// </summary>
     public class HistoryItem
     {
         public long Id { get; set; } = 0;
@@ -23,15 +26,23 @@ namespace Migration.Jira_Export.Tests
                 'created': '{Created.ToString("yyyy - MM - ddTHH:mm: ss.fffZ")}',
                 'items': [
                 {{
-                  'field': '{Field}',
-                  'fieldtype': '{FieldType}',
-                  'from': '{From}',
-                  'fromString': '{FromString}',
-                  'to': '{To}',
-                  'toString': '{ToString}'
+                  'field': {formatJsonValue(Field)},
+                  'fieldtype': {formatJsonValue(FieldType)},
+                  'from': {formatJsonValue(From)},
+                  'fromString': {formatJsonValue(FromString)},
+                  'to': {formatJsonValue(To)},
+                  'toString': {formatJsonValue(ToString)},
                 }}
               ]
             }}");
+        }
+
+        private string formatJsonValue(string value)
+        {
+            if (value == null)
+                return "null";
+            else
+                return $"'{value}'";
         }
     }
 }
