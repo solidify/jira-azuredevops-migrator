@@ -308,7 +308,7 @@ namespace WorkItemImport
                     Logger.Log(LogLevel.Debug, $"Adding attachment '{att.ToString()}'.");
                     if (att.Change == ReferenceChangeType.Added)
                     {
-                        AddRemoveAttachment(wi, att.FilePath, att.Comment, AttachmentOperation.ADD);
+                        AddRemoveAttachment(wi, att.AttOriginId, att.Comment, AttachmentOperation.ADD);
 
                         attachmentMap.Add(att.AttOriginId, att);
                     }
@@ -317,7 +317,7 @@ namespace WorkItemImport
                         WorkItemRelation existingAttachment = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
                         if (existingAttachment != null)
                         {
-                            AddRemoveAttachment(wi, att.FilePath, att.Comment, AttachmentOperation.REMOVE);
+                            AddRemoveAttachment(wi, att.AttOriginId, att.Comment, AttachmentOperation.REMOVE);
                         }
                         else
                         {
@@ -349,7 +349,7 @@ namespace WorkItemImport
             REMOVE
         }
 
-        private void AddRemoveAttachment(WorkItem wi, string filePath, string comment, AttachmentOperation op)
+        private void AddRemoveAttachment(WorkItem wi, string attOriginId, string comment, AttachmentOperation op)
         {
             if (wi == null)
             {
@@ -360,11 +360,14 @@ namespace WorkItemImport
                 WorkItemRelation attachmentRelation = new WorkItemRelation();
                 attachmentRelation.Rel = "AttachedFile";
                 attachmentRelation.Attributes = new Dictionary<string, object>();
-                attachmentRelation.Attributes["filePath"] = filePath;
                 attachmentRelation.Attributes["comment"] = comment;
                 wi.Relations.Add(attachmentRelation);
             } else {
-                WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(e => e.Rel == "AttachedFile" && e.Attributes["filePath"].ToString() == filePath);
+                WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(
+                    a => a.Rel == "AttachedFile" &&
+                    a.Attributes["comment"].ToString().Split(
+                        new string[] { ", original ID: " }, StringSplitOptions.None)[1] == attOriginId
+                );
                 if(attachmentRelation != default(WorkItemRelation))
                 {
                     wi.Relations.Remove(attachmentRelation);
@@ -584,7 +587,7 @@ namespace WorkItemImport
                         url = attachment.Url,
                         attributes = new
                         {
-                            comment = $"{att.Comment}|{att.FilePath}"
+                            comment = $"{att.Comment}, original ID: {att.AttOriginId}"
                         }
                     }
                 }
@@ -610,8 +613,9 @@ namespace WorkItemImport
         {
             WorkItemRelation existingAttachmentRelation =
                 wi.Relations?.SingleOrDefault(
-                    r => r.Rel == "AttachedFile"
-                    && r.Attributes["comment"].ToString().Split('|').Last() == att.FilePath
+                    a => a.Rel == "AttachedFile" &&
+                    a.Attributes["comment"].ToString().Split(
+                        new string[] { ", original ID: " }, StringSplitOptions.None)[1] == att.AttOriginId
                 );
 
             if(existingAttachmentRelation == null)
@@ -729,7 +733,11 @@ namespace WorkItemImport
         {
             if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
             {
-                return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["filePath"].ToString() == att.FilePath);
+                return wi.Relations.SingleOrDefault(
+                    a => a.Rel == "AttachedFile" &&
+                    a.Attributes["comment"].ToString().Split(
+                        new string[] { ", original ID: " }, StringSplitOptions.None)[1] == att.AttOriginId
+                );
             }
             return null;
         }
