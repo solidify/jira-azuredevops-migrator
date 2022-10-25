@@ -871,8 +871,8 @@ namespace Migration.Wi_Import.Tests
 
             Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
             Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
-            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[0], Is.EqualTo(att.Comment));
-            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split('|')[1], Is.EqualTo(att.FilePath));
+            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split(", original ID: ")[0], Is.EqualTo(att.Comment));
+            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split(", original ID: ")[1], Is.EqualTo(att.AttOriginId));
 
         }
     }
