@@ -729,7 +729,7 @@ namespace WorkItemImport
         {
             if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
             {
-                return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["filePath"].ToString() == att.FilePath);
+                return wi.Relations.SingleOrDefault(a => a.Rel == "AttachedFile" && a.Attributes["comment"].ToString().Split('|')[1] == att.FilePath);
             }
             return null;
         }
