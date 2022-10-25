@@ -606,7 +606,7 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_correct_comment_with_valid_args_Then_history_is_updated_with_correct_image_urls()
         {
-            string commentBeforeTransformation = "My comment, including file: <img src=\"my_image.png\">";
+            string commentBeforeTransformation = "My comment, including file: <img src=\"C:\\Temp\\workspace\\Attachments\\100\\my_image.png\">";
             string commentAfterTransformation = "My comment, including file: <img src=\"https://example.com/my_image.png\">";
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
@@ -617,12 +617,15 @@ namespace Migration.Wi_Import.Tests
             createdWI.Relations.Add(new WorkItemRelation() {
                 Rel= "AttachedFile",
                 Url= "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+                Attributes = new Dictionary<string, object>() {
+                    { "comment", "Imported from Jira, original ID: 100" }
+                }
             });
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
+            att.AttOriginId = "100";
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -650,7 +653,7 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_correct_description_for_user_story_Then_description_is_updated_with_correct_image_urls()
         {
-            string descriptionBeforeTransformation = "My description, including file: <img src=\"my_image.png\">";
+            string descriptionBeforeTransformation = "My description, including file: <img src=\"C:\\Temp\\workspace\\Attachments\\100\\my_image.png\">";
             string descriptionAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
@@ -662,12 +665,15 @@ namespace Migration.Wi_Import.Tests
             {
                 Rel = "AttachedFile",
                 Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+                Attributes = new Dictionary<string, object>() { 
+                    { "comment", "Imported from Jira, original ID: 100" }
+                }
             });
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
+            att.AttOriginId = "100";
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -684,7 +690,7 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_correct_description_for_bug_Then_repro_steps_is_updated_with_correct_image_urls()
         {
-            string reproStepsBeforeTransformation = "My description, including file: <img src=\"my_image.png\">";
+            string reproStepsBeforeTransformation = "My description, including file: <img src=\"C:\\Temp\\workspace\\Attachments\\100\\my_image.png\">";
             string reproStepsAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
@@ -696,12 +702,15 @@ namespace Migration.Wi_Import.Tests
             {
                 Rel = "AttachedFile",
                 Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", "C:\\Temp\\MyFiles\\my_image.png" } }
+                Attributes = new Dictionary<string, object>() {
+                    { "comment", "Imported from Jira, original ID: 100" }
+                }
             });
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
+            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
+            att.AttOriginId = "100";
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -764,7 +773,7 @@ namespace Migration.Wi_Import.Tests
             {
                 Rel = "AttachedFile",
                 Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { { "filePath", attachmentFilePath } }
+                Attributes = new Dictionary<string, object>() { { "comment", "Imported from Jira, original ID: 100" } }
             });
 
             WiAttachment att = new WiAttachment();
