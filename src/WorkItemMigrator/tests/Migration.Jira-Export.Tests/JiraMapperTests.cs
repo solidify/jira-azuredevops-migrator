@@ -115,12 +115,15 @@ namespace Migration.Jira_Export.Tests
             WiItem actual = sut.Map(jiraItem);
 
             //Assert
-            Assert.AreEqual(3, actual.Revisions.Count());
-            Assert.AreEqual(0, actual.Revisions[0].Links.Count());
-            Assert.AreEqual(1, actual.Revisions[1].Links.Count());
-            Assert.AreEqual(epicKey, actual.Revisions[1].Links[0].TargetOriginId);
-            Assert.AreEqual(1, actual.Revisions[2].Links.Count());
-            Assert.AreEqual(parentKey, actual.Revisions[2].Links[0].TargetOriginId);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(3, actual.Revisions.Count());
+                Assert.AreEqual(0, actual.Revisions[0].Links.Count());
+                Assert.AreEqual(1, actual.Revisions[1].Links.Count());
+                Assert.AreEqual(epicKey, actual.Revisions[1].Links[0].TargetOriginId);
+                Assert.AreEqual(1, actual.Revisions[2].Links.Count());
+                Assert.AreEqual(parentKey, actual.Revisions[2].Links[0].TargetOriginId);
+            });
         }
 
         [Test]

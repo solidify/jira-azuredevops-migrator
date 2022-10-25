@@ -67,8 +67,11 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey("parent"));
-            Assert.IsTrue(jiraItem.Revisions[1].Fields.ContainsKey("parent"));
+            Assert.Multiple(() =>
+            {
+                Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey("parent"));
+                Assert.IsTrue(jiraItem.Revisions[1].Fields.ContainsKey("parent"));
+            });
         }
 
         [Test]
@@ -118,8 +121,11 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.AreEqual(previousParentKey, jiraItem.Revisions[0].Fields["parent"]);
-            Assert.AreEqual(currentParentKey, jiraItem.Revisions[1].Fields["parent"]);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(previousParentKey, jiraItem.Revisions[0].Fields["parent"]);
+                Assert.AreEqual(currentParentKey, jiraItem.Revisions[1].Fields["parent"]);
+            });
         }
 
         [Test]
@@ -177,9 +183,12 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey("parent"));
-            Assert.AreEqual(previousParentKey, jiraItem.Revisions[1].Fields["parent"]);
-            Assert.AreEqual(currentParentKey, jiraItem.Revisions[2].Fields["parent"]);
+            Assert.Multiple(() =>
+            {
+                Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey("parent"));
+                Assert.AreEqual(previousParentKey, jiraItem.Revisions[1].Fields["parent"]);
+                Assert.AreEqual(currentParentKey, jiraItem.Revisions[2].Fields["parent"]);
+            });
         }
 
         [Test]
@@ -224,7 +233,10 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.AreEqual(2, jiraItem.Revisions.Count);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(2, jiraItem.Revisions.Count);
+            });
         }
 
         [Test]
@@ -270,8 +282,11 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey(jiraSettings.EpicLinkField));
-            Assert.IsTrue(jiraItem.Revisions[1].Fields.ContainsKey(jiraSettings.EpicLinkField));
+            Assert.Multiple(() =>
+            {
+                Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey(jiraSettings.EpicLinkField));
+                Assert.IsTrue(jiraItem.Revisions[1].Fields.ContainsKey(jiraSettings.EpicLinkField));
+            });
         }
 
         [Test]
@@ -318,8 +333,11 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.AreEqual(previousEpicKey,jiraItem.Revisions[0].Fields[jiraSettings.EpicLinkField]);
-            Assert.AreEqual(currentEpicKey, jiraItem.Revisions[1].Fields[jiraSettings.EpicLinkField]);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(previousEpicKey, jiraItem.Revisions[0].Fields[jiraSettings.EpicLinkField]);
+                Assert.AreEqual(currentEpicKey, jiraItem.Revisions[1].Fields[jiraSettings.EpicLinkField]);
+            });
         }
 
         [Test]
@@ -374,9 +392,12 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey(jiraSettings.EpicLinkField));
-            Assert.AreEqual(previousEpicKey, jiraItem.Revisions[1].Fields[jiraSettings.EpicLinkField]);
-            Assert.AreEqual(currentEpicKey, jiraItem.Revisions[2].Fields[jiraSettings.EpicLinkField]);
+            Assert.Multiple(() =>
+            {
+                Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey(jiraSettings.EpicLinkField));
+                Assert.AreEqual(previousEpicKey, jiraItem.Revisions[1].Fields[jiraSettings.EpicLinkField]);
+                Assert.AreEqual(currentEpicKey, jiraItem.Revisions[2].Fields[jiraSettings.EpicLinkField]);
+            });
         }
 
         [Test]
@@ -419,7 +440,10 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.AreEqual(2, jiraItem.Revisions.Count);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(2, jiraItem.Revisions.Count);
+            });
         }
 
         private JiraSettings createJiraSettings()
