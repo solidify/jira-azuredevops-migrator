@@ -748,7 +748,6 @@ namespace Migration.Wi_Import.Tests
             wiUtils.ApplyAttachments(revision, createdWI, attachmentMap, MockedIsAttachmentMigratedDelegateTrue);
 
             Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
-            Assert.That(createdWI.Relations[0].Attributes["filePath"], Is.EqualTo(att.FilePath));
             Assert.That(createdWI.Relations[0].Attributes["comment"], Is.EqualTo(att.Comment));
         }
 

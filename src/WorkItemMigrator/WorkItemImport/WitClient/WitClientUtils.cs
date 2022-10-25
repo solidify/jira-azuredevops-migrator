@@ -360,11 +360,10 @@ namespace WorkItemImport
                 WorkItemRelation attachmentRelation = new WorkItemRelation();
                 attachmentRelation.Rel = "AttachedFile";
                 attachmentRelation.Attributes = new Dictionary<string, object>();
-                attachmentRelation.Attributes["filePath"] = filePath;
                 attachmentRelation.Attributes["comment"] = comment;
                 wi.Relations.Add(attachmentRelation);
             } else {
-                WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(e => e.Rel == "AttachedFile" && e.Attributes["filePath"].ToString() == filePath);
+                WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(e => e.Rel == "AttachedFile" && e.Attributes["comment"].ToString().Split('|')[1] == filePath);
                 if(attachmentRelation != default(WorkItemRelation))
                 {
                     wi.Relations.Remove(attachmentRelation);
