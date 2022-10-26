@@ -112,27 +112,26 @@ namespace WorkItemImport
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                _witClientUtils.SaveWorkItem(rev, wi);
-
-                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
-                {
-                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
-                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
-                }
-
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
 
                     try
                     {
-                        if (_witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated))
-                            _witClientUtils.SaveWorkItem(rev, wi);
+                        _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                     }
                     catch (Exception ex)
                     {
                         Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev.ToString()}'.");
                     }
+                }
+
+                _witClientUtils.SaveWorkItem(rev, wi);
+
+                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
+                {
+                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
+                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
                 }
 
                 if (wi.Id.HasValue)
