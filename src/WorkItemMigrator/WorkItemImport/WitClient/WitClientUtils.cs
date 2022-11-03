@@ -622,6 +622,7 @@ namespace WorkItemImport
             if(existingAttachmentRelation == null)
             {
                 Logger.Log(LogLevel.Warning, $"Skipping saving attachment {att.AttOriginId}, since that attachment was not found.");
+                return;
             }
 
             // Get an existing work item and add the attachment to it
