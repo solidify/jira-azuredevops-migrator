@@ -47,12 +47,8 @@ namespace JiraExport
             if (createdOn == DateTime.MinValue)
                 Logger.Log(LogLevel.Debug, "created key was not found, using DateTime default value");
 
-
-            var changelog = jiraProvider.DownloadChangelog(issueKey).ToList();
+            var changelog = jiraProvider.DownloadChangelog(issueKey).OrderByDescending(c => (long)c.SelectToken("$.id")).ToList();
             Logger.Log(LogLevel.Debug, $"Downloaded issue: {issueKey} changelog.");
-
-            if (jiraProvider.GetSettings().UsingJiraCloud)
-                changelog.Reverse();
 
             Stack<JiraRevision> revisions = new Stack<JiraRevision>();
 
