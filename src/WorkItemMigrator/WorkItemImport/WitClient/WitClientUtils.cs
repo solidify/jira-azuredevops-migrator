@@ -445,30 +445,24 @@ namespace WorkItemImport
             return _witClientWrapper.GetWorkItem(wiId);
         }
 
-        public void SaveWorkItem(WiRevision rev, WorkItem newWorkItem)
+        public void SaveWorkItemAttachments(WiRevision rev, WorkItem wi)
         {
-            if (newWorkItem == null)
-            {
-                throw new ArgumentException(nameof(newWorkItem));
-            }
-
             if (rev == null)
             {
                 throw new ArgumentException(nameof(rev));
             }
 
-            SaveWorkItemAttachments(rev, newWorkItem);
-            SaveWorkItemFields(newWorkItem);
-        }
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
 
-        private void SaveWorkItemAttachments(WiRevision rev, WorkItem wi)
-        {
             // Save attachments
             foreach (WiAttachment attachment in rev.Attachments)
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                    AddSingleAttachmentToWorkItemAndSave(attachment, wi);
+                   AddSingleAttachmentToWorkItemAndSave(attachment, wi);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
@@ -477,8 +471,13 @@ namespace WorkItemImport
             }
         }
 
-        private void SaveWorkItemFields(WorkItem wi)
+        public void SaveWorkItemFields(WorkItem wi)
         {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
             // Build json patch document from fields
             JsonPatchDocument patchDocument = new JsonPatchDocument();
             foreach (string key in wi.Fields.Keys)
@@ -607,6 +606,8 @@ namespace WorkItemImport
 
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
             Logger.Log(LogLevel.Info, "");
+
+            wi.Relations = result.Relations;
         }
 
         private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
@@ -652,6 +653,8 @@ namespace WorkItemImport
             int newAttachmentsCount = newAttachments.Count();
 
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
+
+            wi.Relations = result.Relations;
         }
 
         private void AddSingleLinkToWorkItemAndSave(WiLink link, WorkItem sourceWI, WorkItem targetWI, string comment)
