@@ -101,15 +101,18 @@ namespace WorkItemImport
                 if (incomplete)
                     Logger.Log(LogLevel.Warning, $"'{rev.ToString()}' - not all changes were saved.");
 
-                if (rev.Attachments.All(a => a.Change != ReferenceChangeType.Added) && rev.AttachmentReferences)
-                {
-                    Logger.Log(LogLevel.Debug, $"Correcting description on '{rev.ToString()}'.");
-                    _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
-                }
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                }
+
+                _witClientUtils.SaveWorkItemAttachments(rev, wi);
+
+                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
+                {
+                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
+                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
                 }
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
@@ -126,13 +129,7 @@ namespace WorkItemImport
                     }
                 }
 
-                _witClientUtils.SaveWorkItem(rev, wi);
-
-                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
-                {
-                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
-                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
-                }
+                _witClientUtils.SaveWorkItemFields(wi);
 
                 if (wi.Id.HasValue)
                 {

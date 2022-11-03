@@ -823,35 +823,38 @@ namespace Migration.Wi_Import.Tests
 
             Assert.That(createdWI.Relations.Count, Is.EqualTo(2));
         }
-        //TODO: test SaveWorkItem
 
         [Test]
-        public void When_calling_save_workitem_with_empty_args_Then_an_exception_is_thrown()
+        public void When_calling_save_workitem_attachments_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.SaveWorkItem(null, null),
+                () => wiUtils.SaveWorkItemAttachments(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
         [Test]
-        public void When_calling_save_workitem_with_populated_workitem_Then_workitem_is_updated_in_store()
+        public void When_calling_save_workitem_fields_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.SaveWorkItemFields(null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_save_workitem_attachments_with_populated_workitem_Then_workitem_is_updated_in_store()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
-
-            // Add fields
-            createdWI.Fields[WiFieldReference.Title] = "My work item";
-            createdWI.Fields[WiFieldReference.Description] = "My description";
-            createdWI.Fields[WiFieldReference.Priority] = "1";
 
             // Add attachment
-
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
             att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
@@ -862,8 +865,34 @@ namespace Migration.Wi_Import.Tests
             revision.Attachments.Add(att);
 
             // Perform save
+            wiUtils.SaveWorkItemAttachments(revision, createdWI);
+            wiUtils.SaveWorkItemFields(createdWI);
 
-            wiUtils.SaveWorkItem(revision, createdWI);
+            // Assertions
+            Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
+            Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
+            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split(", original ID: ")[0], Is.EqualTo(att.Comment));
+            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split(", original ID: ")[1], Is.EqualTo(att.AttOriginId));
+        }
+
+        [Test]
+        public void When_calling_save_workitem_fields_with_populated_workitem_Then_workitem_is_updated_in_store()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+
+            // Add fields
+            createdWI.Fields[WiFieldReference.Title] = "My work item";
+            createdWI.Fields[WiFieldReference.Description] = "My description";
+            createdWI.Fields[WiFieldReference.Priority] = "1";
+
+            WiRevision revision = new WiRevision();
+
+            // Perform save
+            wiUtils.SaveWorkItemAttachments(revision, createdWI);
+            wiUtils.SaveWorkItemFields(createdWI);
 
             WorkItem updatedWI = null;
 
@@ -873,16 +902,9 @@ namespace Migration.Wi_Import.Tests
             }
 
             // Assertions
-
             Assert.That(updatedWI.Fields[WiFieldReference.Title], Is.EqualTo(createdWI.Fields[WiFieldReference.Title]));
             Assert.That(updatedWI.Fields[WiFieldReference.Description], Is.EqualTo(createdWI.Fields[WiFieldReference.Description]));
             Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
-
-            Assert.That(createdWI.Relations[0].Rel, Is.EqualTo("AttachedFile"));
-            Assert.That(createdWI.Relations[0].Url, Is.EqualTo("https://example.com"));
-            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split(", original ID: ")[0], Is.EqualTo(att.Comment));
-            Assert.That(createdWI.Relations[0].Attributes["comment"].ToString().Split(", original ID: ")[1], Is.EqualTo(att.AttOriginId));
-
         }
     }
 }
