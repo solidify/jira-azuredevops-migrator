@@ -109,6 +109,12 @@ namespace WorkItemImport
 
                 _witClientUtils.SaveWorkItemAttachments(rev, wi);
 
+                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
+                {
+                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
+                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
+                }
+
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
@@ -124,12 +130,6 @@ namespace WorkItemImport
                 }
 
                 _witClientUtils.SaveWorkItemFields(wi);
-
-                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
-                {
-                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
-                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
-                }
 
                 if (wi.Id.HasValue)
                 {
