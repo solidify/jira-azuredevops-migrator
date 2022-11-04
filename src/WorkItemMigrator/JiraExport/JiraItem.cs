@@ -79,7 +79,7 @@ namespace JiraExport
                         else
                             fields[epicLinkField] = item.FromString;
                     }
-                    else if (item.Field == "Parent")
+                    else if (item.Field == "Parent" || item.Field == "IssueParentAssociation")
                     {
                         fieldChanges["parent"] = item.ToString;
 
