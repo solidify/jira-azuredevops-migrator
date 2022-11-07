@@ -40,6 +40,7 @@ namespace JiraExport
             Dictionary<string, object> fields = ExtractFields(issueKey, remoteIssue, jiraProvider);
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
+            var epicLinkField = jiraProvider.GetSettings().EpicLinkField;
 
             // save these field since these might be removed in the loop
             string reporter = GetAuthor(fields);
@@ -62,10 +63,29 @@ namespace JiraExport
                 Dictionary<string, object> fieldChanges = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
-
                 foreach (var item in items)
                 {
-                    if (item.Field == "Link")
+                    if (item.Field == "Epic Link" && !string.IsNullOrWhiteSpace(epicLinkField))
+                    {
+                        fieldChanges[epicLinkField] = item.ToString;
+
+                        // undo field change
+                        if (string.IsNullOrWhiteSpace(item.From))
+                            fields.Remove(epicLinkField);
+                        else
+                            fields[epicLinkField] = item.FromString;
+                    }
+                    else if (item.Field == "Parent" || item.Field == "IssueParentAssociation")
+                    {
+                        fieldChanges["parent"] = item.ToString;
+
+                        // undo field change
+                        if (string.IsNullOrWhiteSpace(item.From))
+                            fields.Remove("parent");
+                        else
+                            fields["parent"] = item.FromString;
+                    }
+                    else if (item.Field == "Link")
                     {
                         var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
                         if (linkChange == null)
@@ -138,7 +158,7 @@ namespace JiraExport
             var author = "NoAuthorDefined";
             if (c.AuthorUser is null)
             {
-                Logger.Log(LogLevel.Warning, $"c.AuthorUser is null in comment revision for jiraItem.Key: '{ jiraItem.Key}'. Using NoAuthorDefined as author. ");
+                Logger.Log(LogLevel.Warning, $"c.AuthorUser is null in comment revision for jiraItem.Key: '{jiraItem.Key}'. Using NoAuthorDefined as author. ");
             }
             else
             {
@@ -254,7 +274,6 @@ namespace JiraExport
             else
                 Logger.Log(LogLevel.Debug, $"No link to undo for '{linkChange.ToString()}'");
         }
-
         private static RevisionAction<JiraLink> TransformLinkChange(JiraChangeItem item, string sourceItemKey, IJiraProvider jira)
         {
             string targetItemKey = string.Empty;
@@ -278,7 +297,6 @@ namespace JiraExport
                 Logger.Log(LogLevel.Error, $"Link change not handled!");
                 return null;
             }
-
             var linkType = jira.GetLinkType(linkTypeString, targetItemKey);
             if (linkType == null)
             {
