@@ -11,6 +11,8 @@ using Migration.Common.Config;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using System.Diagnostics.CodeAnalysis;
+using Type = Migration.Common.Config.Type;
+using System.Linq;
 
 namespace Migration.Jira_Export.Tests
 {
@@ -56,6 +58,72 @@ namespace Migration.Jira_Export.Tests
             JiraMapper sut = createJiraMapper();
 
             Assert.Throws<System.ArgumentNullException>(() => { sut.Map(null); });
+        }
+
+        [Test]
+        public void When_calling_map_on_an_issue_with_an_epic_link_and_a_parent_Then_two_parent_links_are_mapped()
+        {
+            //Arrange
+            var provider = _fixture.Freeze<IJiraProvider>();
+            long issueId = _fixture.Create<long>();
+            string issueKey = _fixture.Create<string>();
+            string epicId = _fixture.Create<long>().ToString();
+            string epicKey = "EpicKey";
+            string parentId = _fixture.Create<long>().ToString();
+            string parentKey = "ParentKey";
+
+            var fields = JObject.Parse(@"{
+                'issuetype': {'name': 'Story'},
+                'EpicLinkField': 'EpicKey'
+            }");
+            var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
+
+            var changelog = new List<JObject>() { 
+                new HistoryItem() 
+                {
+                    Field = "Epic Link",
+                    FieldType = "custom",
+                    To = epicId,
+                    ToString = epicKey
+                }.ToJObject(),
+                new HistoryItem() 
+                {
+                    Id = 1,
+                    Field = "Parent",
+                    FieldType = "jira",
+                    To = parentId,
+                    ToString = parentKey
+                }.ToJObject()
+            };
+
+            JObject remoteIssue = new JObject
+            {
+                { "id", issueId },
+                { "key", issueKey },
+                { "fields", fields },
+                { "renderedFields", renderedFields }
+            };
+
+            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
+            provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
+            var jiraSettings = createJiraSettings();
+            provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
+            var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
+            JiraMapper sut = createJiraMapper();
+
+            //Act
+            WiItem actual = sut.Map(jiraItem);
+
+            //Assert
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(3, actual.Revisions.Count());
+                Assert.AreEqual(0, actual.Revisions[0].Links.Count());
+                Assert.AreEqual(1, actual.Revisions[1].Links.Count());
+                Assert.AreEqual(epicKey, actual.Revisions[1].Links[0].TargetOriginId);
+                Assert.AreEqual(1, actual.Revisions[2].Links.Count());
+                Assert.AreEqual(parentKey, actual.Revisions[2].Links[0].TargetOriginId);
+            });
         }
 
         [Test]
@@ -158,16 +226,25 @@ namespace Migration.Jira_Export.Tests
             provider.GetSettings().ReturnsForAnyArgs(createJiraSettings());
 
             ConfigJson cjson = new ConfigJson();
-            TypeMap t = new TypeMap();
-            t.Types = new List<Type>();
+            
             FieldMap f = new FieldMap();
             f.Fields = new List<Field>();
-            cjson.TypeMap = t;
+            cjson.FieldMap = f;
+
+            TypeMap t = new TypeMap();
+            t.Types = new List<Type>();
             Type type = new Type();
             type.Source = "Story";
             type.Target = "User Story";
             t.Types.Add(type);
-            cjson.FieldMap = f;
+            cjson.TypeMap = t;
+
+            LinkMap linkMap = new LinkMap();
+            linkMap.Links = new List<Link>();
+            var epicLinkMap = new Link() { Source = "Epic", Target = "System.LinkTypes.Hierarchy-Reverse" };
+            var parentLinkMap = new Link() { Source = "Parent", Target = "System.LinkTypes.Hierarchy-Reverse" };
+            linkMap.Links.AddRange(new Link[] { epicLinkMap, parentLinkMap });
+            cjson.LinkMap = linkMap;
 
             JiraMapper sut = new JiraMapper(provider, cjson);
 
