@@ -278,15 +278,14 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapValue(null, null, null, null); });
         }
 
-        [TestCase("")]
-        [TestCase(" ")]
-        [TestCase("\r\n")]
-        public void When_calling_correct_rendered_html_value_with_empty_or_whitespace_string_arg_Then_the_description_is_mapped(string description)
+        [Test]
+        public void When_calling_correct_rendered_html_value_with_empty_or_whitespace_string_arg_Then_the_description_is_mapped()
         {
             //Arrange
             var provider = _fixture.Freeze<IJiraProvider>();
             provider.DownloadIssue(default).Returns(new JObject());
             var revision = _fixture.Freeze<JiraRevision>();
+            string description = string.Empty;
 
             //Act
             string output = FieldMapperUtils.CorrectRenderedHtmlvalue(description, revision);
