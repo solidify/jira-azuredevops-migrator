@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using JiraExport;
 using Common.Config;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
@@ -278,13 +279,21 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
-        public void When_calling_correct_rendered_html_value_with_empty_string_arg_Then_an_exception_is_thrown()
+        public void When_calling_correct_rendered_html_value_with_empty_or_whitespace_string_arg_Then_the_description_is_mapped()
         {
+            //Arrange
             var provider = _fixture.Freeze<IJiraProvider>();
             provider.DownloadIssue(default).Returns(new JObject());
             var revision = _fixture.Freeze<JiraRevision>();
+            string description = string.Empty;
 
-            Assert.That(() => FieldMapperUtils.CorrectRenderedHtmlvalue("", revision), Throws.InstanceOf<ArgumentException>());
+            //Act
+            string output = FieldMapperUtils.CorrectRenderedHtmlvalue(description, revision);
+            
+            //Assert
+            Assert.Multiple(() =>
+                Assert.AreEqual(description, output)
+            );
         }
 
         [Test]
