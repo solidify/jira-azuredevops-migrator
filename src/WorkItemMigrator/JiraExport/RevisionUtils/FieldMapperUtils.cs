@@ -168,7 +168,7 @@ namespace JiraExport
             var htmlValue = value.ToString();
 
             if (string.IsNullOrWhiteSpace(htmlValue))
-                throw new ArgumentNullException(nameof(value));
+                return htmlValue;
 
             foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
             {
