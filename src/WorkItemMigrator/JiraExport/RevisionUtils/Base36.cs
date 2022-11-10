@@ -34,21 +34,5 @@ namespace JiraExport.RevisionUtils
 
             return negative ? decoded * -1 : decoded;
         }
-
-        public static string Encode(long value)
-        {
-            if (value == long.MinValue)
-            {
-                //hard coded value due to error when getting absolute value below: "Negating the minimum value of a twos complement number is invalid.".
-                return "-1Y2P0IJ32E8E8";
-            }
-            var negative = value < 0;
-            value = Math.Abs(value);
-            var encoded = string.Empty;
-            do
-                encoded = Digits[(int)(value % Digits.Length)] + encoded;
-            while ((value /= Digits.Length) != 0);
-            return negative ? "-" + encoded : encoded;
-        }
     }
 }
