@@ -531,7 +531,7 @@ namespace WorkItemImport
                             s.Equals(WiFieldReference.ClosedBy, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null ||
                             s.Equals(WiFieldReference.Tags, StringComparison.InvariantCultureIgnoreCase) && fieldValue == null:
 
-                            Logger.Log(LogLevel.Warning, $"Field '{s}' was null. Skipping...");
+                            Logger.Log(LogLevel.Info, $"Field '{s}' was null on the work item. Omitting...");
                             break;
                         case var s when s.Equals(WiFieldReference.ChangedDate, StringComparison.InvariantCultureIgnoreCase):
                             break;
