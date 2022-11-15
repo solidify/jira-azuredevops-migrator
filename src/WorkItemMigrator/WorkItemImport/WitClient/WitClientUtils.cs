@@ -519,7 +519,11 @@ namespace WorkItemImport
             }
             catch (AggregateException ex)
             {
-                Logger.Log(ex, "Work Item " + wi.Id + " failed to save.");
+                foreach (Exception ex2 in ex.InnerExceptions)
+                {
+                    Logger.Log(LogLevel.Error, ex2.Message);
+                }
+                Logger.Log(LogLevel.Error, "Work Item " + wi.Id + " failed to save.");
             }
         }
 
