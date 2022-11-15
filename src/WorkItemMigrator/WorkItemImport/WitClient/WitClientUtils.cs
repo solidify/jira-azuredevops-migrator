@@ -82,6 +82,7 @@ namespace WorkItemImport
                 }
                 catch (AggregateException ex)
                 {
+                    Logger.Log(LogLevel.Error, ex.Message);
                     foreach (Exception ex2 in ex.InnerExceptions)
                     {
                         Logger.Log(LogLevel.Error, ex2.Message);
@@ -90,7 +91,6 @@ namespace WorkItemImport
                 }
                 catch (Exception ex)
                 {
-
                     Logger.Log(LogLevel.Error, ex.Message);
                     return false;
                 }
