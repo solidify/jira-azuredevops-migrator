@@ -80,12 +80,18 @@ namespace WorkItemImport
                     }
                     return false;
                 }
-
+                catch (AggregateException ex)
+                {
+                    Logger.Log(LogLevel.Error, ex.Message);
+                    foreach (Exception ex2 in ex.InnerExceptions)
+                    {
+                        Logger.Log(LogLevel.Error, ex2.Message);
+                    }
+                    return false;
+                }
                 catch (Exception ex)
                 {
-
                     Logger.Log(LogLevel.Error, ex.Message);
-                    return false;
                 }
             }
             else
