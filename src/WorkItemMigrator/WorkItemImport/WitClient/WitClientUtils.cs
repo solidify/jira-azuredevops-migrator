@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -207,7 +208,10 @@ namespace WorkItemImport
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
                 }
                 else
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
+                {
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
+                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(1);
+                }
             }
 
         }
@@ -469,11 +473,11 @@ namespace WorkItemImport
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                   AddSingleAttachmentToWorkItemAndSave(attachment, wi);
+                   AddSingleAttachmentToWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(1), rev.Author);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi);
+                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(1), rev.Author);
                 }
             }
         }
@@ -490,13 +494,11 @@ namespace WorkItemImport
             foreach (string key in wi.Fields.Keys)
             {
                 if (new string[] { 
-                    WiFieldReference.ChangedDate,
                     WiFieldReference.BoardColumn,
                     WiFieldReference.BoardColumnDone,
                     WiFieldReference.BoardLane,
                 }.Contains(key))
                     continue;
-
 
                 object val = wi.Fields[key];
 
@@ -575,7 +577,7 @@ namespace WorkItemImport
             }
         }
 
-        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi, object changedDate = default, object changedBy = default)
         {
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att);
@@ -603,6 +605,26 @@ namespace WorkItemImport
                 }
             };
 
+            if (changedDate != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedDate,
+                    Value = changedDate
+                });
+            }
+
+            if (changedBy != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedBy,
+                    Value = changedBy
+                });
+            }
+
             var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
             var previousAttachmentsCount = attachments.Count();
 
@@ -621,7 +643,7 @@ namespace WorkItemImport
             wi.Relations = result.Relations;
         }
 
-        private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi, DateTime changedDate = default, string changedBy = default)
         {
             WorkItemRelation existingAttachmentRelation =
                 wi.Relations?.SingleOrDefault(
@@ -650,6 +672,26 @@ namespace WorkItemImport
                     }
                 }
             };
+
+            if (changedDate != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedDate,
+                    Value = changedDate
+                });
+            }
+
+            if (changedBy != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedBy,
+                    Value = changedBy
+                });
+            }
 
             IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
             int previousAttachmentsCount = existingAttachments.Count();
