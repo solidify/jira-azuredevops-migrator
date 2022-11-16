@@ -25,9 +25,9 @@ namespace WorkItemImport
 
         public delegate V IsAttachmentMigratedDelegate<in T, U, out V>(T input, out U output);
 
-        public WorkItem CreateWorkItem(string type)
+        public WorkItem CreateWorkItem(string type, DateTime createdDate = default, string createdBy = "")
         {
-            return _witClientWrapper.CreateWorkItem(type);
+            return _witClientWrapper.CreateWorkItem(type, createdDate, createdBy);
         }
 
         public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)

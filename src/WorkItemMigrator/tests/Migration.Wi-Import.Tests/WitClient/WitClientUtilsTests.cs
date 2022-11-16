@@ -32,12 +32,16 @@ namespace Migration.Wi_Import.Tests
 
             }
 
-            public WorkItem CreateWorkItem(string wiType)
+            public WorkItem CreateWorkItem(string wiType, DateTime createdDate = default, string createdBy = "")
             {
                 WorkItem workItem = new WorkItem();
                 workItem.Id = _wiIdCounter;
                 workItem.Url = $"https://example/workItems/{_wiIdCounter}";
                 workItem.Fields[WiFieldReference.WorkItemType] = wiType;
+                if(createdDate != default)
+                    workItem.Fields[WiFieldReference.CreatedDate] = createdDate;
+                if (createdBy != default)
+                    workItem.Fields[WiFieldReference.CreatedBy] = createdBy;
                 workItem.Relations = new List<WorkItemRelation>();
                 _wiCache[_wiIdCounter] = (workItem);
                 _wiIdCounter++;

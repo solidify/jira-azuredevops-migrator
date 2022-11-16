@@ -37,7 +37,7 @@ namespace WorkItemImport
             DefaultWorkItemType = DefaultWorkItemTypeCategory.DefaultWorkItemType;
         }
 
-        public WorkItem CreateWorkItem(string wiType)
+        public WorkItem CreateWorkItem(string wiType, DateTime createdDate = default, string createdBy = "")
         {
             JsonPatchDocument patchDoc = new JsonPatchDocument
             {
@@ -48,6 +48,26 @@ namespace WorkItemImport
                     Value = "[Placeholder Name]"
                 }
             };
+
+            if (createdDate != default)
+            {
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.CreatedDate,
+                    Value = createdDate
+                });
+            }
+
+            if (createdBy != default)
+            {
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.CreatedBy,
+                    Value = createdBy
+                });
+            }
 
             WorkItem wiOut;
             try
