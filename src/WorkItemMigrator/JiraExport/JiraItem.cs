@@ -101,9 +101,14 @@ namespace JiraExport
                         if (attachmentChange == null)
                             continue;
 
-                        attachmentChanges.Add(attachmentChange);
-
-                        UndoAttachmentChange(attachmentChange, attachments);
+                        if (UndoAttachmentChange(attachmentChange, attachments))
+                        {
+                            attachmentChanges.Add(attachmentChange);
+                        }
+                        else
+                        {
+                            Logger.Log(LogLevel.Warning, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
+                        }
                     }
                     else
                     {
@@ -182,18 +187,22 @@ namespace JiraExport
             };
         }
 
-        private static void UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
+        private static bool UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
         {
+            bool result = false;
             if (attachmentChange.ChangeType == RevisionChangeType.Removed)
             {
                 Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
-                return;
             }
-
-            if (attachments.Remove(attachmentChange.Value))
-                Logger.Log(LogLevel.Debug, $"Undone attachment '{attachmentChange.ToString()}'.");
             else
-                Logger.Log(LogLevel.Debug, $"No attachment to undo for '{attachmentChange.ToString()}'.");
+            {
+                result = attachments.Remove(attachmentChange.Value);
+                if (result)
+                    Logger.Log(LogLevel.Debug, $"Undone attachment '{attachmentChange.ToString()}'.");
+                else
+                    Logger.Log(LogLevel.Debug, $"No attachment to undo for '{attachmentChange.ToString()}'.");
+            }
+            return result;
         }
 
         private static RevisionAction<JiraAttachment> TransformAttachmentChange(JiraChangeItem item)
