@@ -57,6 +57,13 @@ namespace WorkItemImport
                     Path = "/fields/" + WiFieldReference.CreatedDate,
                     Value = createdDate
                 });
+
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedDate,
+                    Value = createdDate
+                });
             }
 
             if (createdBy != default)
@@ -65,6 +72,13 @@ namespace WorkItemImport
                 {
                     Operation = Operation.Add,
                     Path = "/fields/" + WiFieldReference.CreatedBy,
+                    Value = createdBy
+                });
+
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedBy,
                     Value = createdBy
                 });
             }
