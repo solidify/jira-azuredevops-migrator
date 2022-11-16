@@ -72,7 +72,7 @@ namespace WorkItemImport
             WorkItem wiOut;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:false, expand:WorkItemExpand.All).Result;
+                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:true, expand:WorkItemExpand.All).Result;
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
