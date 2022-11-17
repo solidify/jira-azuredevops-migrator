@@ -642,6 +642,9 @@ namespace WorkItemImport
             Logger.Log(LogLevel.Info, "");
 
             wi.Relations = result.Relations;
+
+            // While updating the work item, the changed date can be increased, hence we take it over
+            wi.Fields[WiFieldReference.ChangedDate] = result.Fields[WiFieldReference.ChangedDate];
         }
 
         private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi, DateTime changedDate = default, string changedBy = default)
