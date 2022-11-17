@@ -209,8 +209,9 @@ namespace WorkItemImport
                 }
                 else
                 {
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
-                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(1);
+                    // Seen while testing: DevOps can add a few milliseconds to work item createdDate, hence adding more here to the revision time
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(5).ToString("o") });
+                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(5);
                 }
             }
 
@@ -473,11 +474,11 @@ namespace WorkItemImport
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                   AddSingleAttachmentToWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(1), rev.Author);
+                   AddSingleAttachmentToWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(1), rev.Author);
+                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
                 }
             }
         }
