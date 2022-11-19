@@ -84,10 +84,13 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.AreEqual(2, jiraItem.Revisions.Count);
-            Assert.IsFalse(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
-            Assert.AreEqual(attachmentName, jiraItem.Revisions[1].AttachmentActions[0].Value.Filename);
-            Assert.AreEqual(attachmentId, jiraItem.Revisions[1].AttachmentActions[0].Value.Id);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(2, jiraItem.Revisions.Count);
+                Assert.IsFalse(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
+                Assert.AreEqual(attachmentName, jiraItem.Revisions[1].AttachmentActions[0].Value.Filename);
+                Assert.AreEqual(attachmentId, jiraItem.Revisions[1].AttachmentActions[0].Value.Id);
+            });
         }
 
         [Test]
@@ -144,8 +147,11 @@ namespace Migration.Jira_Export.Tests
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             //Assert
-            Assert.AreEqual(3, jiraItem.Revisions.Count);
-            Assert.IsTrue(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(3, jiraItem.Revisions.Count);
+                Assert.IsTrue(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
+            });
         }
 
         [Test]
