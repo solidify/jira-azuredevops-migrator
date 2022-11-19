@@ -156,7 +156,7 @@ namespace JiraExport
             }
             else
             {
-                Logger.Log(LogLevel.Warning, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
+                Logger.Log(LogLevel.Debug, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
             }
         }
 
