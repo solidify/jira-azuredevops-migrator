@@ -77,7 +77,6 @@ namespace JiraExport
                         case "Link":
                             HandleLinkChange(item, issueKey, jiraProvider, linkChanges, links);
                             break;
-
                         case "Attachment":
                             HandleAttachmentChange(item, attachmentChanges, attachments);
                             break;
