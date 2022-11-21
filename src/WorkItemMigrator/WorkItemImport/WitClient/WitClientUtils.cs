@@ -474,12 +474,16 @@ namespace WorkItemImport
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                   AddSingleAttachmentToWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
+                    AddSingleAttachmentToWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
                     RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
                 }
+
+                // The work item ChangeDate is altered when saving the attachment, make sure the Revision time does too.
+                // Otherwise it will not be an increased ChangedDate and we'll get an exception
+                rev.Time = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
             }
         }
 
