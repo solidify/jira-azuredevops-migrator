@@ -411,7 +411,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
         [TestCase("2|hzyxfj:", 1088341183.0)]
         [TestCase("2|hzyxfj:rx4", 1088341183.36184)]
-        public void When_calling_map_lexorank_value_with_valid_argument_Then_max_value_is_returned(string lexoRank, decimal expectedRank)
+        public void When_calling_map_lexorank_value_with_valid_argument_Then_the_correct_value_is_returned(string lexoRank, decimal expectedRank)
         {
             Assert.That(FieldMapperUtils.MapLexoRank(lexoRank), Is.EqualTo(expectedRank));
         }
