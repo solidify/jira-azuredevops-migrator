@@ -188,7 +188,10 @@ namespace JiraExport
                 : 0L;
 
             // calculate final rank value
-            var rank = Convert.ToDecimal($"{b36Rank}.{b36SubRank}", CultureInfo.InvariantCulture.NumberFormat);
+            var rank = Math.Round(
+                Convert.ToDecimal($"{b36Rank}.{b36SubRank}", CultureInfo.InvariantCulture.NumberFormat),
+                7 // DevOps seems to ignore anything over 7 decimal places long
+            );
 
             if (CalculatedRanks.ContainsKey(rank) && CalculatedRanks[rank] != lexoRank)
             {
