@@ -424,5 +424,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             Assert.That(FieldMapperUtils.MapLexoRank(lexoRank), Is.EqualTo(decimal.MaxValue));
         }
+
+        [Test]
+        public void
+            When_calling_map_lexorank_value_with_over_precise_argument_Then_the_correct_devops_precision_value_is_returned()
+        {
+            Assert.That(FieldMapperUtils.MapLexoRank("0|hzyxfj:hzyxfj"), Is.EqualTo(1088341183.1088341M));
+        }
     }
 }
