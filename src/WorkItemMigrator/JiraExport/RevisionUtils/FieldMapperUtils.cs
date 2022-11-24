@@ -191,9 +191,14 @@ namespace JiraExport
             var rank = Convert.ToDecimal($"{b36Rank}.{b36SubRank}", CultureInfo.InvariantCulture.NumberFormat);
 
             if (CalculatedRanks.ContainsKey(rank) && CalculatedRanks[rank] != lexoRank)
+            {
                 Logger.Log(LogLevel.Warning, "Duplicate rank detected for different LexoRank values. You may need to re-balance the JIRA LexoRank. see: https://confluence.atlassian.com/adminjiraserver/managing-lexorank-938847803.html");
+            }
+            else
+            {
+                CalculatedRanks.Add(rank, lexoRank);
+            }
 
-            CalculatedRanks.Add(rank, lexoRank);
             CalculatedLexoRanks.Add(lexoRank, rank);
             return rank;
         }
