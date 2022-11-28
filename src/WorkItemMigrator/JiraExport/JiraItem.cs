@@ -65,62 +65,24 @@ namespace JiraExport
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
                 foreach (var item in items)
                 {
-                    if (item.Field == "Epic Link" && !string.IsNullOrWhiteSpace(epicLinkField))
+                    switch (item.Field)
                     {
-                        fieldChanges[epicLinkField] = item.ToString;
-
-                        // undo field change
-                        if (string.IsNullOrWhiteSpace(item.From))
-                            fields.Remove(epicLinkField);
-                        else
-                            fields[epicLinkField] = item.FromString;
-                    }
-                    else if (item.Field == "Parent" || item.Field == "IssueParentAssociation")
-                    {
-                        fieldChanges["parent"] = item.ToString;
-
-                        // undo field change
-                        if (string.IsNullOrWhiteSpace(item.From))
-                            fields.Remove("parent");
-                        else
-                            fields["parent"] = item.FromString;
-                    }
-                    else if (item.Field == "Link")
-                    {
-                        var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
-                        if (linkChange == null)
-                            continue;
-
-                        linkChanges.Add(linkChange);
-
-                        UndoLinkChange(linkChange, links);
-                    }
-                    else if (item.Field == "Attachment")
-                    {
-                        var attachmentChange = TransformAttachmentChange(item);
-                        if (attachmentChange == null)
-                            continue;
-
-                        if (UndoAttachmentChange(attachmentChange, attachments))
-                        {
-                            attachmentChanges.Add(attachmentChange);
-                        }
-                        else
-                        {
-                            Logger.Log(LogLevel.Warning, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
-                        }
-                    }
-                    else
-                    {
-                        var (fieldref, from, to) = TransformFieldChange(item, jiraProvider);
-
-                        fieldChanges[fieldref] = to;
-
-                        // undo field change
-                        if (string.IsNullOrEmpty(from))
-                            fields.Remove(fieldref);
-                        else
-                            fields[fieldref] = from;
+                        case "Epic Link" when !string.IsNullOrWhiteSpace(epicLinkField):
+                            HandleCustomFieldChange(item, epicLinkField, fieldChanges, fields);
+                            break;
+                        case "Parent":
+                        case "IssueParentAssociation":
+                            HandleCustomFieldChange(item, "parent", fieldChanges, fields);
+                            break;
+                        case "Link":
+                            HandleLinkChange(item, issueKey, jiraProvider, linkChanges, links);
+                            break;
+                        case "Attachment":
+                            HandleAttachmentChange(item, attachmentChanges, attachments);
+                            break;
+                        default:
+                            HandleFieldChange(item, jiraProvider, fieldChanges, fields);
+                            break;
                     }
                 }
 
@@ -145,6 +107,56 @@ namespace JiraExport
                 revAndI.Item1.Index = revAndI.Item2;
 
             return listOfRevisions;
+        }
+
+        private static void HandleCustomFieldChange(JiraChangeItem item, string customFieldName, Dictionary<string, object> fieldChanges, Dictionary<string, object> fields)
+        {
+            fieldChanges[customFieldName] = item.ToString;
+
+            // undo field change
+            if (string.IsNullOrWhiteSpace(item.From))
+                fields.Remove(customFieldName);
+            else
+                fields[customFieldName] = item.FromString;
+        }
+
+        private static void HandleFieldChange(JiraChangeItem item, IJiraProvider jiraProvider, Dictionary<string, object> fieldChanges, Dictionary<string, object> fields)
+        {
+            var (fieldref, from, to) = TransformFieldChange(item, jiraProvider);
+
+            fieldChanges[fieldref] = to;
+
+            // undo field change
+            if (string.IsNullOrEmpty(from))
+                fields.Remove(fieldref);
+            else
+                fields[fieldref] = from;
+        }
+
+        private static void HandleLinkChange(JiraChangeItem item, string issueKey, IJiraProvider jiraProvider, List<RevisionAction<JiraLink>> linkChanges, List<JiraLink> links)
+        {
+            var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
+            if (linkChange == null)
+                return;
+
+            linkChanges.Add(linkChange);
+            UndoLinkChange(linkChange, links);
+        }
+
+        private static void HandleAttachmentChange(JiraChangeItem item, List<RevisionAction<JiraAttachment>> attachmentChanges, List<JiraAttachment> attachments)
+        {
+            var attachmentChange = TransformAttachmentChange(item);
+            if (attachmentChange == null)
+                return;
+
+            if (UndoAttachmentChange(attachmentChange, attachments))
+            {
+                attachmentChanges.Add(attachmentChange);
+            }
+            else
+            {
+                Logger.Log(LogLevel.Debug, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
+            }
         }
 
         private static List<JiraRevision> BuildCommentRevisions(JiraItem jiraItem, IJiraProvider jiraProvider)
@@ -189,19 +201,21 @@ namespace JiraExport
 
         private static bool UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
         {
-            bool result = false;
             if (attachmentChange.ChangeType == RevisionChangeType.Removed)
             {
                 Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
+                return false;
             }
+            return RemoveAttachment(attachmentChange, attachments);
+        }
+
+        private static bool RemoveAttachment(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
+        {
+            var result = attachments.Remove(attachmentChange.Value);
+            if (result)
+                Logger.Log(LogLevel.Debug, $"Undone attachment '{attachmentChange.ToString()}'.");
             else
-            {
-                result = attachments.Remove(attachmentChange.Value);
-                if (result)
-                    Logger.Log(LogLevel.Debug, $"Undone attachment '{attachmentChange.ToString()}'.");
-                else
-                    Logger.Log(LogLevel.Debug, $"No attachment to undo for '{attachmentChange.ToString()}'.");
-            }
+                Logger.Log(LogLevel.Debug, $"No attachment to undo for '{attachmentChange.ToString()}'.");
             return result;
         }
 
