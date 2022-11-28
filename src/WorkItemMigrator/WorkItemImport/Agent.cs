@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
@@ -27,12 +25,6 @@ namespace WorkItemImport
     {
         private readonly MigrationContext _context;
         public Settings Settings { get; private set; }
-
-        public TfsTeamProjectCollection Collection
-        {
-            get; private set;
-        }
-
         public VsWebApi.VssConnection RestConnection { get; private set; }
         public Dictionary<string, int> IterationCache { get; private set; } = new Dictionary<string, int>();
         public int RootIteration { get; private set; }
@@ -52,12 +44,11 @@ namespace WorkItemImport
             }
         }
 
-        private Agent(MigrationContext context, Settings settings, VsWebApi.VssConnection restConn, TfsTeamProjectCollection soapConnection)
+        private Agent(MigrationContext context, Settings settings, VsWebApi.VssConnection restConn)
         {
             _context = context;
             Settings = settings;
             RestConnection = restConn;
-            Collection = soapConnection;
         }
 
         public WorkItem GetWorkItem(int wiId)
@@ -167,11 +158,7 @@ namespace WorkItemImport
             if (restConnection == null)
                 return null;
 
-            var soapConnection = EstablishSoapConnection(settings);
-            if (soapConnection == null)
-                return null;
-
-            var agent = new Agent(context, settings, restConnection, soapConnection);
+            var agent = new Agent(context, settings, restConnection);
 
             var witClientWrapper = new WitClientWrapper(settings.Account, settings.Project, settings.Pat);
             agent._witClientUtils = new WitClientUtils(witClientWrapper);
@@ -221,16 +208,6 @@ namespace WorkItemImport
                 Logger.Log(ex, $"Cannot establish connection to Azure DevOps/TFS.", LogLevel.Critical);
                 return null;
             }
-        }
-
-        private static TfsTeamProjectCollection EstablishSoapConnection(Settings settings)
-        {
-            NetworkCredential netCred = new NetworkCredential(string.Empty, settings.Pat);
-            VssBasicCredential basicCred = new VssBasicCredential(netCred);
-            VssCredentials tfsCred = new VssCredentials(basicCred);
-            var collection = new TfsTeamProjectCollection(new Uri(settings.Account), tfsCred);
-            collection.Authenticate();
-            return collection;
         }
 
         #endregion
