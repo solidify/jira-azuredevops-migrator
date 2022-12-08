@@ -245,8 +245,14 @@ namespace WorkItemImport
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = null });
                 }
 
-                if (revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && !rev.Fields.HasAnyByRefName(WiFieldReference.ClosedBy))
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = rev.Author });
+                if (revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (!rev.Fields.HasAnyByRefName(WiFieldReference.ClosedDate))
+                        rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = rev.Time });
+
+                    if (!rev.Fields.HasAnyByRefName(WiFieldReference.ClosedBy))
+                        rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = rev.Author });
+                }
             }
         }
 
