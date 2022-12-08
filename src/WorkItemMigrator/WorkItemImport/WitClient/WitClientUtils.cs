@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -25,9 +26,9 @@ namespace WorkItemImport
 
         public delegate V IsAttachmentMigratedDelegate<in T, U, out V>(T input, out U output);
 
-        public WorkItem CreateWorkItem(string type)
+        public WorkItem CreateWorkItem(string type, DateTime createdDate = default, string createdBy = "")
         {
-            return _witClientWrapper.CreateWorkItem(type);
+            return _witClientWrapper.CreateWorkItem(type, createdDate, createdBy);
         }
 
         public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)
@@ -207,7 +208,11 @@ namespace WorkItemImport
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
                 }
                 else
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
+                {
+                    // Seen while testing: DevOps can add a few milliseconds to work item createdDate, hence adding more here to the revision time
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(5).ToString("o") });
+                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(5);
+                }
             }
 
         }
@@ -469,12 +474,16 @@ namespace WorkItemImport
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                   AddSingleAttachmentToWorkItemAndSave(attachment, wi);
+                    AddSingleAttachmentToWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi);
+                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
                 }
+
+                // The work item ChangeDate is altered when saving the attachment, make sure the Revision time does too.
+                // Otherwise it will not be an increased ChangedDate and we'll get an exception
+                rev.Time = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
             }
         }
 
@@ -490,13 +499,11 @@ namespace WorkItemImport
             foreach (string key in wi.Fields.Keys)
             {
                 if (new string[] { 
-                    WiFieldReference.ChangedDate,
                     WiFieldReference.BoardColumn,
                     WiFieldReference.BoardColumnDone,
                     WiFieldReference.BoardLane,
                 }.Contains(key))
                     continue;
-
 
                 object val = wi.Fields[key];
 
@@ -575,7 +582,7 @@ namespace WorkItemImport
             }
         }
 
-        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi, object changedDate = default, object changedBy = default)
         {
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att);
@@ -603,6 +610,26 @@ namespace WorkItemImport
                 }
             };
 
+            if (changedDate != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedDate,
+                    Value = changedDate
+                });
+            }
+
+            if (changedBy != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedBy,
+                    Value = changedBy
+                });
+            }
+
             var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
             var previousAttachmentsCount = attachments.Count();
 
@@ -619,9 +646,12 @@ namespace WorkItemImport
             Logger.Log(LogLevel.Info, "");
 
             wi.Relations = result.Relations;
+
+            // While updating the work item, the changed date can be increased, hence we take it over
+            wi.Fields[WiFieldReference.ChangedDate] = result.Fields[WiFieldReference.ChangedDate];
         }
 
-        private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi, DateTime changedDate = default, string changedBy = default)
         {
             WorkItemRelation existingAttachmentRelation =
                 wi.Relations?.SingleOrDefault(
@@ -650,6 +680,26 @@ namespace WorkItemImport
                     }
                 }
             };
+
+            if (changedDate != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedDate,
+                    Value = changedDate
+                });
+            }
+
+            if (changedBy != default)
+            {
+                attachmentPatchDocument.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedBy,
+                    Value = changedBy
+                });
+            }
 
             IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
             int previousAttachmentsCount = existingAttachments.Count();

@@ -30,7 +30,7 @@ namespace WorkItemImport
             TeamProject = ProjectClient.GetProject(project).Result;
         }
 
-        public WorkItem CreateWorkItem(string wiType)
+        public WorkItem CreateWorkItem(string wiType, DateTime createdDate = default, string createdBy = "")
         {
             JsonPatchDocument patchDoc = new JsonPatchDocument
             {
@@ -42,10 +42,44 @@ namespace WorkItemImport
                 }
             };
 
+            if (createdDate != default)
+            {
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.CreatedDate,
+                    Value = createdDate
+                });
+
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedDate,
+                    Value = createdDate
+                });
+            }
+
+            if (createdBy != default)
+            {
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.CreatedBy,
+                    Value = createdBy
+                });
+
+                patchDoc.Add(new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/fields/" + WiFieldReference.ChangedBy,
+                    Value = createdBy
+                });
+            }
+
             WorkItem wiOut;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:false, expand:WorkItemExpand.All).Result;
+                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:true, expand:WorkItemExpand.All).Result;
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
