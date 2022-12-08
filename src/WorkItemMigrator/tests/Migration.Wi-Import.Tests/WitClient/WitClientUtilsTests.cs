@@ -861,6 +861,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
 
             // Add attachment
             WiAttachment att = new WiAttachment();
@@ -890,6 +891,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
 
             // Add fields
             createdWI.Fields[WiFieldReference.Title] = "My work item";
