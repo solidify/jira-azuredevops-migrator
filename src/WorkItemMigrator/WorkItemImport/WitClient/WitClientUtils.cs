@@ -215,6 +215,9 @@ namespace WorkItemImport
                 else
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = workItemChangedDate.ToString("o") });
+                    // The work item ChangeDate is altered when saving the attachment, make sure the Revision time does too.
+                    // Otherwise it will not be an increased ChangedDate and we'll get an exception
+                    rev.Time = workItemChangedDate;
                 }
             }
 
@@ -472,21 +475,28 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(wi));
             }
 
+            // Calculate UpdatedTime
+            DateTime attachmentUpdatedDate = rev.Time;
+            DateTime workItemChangedDate = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
+            if (workItemChangedDate.ToUniversalTime() > rev.Time.ToUniversalTime())
+            {
+                attachmentUpdatedDate = workItemChangedDate;
+                // The work item ChangeDate is altered when saving the attachment, make sure the Revision time does too.
+                // Otherwise it will not be an increased ChangedDate and we'll get an exception
+                rev.Time = workItemChangedDate;
+            }
+
             // Save attachments
             foreach (WiAttachment attachment in rev.Attachments)
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                    AddSingleAttachmentToWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
+                    AddSingleAttachmentToWorkItemAndSave(attachment, wi, attachmentUpdatedDate, rev.Author);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, rev.Time.AddMilliseconds(5), rev.Author);
+                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, attachmentUpdatedDate, rev.Author);
                 }
-
-                // The work item ChangeDate is altered when saving the attachment, make sure the Revision time does too.
-                // Otherwise it will not be an increased ChangedDate and we'll get an exception
-                rev.Time = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
             }
         }
 
