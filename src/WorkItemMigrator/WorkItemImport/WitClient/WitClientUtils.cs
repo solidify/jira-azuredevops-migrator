@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -12,6 +11,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Migration.Common;
 using Migration.Common.Log;
 using Migration.WIContract;
+using WorkItemImport.WitClient;
 
 namespace WorkItemImport
 {
@@ -521,12 +521,7 @@ namespace WorkItemImport
                 object val = wi.Fields[key];
 
                 patchDocument.Add(
-                    new JsonPatchOperation()
-                    {
-                        Operation = Operation.Add,
-                        Path = "/fields/" + key,
-                        Value = val
-                    }
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, key, val)
                 );
             }
 
@@ -625,22 +620,16 @@ namespace WorkItemImport
 
             if (changedDate != default)
             {
-                attachmentPatchDocument.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.ChangedDate,
-                    Value = changedDate
-                });
+                attachmentPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
+                );
             }
 
             if (changedBy != default)
             {
-                attachmentPatchDocument.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.ChangedBy,
-                    Value = changedBy
-                });
+                attachmentPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy)
+                );
             }
 
             var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
@@ -696,22 +685,16 @@ namespace WorkItemImport
 
             if (changedDate != default)
             {
-                attachmentPatchDocument.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.ChangedDate,
-                    Value = changedDate
-                });
+                attachmentPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
+                );
             }
 
             if (changedBy != default)
             {
-                attachmentPatchDocument.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.ChangedBy,
-                    Value = changedBy
-                });
+                attachmentPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy)
+                );
             }
 
             IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();

@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Migration.Common.Log;
 using Migration.WIContract;
+using WorkItemImport.WitClient;
 
 namespace WorkItemImport
 {
@@ -34,46 +35,29 @@ namespace WorkItemImport
         {
             JsonPatchDocument patchDoc = new JsonPatchDocument
             {
-                new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/"+WiFieldReference.Title,
-                    Value = "[Placeholder Name]"
-                }
+                JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.Title, "[Placeholder Name]")
             };
 
             if (createdDate != default)
             {
-                patchDoc.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.CreatedDate,
-                    Value = createdDate
-                });
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.CreatedDate, createdDate)
+                );
 
-                patchDoc.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.ChangedDate,
-                    Value = createdDate
-                });
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, createdDate)
+                );
             }
 
             if (createdBy != default)
             {
-                patchDoc.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.CreatedBy,
-                    Value = createdBy
-                });
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.CreatedBy, createdBy)
+                );
 
-                patchDoc.Add(new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/" + WiFieldReference.ChangedBy,
-                    Value = createdBy
-                });
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, createdBy)
+                );
             }
 
             WorkItem wiOut;
