@@ -250,24 +250,28 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+
+            DateTime now = DateTime.Now;
+
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
+            rev.Time = now;
             rev.Index = 0;
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+            createdWI.Fields[WiFieldReference.ChangedDate] = now;
 
             wiUtils.EnsureDateFields(rev, createdWI);
 
             Assert.That(rev.Fields[0].ReferenceName, Is.EqualTo(WiFieldReference.CreatedDate));
             Assert.That(
                 DateTime.Parse(rev.Fields[0].Value.ToString()),
-                Is.LessThan(createdWI.Fields[WiFieldReference.ChangedDate]));
+                Is.EqualTo(createdWI.Fields[WiFieldReference.ChangedDate]));
 
             Assert.That(rev.Fields[1].ReferenceName, Is.EqualTo(WiFieldReference.ChangedDate));
             Assert.That(
                 DateTime.Parse(rev.Fields[1].Value.ToString()),
-                Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString())));
+                Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString()).AddMilliseconds(1)));
         }
 
         [Test]
