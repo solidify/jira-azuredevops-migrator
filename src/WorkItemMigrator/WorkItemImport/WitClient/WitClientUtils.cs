@@ -203,15 +203,18 @@ namespace WorkItemImport
             }
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedDate))
             {
-                if (DateTime.Parse(wi.Fields[WiFieldReference.ChangedDate].ToString()) == rev.Time)
+                DateTime workItemChangedDate = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
+                if (workItemChangedDate.ToUniversalTime() < rev.Time.ToUniversalTime())
+                {
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
+                }
+                else if (workItemChangedDate.ToUniversalTime() == rev.Time.ToUniversalTime())
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
                 }
                 else
                 {
-                    // Seen while testing: DevOps can add a few milliseconds to work item createdDate, hence adding more here to the revision time
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(5).ToString("o") });
-                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(5);
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = workItemChangedDate.ToString("o") });
                 }
             }
 
