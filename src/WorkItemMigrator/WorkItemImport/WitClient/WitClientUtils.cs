@@ -203,21 +203,15 @@ namespace WorkItemImport
             }
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedDate))
             {
-                DateTime workItemChangedDate = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
-                if (workItemChangedDate.ToUniversalTime() < rev.Time.ToUniversalTime())
-                {
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
-                }
-                else if (workItemChangedDate.ToUniversalTime() == rev.Time.ToUniversalTime())
+                if (DateTime.Parse(wi.Fields[WiFieldReference.ChangedDate].ToString()).ToUniversalTime() == rev.Time.ToUniversalTime())
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
                 }
                 else
                 {
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = workItemChangedDate.ToString("o") });
-                    // The work item ChangeDate is altered when saving the attachment, make sure the Revision time does too.
-                    // Otherwise it will not be an increased ChangedDate and we'll get an exception
-                    rev.Time = workItemChangedDate;
+                    // ADO can add a few milliseconds to work item createdDate when adding an attachment, hence adding more here to the revision time
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(5).ToString("o") });
+                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(5);
                 }
             }
 
