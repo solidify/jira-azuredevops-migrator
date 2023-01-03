@@ -585,7 +585,7 @@ namespace WorkItemImport
             }
         }
 
-        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi, object changedDate = default, object changedBy = default)
+        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi, DateTime? changedDate = null, string changedBy = "")
         {
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att);
@@ -613,14 +613,24 @@ namespace WorkItemImport
                 }
             };
 
-            if (changedDate != default)
+            if (changedDate != null)
             {
-                attachmentPatchDocument.Add(
-                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
-                );
+                DateTime workItemChangedDate = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
+                if (changedDate.Value.ToUniversalTime() >= workItemChangedDate.ToUniversalTime())
+                {
+                    attachmentPatchDocument.Add(
+                        JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
+                    );
+                }
+                else
+                {
+                    attachmentPatchDocument.Add(
+                        JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, workItemChangedDate.AddMilliseconds(1))
+                    );
+                }
             }
 
-            if (changedBy != default)
+            if (!string.IsNullOrEmpty(changedBy))
             {
                 attachmentPatchDocument.Add(
                     JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy)
