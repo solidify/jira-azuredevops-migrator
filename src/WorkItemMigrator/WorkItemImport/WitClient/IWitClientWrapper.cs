@@ -9,7 +9,7 @@ namespace WorkItemImport
 {
     public interface IWitClientWrapper
     {
-        WorkItem CreateWorkItem(string wiType, DateTime createdDate = default, string createdBy = "");
+        WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "");
         WorkItem GetWorkItem(int wiId);
         WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId);
         TeamProject GetProject(string projectId);

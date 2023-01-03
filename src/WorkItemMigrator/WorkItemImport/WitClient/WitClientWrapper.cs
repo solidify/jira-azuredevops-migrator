@@ -31,14 +31,14 @@ namespace WorkItemImport
             TeamProject = ProjectClient.GetProject(project).Result;
         }
 
-        public WorkItem CreateWorkItem(string wiType, DateTime createdDate = default, string createdBy = "")
+        public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
         {
             JsonPatchDocument patchDoc = new JsonPatchDocument
             {
                 JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.Title, "[Placeholder Name]")
             };
 
-            if (createdDate != default)
+            if (createdDate != null)
             {
                 patchDoc.Add(
                     JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.CreatedDate, createdDate)
@@ -49,7 +49,7 @@ namespace WorkItemImport
                 );
             }
 
-            if (createdBy != default)
+            if (!string.IsNullOrEmpty(createdBy))
             {
                 patchDoc.Add(
                     JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.CreatedBy, createdBy)

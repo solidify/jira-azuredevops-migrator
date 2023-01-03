@@ -26,7 +26,7 @@ namespace WorkItemImport
 
         public delegate V IsAttachmentMigratedDelegate<in T, U, out V>(T input, out U output);
 
-        public WorkItem CreateWorkItem(string type, DateTime createdDate = default, string createdBy = "")
+        public WorkItem CreateWorkItem(string type, DateTime? createdDate = null, string createdBy = "")
         {
             return _witClientWrapper.CreateWorkItem(type, createdDate, createdBy);
         }

@@ -32,7 +32,7 @@ namespace Migration.Wi_Import.Tests
 
             }
 
-            public WorkItem CreateWorkItem(string wiType, DateTime createdDate = default, string createdBy = "")
+            public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
             {
                 WorkItem workItem = new WorkItem();
                 workItem.Id = _wiIdCounter;
