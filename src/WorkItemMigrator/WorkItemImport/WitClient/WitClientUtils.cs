@@ -203,7 +203,8 @@ namespace WorkItemImport
             }
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedDate))
             {
-                if (DateTime.Parse(wi.Fields[WiFieldReference.ChangedDate].ToString()).ToUniversalTime() == rev.Time.ToUniversalTime())
+                DateTime workItemChangedDate = (DateTime)(wi.Fields[WiFieldReference.ChangedDate]);
+                if (workItemChangedDate.ToUniversalTime() == rev.Time.ToUniversalTime())
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
                 }
