@@ -25,10 +25,12 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             var provider = _fixture.Freeze<IJiraProvider>();
 
-            JObject remoteIssue = new JObject();
-            remoteIssue.Add("fields", new JObject());
-            remoteIssue.Add("renderedFields", new JObject());
-            remoteIssue.Add("key", issueKey);
+            JObject remoteIssue = new JObject
+            {
+                { "fields", new JObject() },
+                { "renderedFields", new JObject() },
+                { "key", issueKey }
+            };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
@@ -82,8 +84,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -120,8 +124,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -167,8 +173,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -217,8 +225,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -269,8 +279,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 

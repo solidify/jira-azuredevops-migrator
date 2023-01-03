@@ -97,8 +97,10 @@ namespace Migration.Common.Tests
         {
             WiField field = new WiField();
             field.ReferenceName = "name";
-            List<WiField> list = new List<WiField>();
-            list.Add(field);
+            List<WiField> list = new List<WiField>
+            {
+                field
+            };
 
             bool expected = true;
             bool actual = RevisionUtility.HasAnyByRefName(list, "name");
@@ -111,8 +113,10 @@ namespace Migration.Common.Tests
         {
             WiField field = new WiField();
             field.ReferenceName = "anothername";
-            List<WiField> list = new List<WiField>();
-            list.Add(field);
+            List<WiField> list = new List<WiField>
+            {
+                field
+            };
 
             bool expected = false;
             bool actual = RevisionUtility.HasAnyByRefName(list, "name");

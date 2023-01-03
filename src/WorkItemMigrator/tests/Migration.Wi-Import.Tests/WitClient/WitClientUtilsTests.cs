@@ -124,9 +124,11 @@ namespace Migration.Wi_Import.Tests
                     ReferenceName = "System.LinkTypes.Hierarchy-Reverse"
                 };
 
-                List<WorkItemRelationType> outList = new List<WorkItemRelationType>();
-                outList.Add(hierarchyForward);
-                outList.Add(hierarchyReverse);
+                List<WorkItemRelationType> outList = new List<WorkItemRelationType>
+                {
+                    hierarchyForward,
+                    hierarchyReverse
+                };
                 return outList;
             }
 
@@ -678,8 +680,10 @@ namespace Migration.Wi_Import.Tests
             revision.Attachments.Add(att);
 
             WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>();
-            wiItem.Revisions.Add(revision);
+            wiItem.Revisions = new List<WiRevision>
+            {
+                revision
+            };
 
             wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
 
@@ -726,8 +730,10 @@ namespace Migration.Wi_Import.Tests
             revision.Attachments.Add(att);
 
             WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>();
-            wiItem.Revisions.Add(revision);
+            wiItem.Revisions = new List<WiRevision>
+            {
+                revision
+            };
 
             wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
 
@@ -763,8 +769,10 @@ namespace Migration.Wi_Import.Tests
             revision.Attachments.Add(att);
 
             WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>();
-            wiItem.Revisions.Add(revision);
+            wiItem.Revisions = new List<WiRevision>
+            {
+                revision
+            };
 
             wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
 

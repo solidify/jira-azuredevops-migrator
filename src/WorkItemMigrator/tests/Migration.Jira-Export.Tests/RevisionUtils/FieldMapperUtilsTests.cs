@@ -357,8 +357,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             attachment.Url = "https://example.com";
             revisionAction.Value = attachment;
 
-            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
-            jiraRevision.AttachmentActions.Add(revisionAction);
+            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>
+            {
+                revisionAction
+            };
 
 
             var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName, configJson);
@@ -389,8 +391,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             attachment.Url = "https://example.com";
             revisionAction.Value = attachment;
 
-            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
-            jiraRevision.AttachmentActions.Add(revisionAction);
+            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>
+            {
+                revisionAction
+            };
 
 
             var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName, configJson);
