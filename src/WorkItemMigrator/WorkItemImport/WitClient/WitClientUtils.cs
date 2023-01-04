@@ -237,22 +237,8 @@ namespace WorkItemImport
 
             if (rev.Index != 0 && rev.Fields.HasAnyByRefName(WiFieldReference.State))
             {
-                var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
-                var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
-                if (wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = null });
-
-                }
-                if (!wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = null });
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = null });
-                }
-
-                if (revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && !rev.Fields.HasAnyByRefName(WiFieldReference.ClosedBy))
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = rev.Author });
+                CorrectClosedByAndClosedDate(rev, wi);
+                CorrectActivatedByAndActivatedDate(rev, wi);
             }
         }
 
@@ -582,6 +568,38 @@ namespace WorkItemImport
 
                 wi.Fields[WiFieldReference.ChangedDate] = changedDate;
                 wi.Fields[WiFieldReference.ChangedBy] = rev.Author;
+            }
+        }
+
+        private void CorrectClosedByAndClosedDate(WiRevision rev, WorkItem wi)
+        {
+            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
+
+            if (wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+            {
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = null });
+            }
+
+            if (revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ClosedDate))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = rev.Time });
+
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ClosedBy))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = rev.Author });
+            }
+        }
+        private void CorrectActivatedByAndActivatedDate(WiRevision rev, WorkItem wi)
+        {
+            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
+
+            if (!wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+            {
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = null });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = null });
             }
         }
 
