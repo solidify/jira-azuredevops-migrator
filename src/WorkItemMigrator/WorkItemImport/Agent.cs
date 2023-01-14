@@ -56,9 +56,9 @@ namespace WorkItemImport
             return _witClientUtils.GetWorkItem(wiId);
         }
 
-        public WorkItem CreateWorkItem(string type)
+        public WorkItem CreateWorkItem(string type, DateTime createdDate, string createdBy)
         {
-            return _witClientUtils.CreateWorkItem(type);
+            return _witClientUtils.CreateWorkItem(type, createdDate, createdBy);
         }
 
         public bool ImportRevision(WiRevision rev, WorkItem wi)

@@ -178,6 +178,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="WitClient\JsonPatchDocUtils.cs" />
     <Compile Include="WitClient\IWitClientWrapper.cs" />
     <Compile Include="WitClient\WitClientWrapper.cs" />
     <Compile Include="WitClient\WitClientUtils.cs" />

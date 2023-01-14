@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Migration.Common.Log;
 using Migration.WIContract;
+using WorkItemImport.WitClient;
 
 namespace WorkItemImport
 {
@@ -30,22 +31,39 @@ namespace WorkItemImport
             TeamProject = ProjectClient.GetProject(project).Result;
         }
 
-        public WorkItem CreateWorkItem(string wiType)
+        public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
         {
             JsonPatchDocument patchDoc = new JsonPatchDocument
             {
-                new JsonPatchOperation()
-                {
-                    Operation = Operation.Add,
-                    Path = "/fields/"+WiFieldReference.Title,
-                    Value = "[Placeholder Name]"
-                }
+                JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.Title, "[Placeholder Name]")
             };
+
+            if (createdDate != null)
+            {
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.CreatedDate, createdDate)
+                );
+
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, createdDate)
+                );
+            }
+
+            if (!string.IsNullOrEmpty(createdBy))
+            {
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.CreatedBy, createdBy)
+                );
+
+                patchDoc.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, createdBy)
+                );
+            }
 
             WorkItem wiOut;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:false, expand:WorkItemExpand.All).Result;
+                wiOut = WitClient.CreateWorkItemAsync(document:patchDoc, project:TeamProject.Name, type:wiType, bypassRules:true, expand:WorkItemExpand.All).Result;
             } catch (Exception e)
             {
                 Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);

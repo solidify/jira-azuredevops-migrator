@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Migration.Common;
 using Migration.Common.Log;
 using Migration.WIContract;
+using WorkItemImport.WitClient;
 
 namespace WorkItemImport
 {
@@ -25,9 +26,9 @@ namespace WorkItemImport
 
         public delegate V IsAttachmentMigratedDelegate<in T, U, out V>(T input, out U output);
 
-        public WorkItem CreateWorkItem(string type)
+        public WorkItem CreateWorkItem(string type, DateTime? createdDate = null, string createdBy = "")
         {
-            return _witClientWrapper.CreateWorkItem(type);
+            return _witClientWrapper.CreateWorkItem(type, createdDate, createdBy);
         }
 
         public bool IsDuplicateWorkItemLink(IEnumerable<WorkItemRelation> links, WorkItemRelation relatedLink)
@@ -202,12 +203,17 @@ namespace WorkItemImport
             }
             if (!rev.Fields.HasAnyByRefName(WiFieldReference.ChangedDate))
             {
-                if (DateTime.Parse(wi.Fields[WiFieldReference.ChangedDate].ToString()) == rev.Time)
+                DateTime workItemChangedDate = (DateTime)(wi.Fields[WiFieldReference.ChangedDate]);
+                if (workItemChangedDate.ToUniversalTime() == rev.Time.ToUniversalTime())
                 {
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(1).ToString("o") });
                 }
                 else
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.ToString("o") });
+                {
+                    // ADO can add a few milliseconds to work item createdDate when adding an attachment, hence adding more here to the revision time
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(5).ToString("o") });
+                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(5);
+                }
             }
 
         }
@@ -450,16 +456,27 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(wi));
             }
 
+            // Calculate UpdatedTime
+            DateTime attachmentUpdatedDate = rev.Time;
+            DateTime workItemChangedDate = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
+            if (workItemChangedDate.ToUniversalTime() > rev.Time.ToUniversalTime())
+            {
+                attachmentUpdatedDate = workItemChangedDate;
+                // The work item ChangeDate is altered when saving the attachment, make sure the Revision time does too.
+                // Otherwise it will not be an increased ChangedDate and we'll get an exception
+                rev.Time = workItemChangedDate;
+            }
+
             // Save attachments
             foreach (WiAttachment attachment in rev.Attachments)
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                   AddSingleAttachmentToWorkItemAndSave(attachment, wi);
+                    AddSingleAttachmentToWorkItemAndSave(attachment, wi, attachmentUpdatedDate, rev.Author);
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
-                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi);
+                    RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, attachmentUpdatedDate, rev.Author);
                 }
             }
         }
@@ -476,23 +493,16 @@ namespace WorkItemImport
             foreach (string key in wi.Fields.Keys)
             {
                 if (new string[] { 
-                    WiFieldReference.ChangedDate,
                     WiFieldReference.BoardColumn,
                     WiFieldReference.BoardColumnDone,
                     WiFieldReference.BoardLane,
                 }.Contains(key))
                     continue;
 
-
                 object val = wi.Fields[key];
 
                 patchDocument.Add(
-                    new JsonPatchOperation()
-                    {
-                        Operation = Operation.Add,
-                        Path = "/fields/" + key,
-                        Value = val
-                    }
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, key, val)
                 );
             }
 
@@ -593,7 +603,7 @@ namespace WorkItemImport
             }
         }
 
-        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi, DateTime? changedDate = null, string changedBy = "")
         {
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att);
@@ -621,6 +631,30 @@ namespace WorkItemImport
                 }
             };
 
+            if (changedDate != null)
+            {
+                DateTime workItemChangedDate = (DateTime)wi.Fields[WiFieldReference.ChangedDate];
+                if (changedDate.Value.ToUniversalTime() >= workItemChangedDate.ToUniversalTime())
+                {
+                    attachmentPatchDocument.Add(
+                        JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
+                    );
+                }
+                else
+                {
+                    attachmentPatchDocument.Add(
+                        JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, workItemChangedDate.AddMilliseconds(1))
+                    );
+                }
+            }
+
+            if (!string.IsNullOrEmpty(changedBy))
+            {
+                attachmentPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy)
+                );
+            }
+
             var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
             var previousAttachmentsCount = attachments.Count();
 
@@ -637,9 +671,12 @@ namespace WorkItemImport
             Logger.Log(LogLevel.Info, "");
 
             wi.Relations = result.Relations;
+
+            // While updating the work item, the changed date can be increased, hence we take it over
+            wi.Fields[WiFieldReference.ChangedDate] = result.Fields[WiFieldReference.ChangedDate];
         }
 
-        private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi)
+        private void RemoveSingleAttachmentFromWorkItemAndSave(WiAttachment att, WorkItem wi, DateTime changedDate = default, string changedBy = default)
         {
             WorkItemRelation existingAttachmentRelation =
                 wi.Relations?.SingleOrDefault(
@@ -668,6 +705,20 @@ namespace WorkItemImport
                     }
                 }
             };
+
+            if (changedDate != default)
+            {
+                attachmentPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
+                );
+            }
+
+            if (changedBy != default)
+            {
+                attachmentPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy)
+                );
+            }
 
             IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
             int previousAttachmentsCount = existingAttachments.Count();
