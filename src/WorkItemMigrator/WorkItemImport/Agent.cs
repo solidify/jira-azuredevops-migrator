@@ -90,11 +90,11 @@ namespace WorkItemImport
                     incomplete = true;
 
                 if (incomplete)
-                    Logger.Log(LogLevel.Warning, $"'{rev.ToString()}' - not all changes were saved.");
+                    Logger.Log(LogLevel.Warning, $"'{rev}' - not all changes were saved.");
 
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev}'.");
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
@@ -108,7 +108,7 @@ namespace WorkItemImport
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev}'.");
 
                     try
                     {
@@ -116,7 +116,7 @@ namespace WorkItemImport
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev.ToString()}'.");
+                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
                     }
                 }
 
@@ -547,7 +547,7 @@ namespace WorkItemImport
                     if (link.TargetWiId == -1)
                     {
                         var errorLevel = Settings.IgnoreFailedLinks ? LogLevel.Warning : LogLevel.Error;
-                        Logger.Log(errorLevel, $"'{link.ToString()}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
+                        Logger.Log(errorLevel, $"'{link}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
                         success = false;
                         continue;
                     }

@@ -118,7 +118,7 @@ namespace WorkItemImport
                     && GetRelatedWorkItemIdFromLink(rl) == link.TargetWiId);
             if (linkToRemove == null)
             {
-                Logger.Log(LogLevel.Warning, $"{link.ToString()} - cannot identify link to remove for '{wi.Id}'.");
+                Logger.Log(LogLevel.Warning, $"{link} - cannot identify link to remove for '{wi.Id}'.");
                 return false;
             }
             RemoveSingleLinkFromWorkItemAndSave(link, wi);
@@ -304,7 +304,7 @@ namespace WorkItemImport
             {
                 try
                 {
-                    Logger.Log(LogLevel.Debug, $"Adding attachment '{att.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Adding attachment '{att}'.");
                     if (att.Change == ReferenceChangeType.Added)
                     {
                         AddRemoveAttachment(wi, att.AttOriginId, att.Comment, AttachmentOperation.ADD);
@@ -321,7 +321,7 @@ namespace WorkItemImport
                         else
                         {
                             success = false;
-                            Logger.Log(LogLevel.Error, $"Could not find migrated attachment '{att.ToString()}'.");
+                            Logger.Log(LogLevel.Error, $"Could not find migrated attachment '{att}'.");
                         }
                     }
                 }
@@ -555,7 +555,7 @@ namespace WorkItemImport
                         isUpdated = true;
                     }
                     else
-                        Logger.Log(LogLevel.Warning, $"Attachment '{att.ToString()}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
+                        Logger.Log(LogLevel.Warning, $"Attachment '{att}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
                 }
             }
             if (isUpdated)
@@ -807,7 +807,7 @@ namespace WorkItemImport
 
             if (linkType == null)
             {
-                Logger.Log(LogLevel.Error, $"'{link.ToString()}' - link type ({link.WiType}) does not exist in project");
+                Logger.Log(LogLevel.Error, $"'{link}' - link type ({link.WiType}) does not exist in project");
             }
             return linkType;
         }

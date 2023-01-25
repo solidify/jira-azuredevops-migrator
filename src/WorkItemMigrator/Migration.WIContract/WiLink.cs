@@ -20,7 +20,7 @@ namespace Migration.WIContract
 
         public override string ToString()
         {
-            return $"[{Change.ToString()}] {SourceOriginId}/{SourceWiId}->{TargetOriginId}/{TargetWiId} [{WiType}]";
+            return $"[{Change}] {SourceOriginId}/{SourceWiId}->{TargetOriginId}/{TargetWiId} [{WiType}]";
         }
     }
 }

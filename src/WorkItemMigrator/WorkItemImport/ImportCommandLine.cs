@@ -138,7 +138,7 @@ namespace WorkItemImport
                     {
                         try
                         {
-                            Logger.Log(ex, $"Failed to import '{executionItem.ToString()}'.");
+                            Logger.Log(ex, $"Failed to import '{executionItem}'.");
                         }
                         catch (AbortMigrationException)
                         {

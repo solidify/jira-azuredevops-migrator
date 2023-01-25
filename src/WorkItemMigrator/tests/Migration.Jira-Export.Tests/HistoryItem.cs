@@ -20,7 +20,7 @@ namespace Migration.Jira_Export.Tests
             {{
                 'id': {Id},
                 'author': 'unittest',
-                'created': '{Created.ToString("yyyy - MM - ddTHH:mm: ss.fffZ")}',
+                'created': '{Created:yyyy - MM - ddTHH:mm: ss.fffZ}',
                 'items': [
                 {{
                   'field': '{Field}',
