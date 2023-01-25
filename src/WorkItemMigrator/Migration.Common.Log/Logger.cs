@@ -38,7 +38,7 @@ namespace Migration.Common.Log
             {
                 Directory.CreateDirectory(dirPath);
             }
-            _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now.ToString("yyMMdd-HHmmss")}.txt");
+            _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now:yyMMdd-HHmmss}.txt");
             _logLevel = GetLogLevelFromString(level);
             _continueOnCritical = ParseContinueOnCritical(continueOnCritical);
         }
@@ -105,7 +105,7 @@ namespace Migration.Common.Log
                 {
                     answer = _continueOnCritical.Value ? ConsoleKey.Y : ConsoleKey.N;
                 }
-                
+
                 if (answer == ConsoleKey.N)
                     throw new AbortMigrationException(message);
             }
@@ -123,7 +123,7 @@ namespace Migration.Common.Log
         public static void Log(Exception ex, string message, LogLevel logLevel = LogLevel.Error)
         {
             LogExceptionToApplicationInsights(ex);
-            Log(logLevel, $"{message + Environment.NewLine}[{ex.GetType().ToString()}] {ex.ToString()}: {Environment.NewLine + ex.StackTrace}");
+            Log(logLevel, $"{message + Environment.NewLine}[{ex.GetType()}] {ex}: {Environment.NewLine + ex.StackTrace}");
         }
 
         private static void LogInternal(LogLevel level, string message)

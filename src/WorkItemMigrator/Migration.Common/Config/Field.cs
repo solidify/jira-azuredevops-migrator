@@ -21,7 +21,7 @@ namespace Migration.Common.Config
 
         [JsonProperty("type")]
         public string Type { get; set; } = "string";
-        
+
         [JsonProperty("mapper")]
         public string Mapper { get; set; }
 

@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Migration.Common.Log
 {
     [Serializable]
-    public class AbortMigrationException : Exception 
+    public class AbortMigrationException : Exception
     {
         protected AbortMigrationException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext)
         {

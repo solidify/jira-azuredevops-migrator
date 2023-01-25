@@ -33,7 +33,7 @@ namespace JiraExport
 
         internal WiItem Map(JiraItem issue)
         {
-            if(issue == null)
+            if (issue == null)
                 throw new ArgumentNullException(nameof(issue));
 
             var wiItem = new WiItem();
@@ -360,7 +360,7 @@ namespace JiraExport
         }
 
         #endregion
-        
+
         private List<string> GetWorkItemTypes(params string[] notFor)
         {
             List<string> list;

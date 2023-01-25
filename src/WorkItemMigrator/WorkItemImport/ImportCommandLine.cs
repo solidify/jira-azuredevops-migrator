@@ -118,7 +118,7 @@ namespace WorkItemImport
                             continue;
 
                         WorkItem wi = null;
-                        
+
                         if (executionItem.WiId > 0)
                             wi = agent.GetWorkItem(executionItem.WiId);
                         else
@@ -138,7 +138,7 @@ namespace WorkItemImport
                     {
                         try
                         {
-                            Logger.Log(ex, $"Failed to import '{executionItem.ToString()}'.");
+                            Logger.Log(ex, $"Failed to import '{executionItem}'.");
                         }
                         catch (AbortMigrationException)
                         {

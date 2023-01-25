@@ -90,11 +90,11 @@ namespace WorkItemImport
                     incomplete = true;
 
                 if (incomplete)
-                    Logger.Log(LogLevel.Warning, $"'{rev.ToString()}' - not all changes were saved.");
+                    Logger.Log(LogLevel.Warning, $"'{rev}' - not all changes were saved.");
 
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev}'.");
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
@@ -108,7 +108,7 @@ namespace WorkItemImport
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev}'.");
 
                     try
                     {
@@ -116,7 +116,7 @@ namespace WorkItemImport
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev.ToString()}'.");
+                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
                     }
                 }
 
@@ -125,7 +125,8 @@ namespace WorkItemImport
                 if (wi.Id.HasValue)
                 {
                     _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
-                } else
+                }
+                else
                 {
                     throw new MissingFieldException($"Work Item had no ID: {wi.Url}");
                 }
@@ -431,7 +432,7 @@ namespace WorkItemImport
 
         private bool UpdateWIHistoryField(IEnumerable<WiField> fields, WorkItem wi)
         {
-            if(fields.FirstOrDefault( i => i.ReferenceName == WiFieldReference.History ) == null )
+            if (fields.FirstOrDefault(i => i.ReferenceName == WiFieldReference.History) == null)
             {
                 wi.Fields.Remove(WiFieldReference.History);
             }
@@ -498,7 +499,7 @@ namespace WorkItemImport
                                 wi.Fields[WiFieldReference.AreaPath] = Settings.Project;
                             }
 
-                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{ wi.Fields[WiFieldReference.AreaPath] }'.");
+                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.Fields[WiFieldReference.AreaPath]}'.");
 
                             break;
 
@@ -547,7 +548,7 @@ namespace WorkItemImport
                     if (link.TargetWiId == -1)
                     {
                         var errorLevel = Settings.IgnoreFailedLinks ? LogLevel.Warning : LogLevel.Error;
-                        Logger.Log(errorLevel, $"'{link.ToString()}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
+                        Logger.Log(errorLevel, $"'{link}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
                         success = false;
                         continue;
                     }
@@ -569,9 +570,9 @@ namespace WorkItemImport
             }
 
             if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
-                wi.Fields[WiFieldReference.History] = $"Removed link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Removed link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
             else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
-                wi.Fields[WiFieldReference.History] = $"Added link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Added link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
 
             return success;
         }

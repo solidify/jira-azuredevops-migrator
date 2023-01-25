@@ -44,7 +44,7 @@ namespace Migration.Wi_Import.Tests
                 Assert.That(jsonPatchOp.Path == "/fields/key");
                 Assert.That(jsonPatchOp.Value.ToString() == "value");
             });
-            
+
         }
     }
 }

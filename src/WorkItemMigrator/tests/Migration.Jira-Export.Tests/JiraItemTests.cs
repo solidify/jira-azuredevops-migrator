@@ -40,8 +40,8 @@ namespace Migration.Jira_Export.Tests
             }}");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Parent",
                     FieldType = "jira",
@@ -92,8 +92,8 @@ namespace Migration.Jira_Export.Tests
             }}");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Parent",
                     FieldType = "jira",
@@ -146,15 +146,15 @@ namespace Migration.Jira_Export.Tests
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
             var changelog = new List<JObject>() {
-                new HistoryItem() 
+                new HistoryItem()
                 {
                     Id = 0,
                     Field = "Parent",
                     FieldType = "jira",
                     To = previousParentId,
                     ToString = previousParentKey
-                }.ToJObject(), 
-                new HistoryItem() 
+                }.ToJObject(),
+                new HistoryItem()
                 {
                     Id = 1,
                     Field = "Parent",
@@ -206,8 +206,8 @@ namespace Migration.Jira_Export.Tests
             }}");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Parent",
                     FieldType = "jira",
@@ -255,8 +255,8 @@ namespace Migration.Jira_Export.Tests
             }");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Epic Link",
                     FieldType = "custom",
@@ -304,8 +304,8 @@ namespace Migration.Jira_Export.Tests
             var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'EpicLinkField': 'EpicKey'}");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Epic Link",
                     FieldType = "custom",
@@ -355,14 +355,14 @@ namespace Migration.Jira_Export.Tests
             var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'EpicLinkField': null}");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Epic Link",
                     FieldType = "custom",
                     To = previousEpicId,
                     ToString = previousEpicKey
-                }.ToJObject(), 
+                }.ToJObject(),
                 new HistoryItem()
                 {
                     Id = 1,
@@ -413,14 +413,14 @@ namespace Migration.Jira_Export.Tests
             var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'EpicLinkField': 'EpicKey'}");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Epic Link",
                     FieldType = "custom",
                     From = previousEpicId,
                     FromString = previousEpicKey
-                }.ToJObject() 
+                }.ToJObject()
             };
 
             JObject remoteIssue = new JObject

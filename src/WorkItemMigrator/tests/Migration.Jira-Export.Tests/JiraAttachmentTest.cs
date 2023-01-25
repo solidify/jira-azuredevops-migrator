@@ -39,7 +39,7 @@ namespace Migration.Jira_Export.Tests
         {
             JiraAttachment sut1 = new JiraAttachment();
             JiraAttachment sut2 = new JiraAttachment();
-            
+
             string idString = "id";
 
             sut1.Id = idString;

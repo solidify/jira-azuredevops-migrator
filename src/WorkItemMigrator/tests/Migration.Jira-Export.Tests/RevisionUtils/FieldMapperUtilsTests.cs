@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using JiraExport;
 using Common.Config;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
@@ -162,7 +161,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         public void When_calling_map_array_with_empty_string_arg_Then_null_is_returned()
         {
             object actualResult = FieldMapperUtils.MapArray("");
-            
+
             Assert.That(actualResult, Is.Null);
 
         }
@@ -185,7 +184,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         public void When_calling_map_sprint_with_empty_string_arg_Then_null_is_returned()
         {
             object actualResult = FieldMapperUtils.MapSprint("");
-            
+
             Assert.That(actualResult, Is.Null);
 
         }
@@ -289,7 +288,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             //Act
             string output = FieldMapperUtils.CorrectRenderedHtmlvalue(description, revision);
-            
+
             //Assert
             Assert.Multiple(() =>
                 Assert.AreEqual(description, output)
@@ -338,7 +337,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             var configJson = _fixture.Create<ConfigJson>();
 
             var expectedOutput = "<h>https://example.com</h><img https://abc.com />link_text";
-            
+
             configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
             configJson.FieldMap.Fields = new List<Common.Config.Field>()
             {

@@ -8,7 +8,7 @@ namespace WorkItemImport.WitClient
     {
         public static JsonPatchOperation CreateJsonFieldPatchOp(Operation op, string key, object value)
         {
-            if(string.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(nameof(key));
             }

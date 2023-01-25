@@ -78,15 +78,15 @@ namespace Migration.Jira_Export.Tests
             }");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Epic Link",
                     FieldType = "custom",
                     To = epicId,
                     ToString = epicKey
                 }.ToJObject(),
-                new HistoryItem() 
+                new HistoryItem()
                 {
                     Id = 1,
                     Field = "Parent",
@@ -169,7 +169,7 @@ namespace Migration.Jira_Export.Tests
             JiraItem jiraItem = createJiraItem();
             JiraMapper sut = createJiraMapper();
 
-            Assert.Throws<System.ArgumentNullException>(() => { sut.MapAttachments (null); });
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapAttachments(null); });
         }
 
         [Test]
@@ -226,7 +226,7 @@ namespace Migration.Jira_Export.Tests
             provider.GetSettings().ReturnsForAnyArgs(createJiraSettings());
 
             ConfigJson cjson = new ConfigJson();
-            
+
             FieldMap f = new FieldMap();
             f.Fields = new List<Field>();
             cjson.FieldMap = f;

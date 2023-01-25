@@ -28,7 +28,7 @@ namespace Migration.Jira_Export.Tests
             JObject jobj = _fixture.Create<JObject>();
 
             JiraChangeItem sut = new JiraChangeItem(jobj);
-            
+
             Assert.That(sut, Is.Not.Null);
         }
     }
