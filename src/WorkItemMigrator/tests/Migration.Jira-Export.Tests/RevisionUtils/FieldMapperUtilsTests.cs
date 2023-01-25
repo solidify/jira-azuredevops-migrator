@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using JiraExport;
 using Common.Config;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
