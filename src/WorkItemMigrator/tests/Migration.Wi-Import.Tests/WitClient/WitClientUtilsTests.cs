@@ -38,7 +38,7 @@ namespace Migration.Wi_Import.Tests
                 workItem.Id = _wiIdCounter;
                 workItem.Url = $"https://example/workItems/{_wiIdCounter}";
                 workItem.Fields[WiFieldReference.WorkItemType] = wiType;
-                if(createdDate != default)
+                if (createdDate != default)
                     workItem.Fields[WiFieldReference.CreatedDate] = createdDate;
                 if (createdBy != default)
                     workItem.Fields[WiFieldReference.CreatedBy] = createdBy;
@@ -56,9 +56,9 @@ namespace Migration.Wi_Import.Tests
             public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
             {
                 WorkItem wi = _wiCache[workItemId];
-                foreach(JsonPatchOperation op in patchDocument)
+                foreach (JsonPatchOperation op in patchDocument)
                 {
-                    if(op.Operation == Operation.Add)
+                    if (op.Operation == Operation.Add)
                     {
                         if (op.Path.StartsWith("/fields/"))
                         {
@@ -75,13 +75,14 @@ namespace Migration.Wi_Import.Tests
                             WorkItemRelation wiRelation = new WorkItemRelation();
                             wiRelation.Rel = rel;
                             wiRelation.Url = url;
-                            wiRelation.Attributes = new Dictionary<string, object>{ { "comment", comment } };
+                            wiRelation.Attributes = new Dictionary<string, object> { { "comment", comment } };
 
-                            if(wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
+                            if (wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
                                 wi.Relations.Add(wiRelation);
                         }
                     }
-                    else if (op.Operation == Operation.Remove) {
+                    else if (op.Operation == Operation.Remove)
+                    {
                         if (op.Path.StartsWith("/fields/"))
                         {
                             string field = op.Path.Replace("/fields/", "");
@@ -101,7 +102,7 @@ namespace Migration.Wi_Import.Tests
             {
                 TeamProject tp = new TeamProject();
                 Guid projGuid;
-                if(Guid.TryParse(projectId, out projGuid))
+                if (Guid.TryParse(projectId, out projGuid))
                 {
                     tp.Id = projGuid;
                 }
@@ -663,9 +664,10 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = wiUtils.CreateWorkItem("Task");
             createdWI.Fields[WiFieldReference.History] = commentBeforeTransformation;
-            createdWI.Relations.Add(new WorkItemRelation() {
-                Rel= "AttachedFile",
-                Url= "https://example.com/my_image.png",
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
                 Attributes = new Dictionary<string, object>() {
                     { "comment", "Imported from Jira, original ID: 100" }
                 }
@@ -716,7 +718,7 @@ namespace Migration.Wi_Import.Tests
             {
                 Rel = "AttachedFile",
                 Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { 
+                Attributes = new Dictionary<string, object>() {
                     { "comment", "Imported from Jira, original ID: 100" }
                 }
             });

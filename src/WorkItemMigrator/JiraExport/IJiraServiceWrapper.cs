@@ -9,6 +9,6 @@ namespace JiraExport
         IIssueService Issues { get; }
         IIssueLinkService Links { get; }
         IJiraRestClient RestClient { get; }
-        IJiraUserService Users { get; }        
+        IJiraUserService Users { get; }
     }
 }

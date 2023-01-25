@@ -128,7 +128,7 @@ namespace WorkItemImport
 
         public void EnsureAuthorFields(WiRevision rev)
         {
-            if(rev == null)
+            if (rev == null)
             {
                 throw new ArgumentException(nameof(rev));
             }
@@ -166,7 +166,7 @@ namespace WorkItemImport
             }
 
             string assignedTo = "";
-            if(wi.Fields.ContainsKey(WiFieldReference.AssignedTo))
+            if (wi.Fields.ContainsKey(WiFieldReference.AssignedTo))
             {
                 assignedTo = (wi.Fields[WiFieldReference.AssignedTo] as IdentityRef).UniqueName;
             }
@@ -283,7 +283,7 @@ namespace WorkItemImport
             // System.Description
             string descriptionFieldRef = wi.Fields[WiFieldReference.WorkItemType].ToString() == "Bug" ? WiFieldReference.ReproSteps : WiFieldReference.Description;
             if (!wi.Fields.ContainsKey(descriptionFieldRef))
-                    wi.Fields[descriptionFieldRef] = "";
+                wi.Fields[descriptionFieldRef] = "";
         }
 
         public bool ApplyAttachments(WiRevision rev, WorkItem wi, Dictionary<string, WiAttachment> attachmentMap, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
@@ -337,7 +337,7 @@ namespace WorkItemImport
             }
 
             if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Removed))
-                wi.Fields[WiFieldReference.History] = $"Removed attachments(s): { string.Join(";", rev.Attachments.Where(a => a.Change == ReferenceChangeType.Removed).Select(a => a.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Removed attachments(s): {string.Join(";", rev.Attachments.Where(a => a.Change == ReferenceChangeType.Removed).Select(a => a.ToString()))}";
 
             return success;
         }
@@ -361,13 +361,15 @@ namespace WorkItemImport
                 attachmentRelation.Attributes = new Dictionary<string, object>();
                 attachmentRelation.Attributes["comment"] = comment;
                 wi.Relations.Add(attachmentRelation);
-            } else {
+            }
+            else
+            {
                 WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(
                     a => a.Rel == "AttachedFile" &&
                     a.Attributes["comment"].ToString().Split(
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == attOriginId
                 );
-                if(attachmentRelation != default(WorkItemRelation))
+                if (attachmentRelation != default(WorkItemRelation))
                 {
                     wi.Relations.Remove(attachmentRelation);
                 }
@@ -492,7 +494,7 @@ namespace WorkItemImport
             JsonPatchDocument patchDocument = new JsonPatchDocument();
             foreach (string key in wi.Fields.Keys)
             {
-                if (new string[] { 
+                if (new string[] {
                     WiFieldReference.BoardColumn,
                     WiFieldReference.BoardColumnDone,
                     WiFieldReference.BoardLane,
@@ -608,7 +610,7 @@ namespace WorkItemImport
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att);
             Logger.Log(LogLevel.Info, "Attachment created");
-            Logger.Log(LogLevel.Info, $"ID: { attachment.Id}");
+            Logger.Log(LogLevel.Info, $"ID: {attachment.Id}");
             Logger.Log(LogLevel.Info, $"URL: '{attachment.Url}'");
             Logger.Log(LogLevel.Info, "");
 
@@ -685,7 +687,7 @@ namespace WorkItemImport
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == att.AttOriginId
                 );
 
-            if(existingAttachmentRelation == null)
+            if (existingAttachmentRelation == null)
             {
                 Logger.Log(LogLevel.Warning, $"Skipping saving attachment {att.AttOriginId}, since that attachment was not found.");
                 return;

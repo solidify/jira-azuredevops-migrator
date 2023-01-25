@@ -391,7 +391,7 @@ namespace JiraExport
         }
 
         public string GetCustomId(string propertyName)
-        {   
+        {
             var customId = string.Empty;
             JArray response = null;
 
@@ -424,7 +424,7 @@ namespace JiraExport
                 .ToLookup(l => l.key, l => l.value);
         }
 
-        private string GetItemFromFieldCache(string propertyName, ILookup<string,string> cache)
+        private string GetItemFromFieldCache(string propertyName, ILookup<string, string> cache)
         {
             string customId = null;
             var query = cache.FirstOrDefault(x => x.Key.Equals(propertyName.ToLower()));

@@ -10,7 +10,7 @@
         }
 
         public string Account { get; private set; }
-        public string Project { get; private set; }        
+        public string Project { get; private set; }
         public string Pat { get; private set; }
         public string BaseAreaPath { get; internal set; }
         public string BaseIterationPath { get; internal set; }

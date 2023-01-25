@@ -105,7 +105,7 @@ namespace Migration.Common.Log
                 {
                     answer = _continueOnCritical.Value ? ConsoleKey.Y : ConsoleKey.N;
                 }
-                
+
                 if (answer == ConsoleKey.N)
                     throw new AbortMigrationException(message);
             }

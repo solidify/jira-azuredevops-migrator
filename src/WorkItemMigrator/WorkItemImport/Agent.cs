@@ -125,7 +125,8 @@ namespace WorkItemImport
                 if (wi.Id.HasValue)
                 {
                     _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
-                } else
+                }
+                else
                 {
                     throw new MissingFieldException($"Work Item had no ID: {wi.Url}");
                 }
@@ -431,7 +432,7 @@ namespace WorkItemImport
 
         private bool UpdateWIHistoryField(IEnumerable<WiField> fields, WorkItem wi)
         {
-            if(fields.FirstOrDefault( i => i.ReferenceName == WiFieldReference.History ) == null )
+            if (fields.FirstOrDefault(i => i.ReferenceName == WiFieldReference.History) == null)
             {
                 wi.Fields.Remove(WiFieldReference.History);
             }
@@ -498,7 +499,7 @@ namespace WorkItemImport
                                 wi.Fields[WiFieldReference.AreaPath] = Settings.Project;
                             }
 
-                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{ wi.Fields[WiFieldReference.AreaPath] }'.");
+                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.Fields[WiFieldReference.AreaPath]}'.");
 
                             break;
 
@@ -569,9 +570,9 @@ namespace WorkItemImport
             }
 
             if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
-                wi.Fields[WiFieldReference.History] = $"Removed link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Removed link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
             else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
-                wi.Fields[WiFieldReference.History] = $"Added link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
+                wi.Fields[WiFieldReference.History] = $"Added link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
 
             return success;
         }

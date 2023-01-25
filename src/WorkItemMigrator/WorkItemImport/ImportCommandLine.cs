@@ -118,7 +118,7 @@ namespace WorkItemImport
                             continue;
 
                         WorkItem wi = null;
-                        
+
                         if (executionItem.WiId > 0)
                             wi = agent.GetWorkItem(executionItem.WiId);
                         else
