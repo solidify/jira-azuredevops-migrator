@@ -576,8 +576,8 @@ namespace WorkItemImport
             var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
-            if (wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase)
+            if ((wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
+                || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
                 && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
