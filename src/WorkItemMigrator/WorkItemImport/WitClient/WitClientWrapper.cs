@@ -67,7 +67,7 @@ namespace WorkItemImport
             }
             catch (Exception e)
             {
-                Logger.Log(LogLevel.Error, "Error when creating new Work item: " + e.Message);
+                Logger.Log(LogLevel.Error, $"Error when creating new Work item: {e.Message} - {(e.InnerException != null ? e.InnerException.Message : "")}");
                 return null;
             }
 
