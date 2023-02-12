@@ -118,11 +118,11 @@ namespace WorkItemImport
                             continue;
 
                         WorkItem wi = null;
-                        
+
                         if (executionItem.WiId > 0)
                             wi = agent.GetWorkItem(executionItem.WiId);
                         else
-                            wi = agent.CreateWorkItem(executionItem.WiType);
+                            wi = agent.CreateWorkItem(executionItem.WiType, executionItem.Revision.Time, executionItem.Revision.Author);
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
@@ -138,7 +138,7 @@ namespace WorkItemImport
                     {
                         try
                         {
-                            Logger.Log(ex, $"Failed to import '{executionItem.ToString()}'.");
+                            Logger.Log(ex, $"Failed to import '{executionItem}'.");
                         }
                         catch (AbortMigrationException)
                         {

@@ -74,7 +74,7 @@ namespace Migration.Common.Config
                 result.FieldMap.Fields.AddRange(fields);
 
                 var links = obj.SelectToken("link-map.link").Select(li => li.ToObject<Link>()).ToList();
-                if(result.LinkMap.Links == null)
+                if (result.LinkMap.Links == null)
                 {
                     result.LinkMap.Links = new List<Link>();
                 }
