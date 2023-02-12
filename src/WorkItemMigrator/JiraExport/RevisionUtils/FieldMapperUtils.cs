@@ -125,7 +125,7 @@ namespace JiraExport
             string mapped = sourceField;
 
             // Match source fields, pattern: "${...}"
-            var matches = Regex.Matches(sourceField, "\\$\\{.+?\\}");
+            var matches = Regex.Matches(sourceField, "\\$\\{.+?\\}", RegexOptions.None, TimeSpan.FromMilliseconds(100));
             foreach (var match in matches)
             {
                 string matchStripped = match.ToString().Replace("${", "").Replace("}", "");
