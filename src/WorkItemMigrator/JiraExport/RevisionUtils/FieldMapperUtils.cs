@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace JiraExport
 {
@@ -113,7 +114,33 @@ namespace JiraExport
             return (true, value);
         }
 
+        public static (bool, object) MapFieldsComposite(JiraRevision r, string sourceField, bool isCustomField, ConfigJson config)
+        {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
 
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+
+            string mapped = sourceField;
+
+            // Match source fields, pattern: "${...}"
+            var matches = Regex.Matches(sourceField, "\\$\\{.+?\\}");
+            foreach (var match in matches)
+            {
+                string matchStripped = match.ToString().Replace("${", "").Replace("}", "");
+                if (r.Fields.TryGetValue(matchStripped, out object fieldValue))
+                {
+                    mapped = mapped.Replace("${" + matchStripped + "}", fieldValue.ToString());
+                }
+                else
+                {
+                    // Stop evaluating if we encounter any field in the pattern that does not exist on the revision
+                    return (false, null);
+                }
+            }
+            return (true, mapped);
+        }
 
         public static object MapTags(string labels)
         {
