@@ -412,6 +412,75 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapRenderedValue(null, null, false, null, null); });
         }
 
+        [Test]
+        public void When_calling_map_fields_composite_with_valid_input_Then_expected_output_is_returned()
+        {
+            var sourceField = "${summary}---${description}";
+            var configJson = _fixture.Create<ConfigJson>();
+            var summary = "My Summary";
+            var description = "My Description";
 
+            var expectedOutput = summary + "---" + description;
+
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>()
+            {
+                new Common.Config.Field()
+                {
+                    Source = sourceField,
+                    Target = "System.Description",
+                    Mapper = "MapFieldsComposite"
+                }
+            };
+
+            var jiraRevision = MockRevisionWithParentItem("issue_key", summary);
+            jiraRevision.Fields.Add("description", description);
+
+            var actualOutput = FieldMapperUtils.MapFieldsComposite(jiraRevision, sourceField, false, configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.True);
+                Assert.That(actualOutput.Item2, Is.EqualTo(expectedOutput));
+            });
+        }
+
+        [Test]
+        public void When_calling_map_fields_composite_with_invalid_input_Then_expected_false_and_null_is_returned()
+        {
+            var sourceField = "${summary}---${description}";
+            var configJson = _fixture.Create<ConfigJson>();
+            var summary = "My Summary";
+            var description = "My Description";
+
+            var expectedOutput = summary + "---" + description;
+
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>()
+            {
+                new Common.Config.Field()
+                {
+                    Source = sourceField,
+                    Target = "System.Description",
+                    Mapper = "MapFieldsComposite"
+                }
+            };
+
+            var jiraRevision = MockRevisionWithParentItem("issue_key", summary);
+
+            var actualOutput = FieldMapperUtils.MapFieldsComposite(jiraRevision, sourceField, false, configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.False);
+                Assert.That(actualOutput.Item2, Is.EqualTo(null));
+            });
+        }
+
+        [Test]
+        public void When_calling_map_fields_composite_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapFieldsComposite(null, null, false, null); });
+        }
     }
 }

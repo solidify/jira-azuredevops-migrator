@@ -110,6 +110,9 @@ namespace JiraExport
                             case "MapRendered":
                                 value = r => FieldMapperUtils.MapRenderedValue(r, item.Source, isCustomField, _jiraProvider.GetCustomId(item.Source), _config);
                                 break;
+                            case "MapFieldsComposite":
+                                value = r => FieldMapperUtils.MapFieldsComposite(r, item.Source, isCustomField, _config);
+                                break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
                                 break;
