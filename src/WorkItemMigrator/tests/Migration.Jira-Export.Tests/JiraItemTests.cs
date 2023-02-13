@@ -7,6 +7,10 @@ using Newtonsoft.Json.Linq;
 using NSubstitute;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
+using System.Linq;
+using Migration.Common.Config;
+using System;
+using System.Web;
 
 namespace Migration.Jira_Export.Tests
 {
@@ -22,6 +26,132 @@ namespace Migration.Jira_Export.Tests
         {
             _fixture = new Fixture();
             _fixture.Customize(new AutoNSubstituteCustomization() { });
+        }
+
+        [Test]
+        public void When_an_attachment_is_added_Then_it_will_be_migrated()
+        {
+            //Arrange
+            var provider = _fixture.Freeze<IJiraProvider>();
+            long issueId = _fixture.Create<long>();
+            string issueKey = _fixture.Create<string>();
+            string attachmentId = _fixture.Create<int>().ToString();
+            string attachmentName = _fixture.Create<string>();
+
+            var fields = JObject.Parse($@"{{
+                'issuetype': {{ 'name': 'Story' }},
+                'attachment': [
+                {{
+                  'self': 'https://server/rest/api/2/attachment/{attachmentId}',
+                  'id': '{attachmentId}',
+                  'filename': '{attachmentName}',
+                  'author': null,
+                  'created': '{DateTime.Now.ToString("yyyy - MM - ddTHH:mm: ss.fffZ")}',
+                  'size': '{_fixture.Create<int>()}',
+                  'mimeType': 'image/jpeg',
+                  'content': 'https://server/rest/api/2/attachment/{HttpUtility.UrlEncode(attachmentName)}',
+                }}
+              ]
+            }}");
+            var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
+
+            var changelog = new List<JObject>() {
+                new HistoryItem() // add attachment
+                {
+                    Field = "Attachment",
+                    FieldType = "jira",
+                    From = null,
+                    FromString = null,
+                    To = attachmentId,
+                    ToString = attachmentName
+                }.ToJObject()
+            };
+
+            JObject remoteIssue = new JObject
+            {
+                { "id", issueId },
+                { "key", issueKey },
+                { "fields", fields },
+                { "renderedFields", renderedFields }
+            };
+
+            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
+            provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
+            var jiraSettings = createJiraSettings();
+            provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
+
+            //Act
+            var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
+
+            //Assert
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(2, jiraItem.Revisions.Count);
+                Assert.IsFalse(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
+                Assert.AreEqual(attachmentName, jiraItem.Revisions[1].AttachmentActions[0].Value.Filename);
+                Assert.AreEqual(attachmentId, jiraItem.Revisions[1].AttachmentActions[0].Value.Id);
+            });
+        }
+
+        [Test]
+        public void When_an_attachment_is_added_and_removed_Then_it_cannot_be_migrated_and_is_omitted()
+        {
+            //Arrange
+            var provider = _fixture.Freeze<IJiraProvider>();
+            long issueId = _fixture.Create<long>();
+            string issueKey = _fixture.Create<string>();
+            string attachmentId = _fixture.Create<int>().ToString();
+            string attachmentName = _fixture.Create<string>();
+
+            var fields = JObject.Parse($@"{{
+                'issuetype': {{ 'name': 'Story' }}
+            }}");
+            var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
+
+            var changelog = new List<JObject>() {
+                new HistoryItem() // add attachment
+                {
+                    Field = "Attachment",
+                    FieldType = "jira",
+                    From = null,
+                    FromString = null,
+                    To = attachmentId,
+                    ToString = attachmentName
+                }.ToJObject(),
+                new HistoryItem() //remove attachment
+                {
+                    Id = 1,
+                    Field = "Attachment",
+                    FieldType = "jira",
+                    From = attachmentId,
+                    FromString = attachmentName,
+                    To = null,
+                    ToString = null,
+                }.ToJObject()
+            };
+
+            JObject remoteIssue = new JObject
+            {
+                { "id", issueId },
+                { "key", issueKey },
+                { "fields", fields },
+                { "renderedFields", renderedFields }
+            };
+
+            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
+            provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
+            var jiraSettings = createJiraSettings();
+            provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
+
+            //Act
+            var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
+
+            //Assert
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(3, jiraItem.Revisions.Count);
+                Assert.IsTrue(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
+            });
         }
 
         [Test]
@@ -373,7 +503,7 @@ namespace Migration.Jira_Export.Tests
                     To = currentEpicId,
                     ToString = currentEpicKey
                 }.ToJObject()
-             };
+            };
 
             JObject remoteIssue = new JObject
             {
