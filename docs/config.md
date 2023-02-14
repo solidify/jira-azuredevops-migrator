@@ -100,7 +100,6 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |MapArray|Maps an array by replacing comma with semi-colon|
 |MapRemainingWork|Maps and converts a Jira time to hours|
 |MapRendered|Maps field to rendered html format value|
-|MapFieldsComposite|Maps multiple fields and concatenates the field values based on a user-defined pattern. In the `source` field, you must specify a pattern where any `${...}` tokens will indicate a field substitution. For example, use `${state}` to include the issue state in the mapped value.|
 |(default)|Simply copies soure to target|
 
 ## Example configuration
@@ -186,7 +185,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
       {
         "source": "description",
         "target": "System.Description",
-	"mapper":"MapRendered"
+		"mapper":"MapRendered"
       },
       {
         "source": "priority",
@@ -250,12 +249,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
       {
         "source": "comment",
         "target": "System.History",
-	"mapper":"MapRendered"
-      },
-      {
-      	"source": "${customfield_a}-${customfield_b}",
-        "target": "Custom.ConcatenatedAB",
-	"mapper": "MapFieldsComposite"
+		"mapper":"MapRendered"
       },
       {
         "source": "status",
