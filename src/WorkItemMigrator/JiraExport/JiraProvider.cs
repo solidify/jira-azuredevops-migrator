@@ -54,6 +54,10 @@ namespace JiraExport
             {
                 _jiraServiceWrapper.Fields.GetCustomFieldsAsync().Wait();
             }
+            catch (AggregateException e)
+            {
+                Logger.Log(e, "Failed to retrieve fields from Jira (Response was not recognized as JSON). This usually indicates a problem with authentication or authorization. Check your Jira credentials and permissions.");
+            }
             catch (Exception e)
             {
                 Logger.Log(e, "Failed to retrieve fields from Jira");
