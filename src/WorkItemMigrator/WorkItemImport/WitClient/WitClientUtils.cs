@@ -474,7 +474,14 @@ namespace WorkItemImport
             {
                 if (attachment.Change == ReferenceChangeType.Added)
                 {
-                    AddSingleAttachmentToWorkItemAndSave(attachment, wi, attachmentUpdatedDate, rev.Author);
+                    try
+                    {
+                        AddSingleAttachmentToWorkItemAndSave(attachment, wi, attachmentUpdatedDate, rev.Author);
+                    }
+                    catch (AggregateException)
+                    {
+                        Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, but hit the workitem attachment limit (cannot add more than 100 attachments. Skipping attachment: {attachment.FileName}");
+                    }
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
                 {
@@ -609,7 +616,7 @@ namespace WorkItemImport
         {
             // Upload attachment
             AttachmentReference attachment = _witClientWrapper.CreateAttachment(att);
-            Logger.Log(LogLevel.Info, "Attachment created");
+            Logger.Log(LogLevel.Info, "Adding single attachment");
             Logger.Log(LogLevel.Info, $"ID: {attachment.Id}");
             Logger.Log(LogLevel.Info, $"URL: '{attachment.Url}'");
             Logger.Log(LogLevel.Info, "");
