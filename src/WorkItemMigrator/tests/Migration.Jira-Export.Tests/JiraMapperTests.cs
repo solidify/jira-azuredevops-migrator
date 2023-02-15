@@ -173,6 +173,15 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
+        public void When_calling_mapfields_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            JiraItem jiraItem = createJiraItem();
+            JiraMapper sut = createJiraMapper();
+
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapFields(null); });
+        }
+
+        [Test]
         public void When_calling_mapfields_Then_the_expected_result_is_returned()
         {
             JiraItem jiraItem = createJiraItem();
@@ -188,12 +197,23 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
-        public void When_calling_mapfields_with_null_arguments_Then_and_exception_is_thrown()
+        public void When_calling_truncatefields_with_too_long_title_Then_a_truncated_title_returned()
         {
-            JiraItem jiraItem = createJiraItem();
-            JiraMapper sut = createJiraMapper();
+            string sourceTitle =
+                "test task with max name length - 0123456789012345678901234567890123456789012345"
+                +"678901234567890123456789012345678901234567890123456789012345678901234567890123"
+                +"456789012345678901234567890123456789012345678901234567890123456789012345678901"
+                +"23456789012345678901234567890";
+            string expected =
+                "test task with max name length - 0123456789012345678901234567890123456789012345"
+                + "678901234567890123456789012345678901234567890123456789012345678901234567890123"
+                + "456789012345678901234567890123456789012345678901234567890123456789012345678901"
+                + "23456789012345678...";
 
-            Assert.Throws<System.ArgumentNullException>(() => { sut.MapFields(null); });
+            JiraMapper sut = createJiraMapper();
+            string actual= (string)sut.TruncateField(sourceTitle, WiFieldReference.Title);
+
+            Assert.AreEqual(expected, actual);
         }
 
         [Test]
