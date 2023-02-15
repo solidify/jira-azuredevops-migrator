@@ -275,6 +275,8 @@ namespace JiraExport
 
                             if (include)
                             {
+                                value = TruncateField(value.ToString(), fieldreference);
+
                                 Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {
@@ -373,6 +375,25 @@ namespace JiraExport
                 list = _targetTypes.ToList();
             }
             return list;
+        }
+
+        private object TruncateField(string value, string field)
+        {
+            var fieldLimits = new Dictionary<string, int>()
+            {
+                { WiFieldReference.Title, 255 }
+            };
+            if (fieldLimits.ContainsKey(field))
+            {
+                int limit = fieldLimits[field];
+                if (value.Length > limit)
+                {
+                    string truncated = value.Substring(0, limit - 3) + "...";
+                    Logger.Log(LogLevel.Warning, $"Field {field} was truncated. Maximum length: {limit}, new value: {truncated}");
+                    return truncated;
+                }
+            }
+            return value;
         }
     }
 }
