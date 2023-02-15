@@ -198,6 +198,15 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
+        public void When_calling_map_sprint_with_invalid_azdo_chars_Then_expected_output_is_returned()
+        {
+            string[] sprintPath = { "*#/Base", "Seg*#/ment", "Sprint*#/" };
+            string expected = "Sprint";
+            object output = FieldMapperUtils.MapSprint(string.Join(",", sprintPath));
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         public void When_calling_map_value_with_valid_args_Then_expected_output_is_returned()
         {
 

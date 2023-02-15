@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace JiraExport
 {
@@ -152,8 +153,9 @@ namespace JiraExport
 
             var iterationPaths = iterationPathsString.Split(',').AsEnumerable();
             iterationPaths = iterationPaths.Select(ip => ip.Trim());
-
             var iterationPath = iterationPaths.Last();
+
+            iterationPath = ReplaceAzdoInvalidCharacters(iterationPath);
 
             return iterationPath;
         }
@@ -212,6 +214,11 @@ namespace JiraExport
             }
 
             return sourceField;
+        }
+
+        private static string ReplaceAzdoInvalidCharacters(string inputString)
+        {
+            return Regex.Replace(inputString, "[/$?*:\"&<>#%|+]", "", RegexOptions.None, TimeSpan.FromMilliseconds(100));
         }
     }
 
