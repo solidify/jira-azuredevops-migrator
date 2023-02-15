@@ -377,7 +377,7 @@ namespace JiraExport
             return list;
         }
 
-        private object TruncateField(string value, string field)
+        internal object TruncateField(string value, string field)
         {
             var fieldLimits = new Dictionary<string, int>()
             {
