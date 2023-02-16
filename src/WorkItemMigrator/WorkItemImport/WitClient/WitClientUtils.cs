@@ -478,9 +478,25 @@ namespace WorkItemImport
                     {
                         AddSingleAttachmentToWorkItemAndSave(attachment, wi, attachmentUpdatedDate, rev.Author);
                     }
-                    catch (AggregateException)
+                    catch (AggregateException e)
                     {
-                        Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, but hit the workitem attachment limit (cannot add more than 100 attachments. Skipping attachment: {attachment.FileName}");
+                        if(e.InnerException.Message.Contains("TF237082"))
+                        {
+                            Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, But the attachment exceeds " +
+                                $"the supported file upload size. Skipping attachment: {attachment.FileName}. See full error " +
+                                $"message below.\n{e.InnerException.Message}");
+                        }
+                        else if(e.InnerException.Message.Contains("VS403313"))
+                        {
+                            Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, but hit the workitem attachment " +
+                                $"limit (cannot add more than 100 attachments. Skipping attachment: {attachment.FileName}");
+                        }
+                        else
+                        {
+                            Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, but encountered an unhandled " +
+                                $"exception. Skipping attachment: {attachment.FileName}. See full error " +
+                                $"message below.\n{e.InnerException.Message}");
+                        }
                     }
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
