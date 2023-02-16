@@ -31,7 +31,7 @@ namespace Migration.WIContract
             if (Regex.Matches(serialized, @"\\u[0-F]{4}").Count > 0)
             {
                 Logger.Log(LogLevel.Warning, "Detected unicode characters, removed.");
-                serialized = Regex.Replace(serialized, @"\\u[0-F]{4}", "");
+                serialized = Regex.Replace(serialized, @"\\u[0-F]{4,}", "");
             }
 
             var deserialized = JsonConvert.DeserializeObject<WiItem>(serialized, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
