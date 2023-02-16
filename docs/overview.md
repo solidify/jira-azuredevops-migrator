@@ -35,8 +35,9 @@ The tool is officially released to Windows 64bit only, but cross-platform suppor
 
 1. Get the name of the target Azure DevOps organization/TFS collection
 2. Acquire a [personal access token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) for the organization/collection with the following scopes: Work Items (Read, write, & manage) as minimum requirement.
-3. Get the url and the name of the target project. The import tool can create the target project if it does not already exist.
-4. Discuss how users should be mapped between Jira and Azure DevOps/TFS.
+3. Ensure that the migration user is granted the *Bypass rules on work item update* permission on the target ADO project.
+4. Get the url and the name of the target project. The import tool can create the target project if it does not already exist.
+5. Discuss how users should be mapped between Jira and Azure DevOps/TFS.
 
 ## Migrate work items
 
