@@ -4,7 +4,7 @@ The Jira to Azure DevOps work item migration tool lets you export data from Jira
 
 The migration process is done in two phases, first data is exported from Jira to text files. This can be done in a number of batches until the right set of items are ready for import.
 
-The second step imports the data files to work items in Azure DevOps/TFS. 
+The second step imports the data files to work items in Azure DevOps/TFS.
 
 The key capabilities of the tool includes:
 
@@ -13,67 +13,72 @@ The key capabilities of the tool includes:
 - Field mapping is provided to map fields from the source to target account based on configuration file.
 - State mapping between Jira and Azure DevOps states.
 - History from Jira is maintained.
-- Dates such as created or changed date are maintained. 
+- Dates such as created or changed date are maintained.
 - Area/Iteration paths can be defaulted to a specific value when they don't exist in the target project.
 
-# Migration process
+The tool is officially released to Windows 64bit only, but cross-platform support is available through Dotnet Core.
 
-**Note:** The tool is implemented as a Windows executable and will only work on Windows (duh!). We have plans to convert the project to .NET core to support running the migrations on MacOS or Linux. When that happens this section will be removed. 
+## Jira requirements
 
-## Jira requirements 
+1. Identify the migration account (username and password) to access Jira
+   **Note:**
 
-1. Identify the migration account (username and password) to access Jira   
-   **Note:** 
-   
    401 exceptions can occur when you use your email address rather than username. To resolve this use -u USERNAME.
-   
-   If you continue to receive 401 exceptions your password may be causing the issue, go to https://id.atlassian.com/manage/api-tokens and generate an API token. Use this token the same way you would your password -p API_TOKEN
-   
+
+   If you continue to receive 401 exceptions your password may be causing the issue, go to <https://id.atlassian.com/manage/api-tokens> and generate an API token. Use this token the same way you would your password -p API_TOKEN
+
    If you receive a 400 error after the "Retrieving Jira link types" process starts you need to use your email address as your username -u EMAIL_ADDRESS
-   
+
 2. Get the url to Jira and the name of the source project
 
 ## Azure DevOps/TFS requirements
 
 1. Get the name of the target Azure DevOps organization/TFS collection
-2. Aquire a [personal access token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) for the organization/collection with the following scopes: Work Items (Read, write, & manage) as minimum requirement. 
+2. Acquire a [personal access token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) for the organization/collection with the following scopes: Work Items (Read, write, & manage) as minimum requirement.
 3. Get the url and the name of the target project. The import tool can create the target project if it does not already exist.
 4. Discuss how users should be mapped between Jira and Azure DevOps/TFS.
 
 ## Migrate work items
 
-The process below describes the high-level steps requred to migrate data from Jira to Azure DevOps.
+The process below describes the high-level steps required to migrate data from Jira to Azure DevOps.
 
-![](migration-process.png)
+![migration-process](migration-process.png)
 
 1. Define a [Jira JQL filter](https://confluence.atlassian.com/jirasoftwarecloud/advanced-searching-764478330.html#Advancedsearching-ConstructingJQLqueries) for the items to export, for instance here's how to export all stories and sub-tasks from the SCRUM project:
 
-        project = SCRUM AND issuetype in (Story, Sub-task) ORDER BY Rank ASC
+    ```jql
+    project = SCRUM AND issuetype in (Story, Sub-task) ORDER BY Rank ASC
+    ```
 
 2. Define how to map users
   
     This is an optional step but it's common that the names/account in Jira and Azure DevOps/TFS are different. Map Jira users to Azure DevOps/TFS users in a text file with email value pairs in when using Jira Server and accountId/email value value pairs when using Jira Cloud like this.
     It is possible to use email value pairs for Jira Cloud too but then the users emails must be set public:
 
-        
       Jira Cloud example:
 
-        JiraAccountId1=AzureDevOps.User1@some.domain
-        JiraAccountId2=AzureDevOps.User2@some.domain
-        JiraAccountId3=AzureDevOps.User3@some.domain
-        
-      Jira Server example: 
-        
-        Jira.User1@some.domain=AzureDevOps.User1@some.domain
-        Jira.User2@some.domain=AzureDevOps.User2@some.domain
-        Jira.User3@some.domain=AzureDevOps.User3@some.domain
+      ```txt
+      JiraAccountId1=AzureDevOps.User1@some.domain
+      JiraAccountId2=AzureDevOps.User2@some.domain
+      JiraAccountId3=AzureDevOps.User3@some.domain
+      ```
+
+      Jira Server example:
+
+      ```txt
+      Jira.User1@some.domain=AzureDevOps.User1@some.domain
+      Jira.User2@some.domain=AzureDevOps.User2@some.domain
+      Jira.User3@some.domain=AzureDevOps.User3@some.domain
+      ```
 
     If no specific path to the user mapping file is provided in the configuration file, the program expects it in the location of "workspace" setting. If no file name or path including file name is provided, the import just skips mapping users.
-    
+
     To add support for setting a default user when the Jira user of a task is not found in the user mapping file just add this in the user mapping file:
-    
-        *=default username
-    
+
+      ```txt
+      *=default username
+      ```
+
 3. Define [configuration](config.md) for the migration process.
 
 4. Run the [export](jira-export.md) phase.
@@ -82,7 +87,7 @@ The process below describes the high-level steps requred to migrate data from Ji
 
 6. The migration process tracks progress in a [journal file](journalfile.md). The journal makes it possible to resume a migration, for instance to import items that failed in the import due to configuration issues.
 
-7. The export will generate [migration items](migration-item.md) for all Jira isses.
+7. The export will generate [migration items](migration-item.md) for all Jira issues.
 
 8. Run the [import](wi-import.md) phase.
 
@@ -103,6 +108,6 @@ Sample configuration files are provided with documentation of typical migration 
 |[config-scrum.json](Samples/config-scrum.json)|Configuration to migrate to a Scrum process template|
 
 ## Known limitations
+
 - Artifact links (other than git) are not migrated
 - Board fields are not migrated
-

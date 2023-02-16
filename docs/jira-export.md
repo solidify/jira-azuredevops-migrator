@@ -2,7 +2,9 @@
 
 Work item migration tool that assists with moving Jira items to Azure DevOps or TFS.
 
-    Usage: jira-export [options]
+```txt
+Usage: jira-export [options]
+```
 
 |Argument|Required|Description|
 |---|---|---|
@@ -15,6 +17,6 @@ Work item migration tool that assists with moving Jira items to Azure DevOps or 
 
 ## Example
 
-```
+```bash
 jira-export -u myUser -p myPassword --url https://myproject.atlassian.net --config config.json --force
 ```

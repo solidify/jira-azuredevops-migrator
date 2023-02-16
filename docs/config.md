@@ -2,14 +2,14 @@
 
 The migration configuration is the core of the migration, where all details about what to migrate and how data is mapped is defined.
 
-Check out the Azure DevOps documention below for inspiration on which fields to map, their meaning and data translation.
+Check out the Azure DevOps documentation below for inspiration on which fields to map, their meaning and data translation.
 
 * [Work item field index](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field)
 * [Agile process](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/agile-process)
 * [Scrum process](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/scrum-process)
 * [CMMI process](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/cmmi-process)
 
-## Structure 
+## Structure
 
 The migration configuration file is defined in a json file with the properties documented below.
 
@@ -38,6 +38,7 @@ The migration configuration file is defined in a json file with the properties d
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
 
 ## Download options
+
 This option allows the tool to download related issues to cover cases where these are not included in the section query (like a parent issue).
 
 Default value: 7 (=all)
@@ -50,6 +51,7 @@ Default value: 7 (=all)
 |IncludeSubItems|4|
 
 ## Link properties
+
 Name-value pairs of work item link types to map in the migration.
 
 |Name|Required|Type|Description|
@@ -58,6 +60,7 @@ Name-value pairs of work item link types to map in the migration.
 |target|True|string|Target Azure DevOps/TFS link type.|
 
 ## Type properties
+
 Name-value pairs of work item types to map in the migration.
 
 |Name|Required|Type|Description|
@@ -66,6 +69,7 @@ Name-value pairs of work item types to map in the migration.
 |target|True|string|Target Azure DevOps/TFS work item type.|
 
 ## Field properties
+
 |Name|Required|Type|Description|
 |---|---|---|---|
 |**source**|True|string|Name of Jira source field.|
@@ -78,6 +82,7 @@ Name-value pairs of work item types to map in the migration.
 |**mapping**|False|json|List of **values** to map to and from in the migration.|
 
 ## Value properties
+
 Name-value pairs of field values to map in the migration.
 
 |Name|Required|Type|Description|
@@ -86,9 +91,10 @@ Name-value pairs of field values to map in the migration.
 |target|False|string|Target value.|
 
 ## Mappers
-Currently the tool has a rather naive implementation for mapping certain constructs, this is something we would like to improve in the future. But for now it is what it is and the table below is intended as a summary/explaination.
 
-**Note**: the source code for the mapping logic is here: https://github.com/solidify/jira-azuredevops-migrator/blob/master/src/WorkItemMigrator/JiraExport/JiraMapper.cs
+Currently the tool has a rather naive implementation for mapping certain constructs, this is something we would like to improve in the future. But for now it is what it is and the table below is intended as a summary/explanation.
+
+**Note**: the source code for the mapping logic is here: <https://github.com/solidify/jira-azuredevops-migrator/blob/master/src/WorkItemMigrator/JiraExport/JiraMapper.cs>
 
 |Name|Description|
 |---|---|
@@ -100,7 +106,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |MapArray|Maps an array by replacing comma with semi-colon|
 |MapRemainingWork|Maps and converts a Jira time to hours|
 |MapRendered|Maps field to rendered html format value|
-|(default)|Simply copies soure to target|
+|(default)|Simply copies source to target|
 
 ## Example configuration
 
@@ -185,7 +191,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
       {
         "source": "description",
         "target": "System.Description",
-		"mapper":"MapRendered"
+        "mapper":"MapRendered"
       },
       {
         "source": "priority",
@@ -249,7 +255,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
       {
         "source": "comment",
         "target": "System.History",
-		"mapper":"MapRendered"
+        "mapper":"MapRendered"
       },
       {
         "source": "status",

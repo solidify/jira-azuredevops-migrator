@@ -6,13 +6,15 @@ The tools will create import/export log files with unique timestamps. Use the lo
 
 The log file contains data on the following format:
 
-        Info header
-        =============================
-        [severity][timestamp] message
+```log
+Info header
+=============================
+[severity][timestamp] message
+```
 
 ## Example file
 
-```
+```log
 ====================================================================
 Jira Export Log
 ====================================================================
