@@ -49,12 +49,18 @@ Here is how you can contribute to this project:
 
 Please refer to [Contribution guidelines](docs/CONTRIBUTING.md) and the [Code of Conduct](docs/CODE_OF_CONDUCT.md) for more details, including how to build and debug the tools locally.
 
-## Tested with
+## Supported versions of ADO/Jira
 
-The Jira to Azure DevOps work item migration tool has been tested on the following configurations:
+The Jira to Azure DevOps work item migration tool is offically supported on the following platforms:
 
 - Atlassian Jira Cloud
-- Atlassian Jira Server 7.0.0
+- Atlassian Jira Server
+  - 7.x
+  - 8.x
+  - 9.x
 - Azure DevOps Services
-- Azure DevOps Server ("TFS 2019")
+- Azure DevOps Server
+  - 2022
+  - 2020
+  - 2019
 - Team Foundation Server 2018 update 3
