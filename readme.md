@@ -30,6 +30,16 @@ The tools are provided as-is and will require detailed understanding of how to m
 - Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/blog/jira-to-vsts-migration-work-items) for more context of the process.
 - Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/blog/jira-azure-devops-migration) for a complete step-by-step walkthrough on a migration.
 
+## Support
+
+Support and bug reporting are managed via **GitHub Issues**. Please create a new issue and fill in the corresponding issue template.
+
+Note: We do not answer Discussions, as these have far less traceability than Issues. Discussions are instead reserved for community discussions.
+
+### Priority support
+
+Priority support is part of our **Jira Migrator PRO offering**. Contact us for more information.
+
 ## FAQ - Frequently Asked Questions
 
 - See [FAQ - Frequently Asked Questions](docs/faq.md)
