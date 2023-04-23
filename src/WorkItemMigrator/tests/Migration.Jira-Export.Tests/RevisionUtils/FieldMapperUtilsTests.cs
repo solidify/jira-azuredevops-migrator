@@ -67,9 +67,11 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
-        public void When_calling_map_remaining_work_with_null_arguments_Then_and_exception_is_thrown()
+        public void When_calling_map_remaining_work_with_null_arguments_Then_zero_is_returned()
         {
-            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapRemainingWork(null); });
+            object output = FieldMapperUtils.MapRemainingWork(null);
+
+            Assert.AreEqual(0, output);
         }
 
         [Test]
