@@ -149,7 +149,10 @@ namespace JiraExport
         public static object MapSprint(string iterationPathsString)
         {
             if (string.IsNullOrWhiteSpace(iterationPathsString))
+            {
+                Logger.Log(LogLevel.Warning, $"Encountered Sprint value 'null'. This usually happens if the issue was created at the same time as the Sprint. The IterationPath will be removed from the first work item revision. Most likely not further action will be neccessary.");
                 return null;
+            }
 
             var iterationPaths = iterationPathsString.Split(',').AsEnumerable();
             iterationPaths = iterationPaths.Select(ip => ip.Trim());

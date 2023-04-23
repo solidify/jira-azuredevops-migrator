@@ -77,6 +77,7 @@ namespace JiraExport
                 {
                     var isCustomField = item.SourceType == "name";
                     Func<JiraRevision, (bool, object)> value;
+                    bool fieldSkipped = false;
 
                     if (item.Mapping?.Values != null)
                     {
@@ -97,6 +98,10 @@ namespace JiraExport
                                 break;
                             case "MapSprint":
                                 value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapSprint);
+                                if (value == null)
+                                {
+                                    fieldSkipped = true;
+                                }
                                 break;
                             case "MapTags":
                                 value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapTags);
@@ -136,34 +141,37 @@ namespace JiraExport
                         }
                     }
 
-                    // Check if not-for has been set, if so get all work item types except that one, else for has been set and get those                 
-                    var currentWorkItemTypes = !string.IsNullOrWhiteSpace(item.NotFor) ? GetWorkItemTypes(item.NotFor.Split(',')) : item.For.Split(',').ToList();
-
-                    foreach (var wit in currentWorkItemTypes)
+                    if (!fieldSkipped)
                     {
-                        try
+                        // Check if not-for has been set, if so get all work item types except that one, else for has been set and get those                 
+                        var currentWorkItemTypes = !string.IsNullOrWhiteSpace(item.NotFor) ? GetWorkItemTypes(item.NotFor.Split(',')) : item.For.Split(',').ToList();
+
+                        foreach (var wit in currentWorkItemTypes)
                         {
-                            if (wit == "All" || wit == "Common")
+                            try
                             {
-                                commonFields.Add(item.Target, value);
-                            }
-                            else
-                            {
-                                // If we haven't mapped the Type then we probably want to ignore the field
-                                if (typeFields.TryGetValue(wit, out FieldMapping<JiraRevision> fm))
+                                if (wit == "All" || wit == "Common")
                                 {
-                                    fm.Add(item.Target, value);
+                                    commonFields.Add(item.Target, value);
                                 }
                                 else
                                 {
-                                    Logger.Log(LogLevel.Warning, $"No target type '{wit}' is set, field {item.Source} cannot be mapped.");
+                                    // If we haven't mapped the Type then we probably want to ignore the field
+                                    if (typeFields.TryGetValue(wit, out FieldMapping<JiraRevision> fm))
+                                    {
+                                        fm.Add(item.Target, value);
+                                    }
+                                    else
+                                    {
+                                        Logger.Log(LogLevel.Warning, $"No target type '{wit}' is set, field {item.Source} cannot be mapped.");
+                                    }
                                 }
                             }
-                        }
 
-                        catch (Exception)
-                        {
-                            Logger.Log(LogLevel.Warning, $"Ignoring target mapping with key: '{item.Target}', because it is already configured.");
+                            catch (Exception)
+                            {
+                                Logger.Log(LogLevel.Warning, $"Ignoring target mapping with key: '{item.Target}', because it is already configured.");
+                            }
                         }
                     }
                 }
