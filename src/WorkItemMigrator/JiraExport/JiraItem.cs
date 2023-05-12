@@ -37,7 +37,22 @@ namespace JiraExport
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
-            Dictionary<string, object> fields = ExtractFields(issueKey, remoteIssue, jiraProvider);
+            Dictionary<string, object> fieldsTemp = ExtractFields(issueKey, remoteIssue, jiraProvider);
+            
+            // Add copies of the fields using the CustomFieldName.
+            // These get removed as we loop over the changeLog, so we're left with the original Jira values by the time we reach firstRevision.
+            Dictionary<string, object> fields = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var field in fieldsTemp)
+            {
+                //We keep the originals keys also, as for some reason the iteration path isn't created without them, and I presume other things probably break too.
+                fields[field.Key] = field.Value;
+                var key = GetCustomFieldName(field.Key, jiraProvider);
+                if (!String.IsNullOrEmpty(key))
+                {
+                    fields[key] = field.Value;
+                }
+            }
+
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
             var epicLinkField = jiraProvider.GetSettings().EpicLinkField;
@@ -280,6 +295,14 @@ namespace JiraExport
         {
             if (jira.GetCustomField(fieldName, out var customField))
                 return customField.Id;
+            else return null;
+
+        }
+
+        private static string GetCustomFieldName(string fieldId, IJiraProvider jira)
+        {
+            if (jira.GetCustomField(fieldId, out var customField))
+                return customField.Name;
             else return null;
 
         }
