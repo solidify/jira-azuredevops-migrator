@@ -249,6 +249,44 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
+        public void When_calling_map_value_with_valid_args_and_null_sourcevalue_Then_expected_output_is_returned()
+        {
+
+            var configJson = _fixture.Create<ConfigJson>();
+
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>()
+            {
+                new Common.Config.Field()
+                    {
+                        Source = "resolution", Target = "System.Reason",
+                        Mapping = new Common.Config.Mapping
+                        {
+                            Values = new List<Common.Config.Value>
+                            {
+                                new Common.Config.Value
+                            {
+                                Source = "Fixed", Target = "Resolved"
+                                }
+                            }
+                            }
+                        }
+                    };
+            
+            var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
+            // Ensure a null value is added to the revision
+            jiraRevision.Fields.Add("resolution", null);
+
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "resolution", "System.Reason", configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.True);
+                Assert.That(actualOutput.Item2, Is.Null);
+            });
+        }
+
+        [Test]
         public void When_calling_map_value_with_missing_args_Then_false_and_null_is_returned()
         {
 

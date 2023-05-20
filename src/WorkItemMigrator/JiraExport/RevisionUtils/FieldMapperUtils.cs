@@ -75,6 +75,10 @@ namespace JiraExport
                       item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
                       item.Mapping?.Values != null)
                 {
+                    if (value == null)
+                    {
+                        return (true, null);
+                    }
                     var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
                     if (string.IsNullOrEmpty(mappedValue))
                     {
