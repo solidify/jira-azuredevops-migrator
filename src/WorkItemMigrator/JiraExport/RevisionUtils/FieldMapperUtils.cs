@@ -20,10 +20,15 @@ namespace JiraExport
             var secs = 0d;
             try
             {
+                if(seconds == null)
+                {
+                    throw new FormatException();
+                }
                 secs = Convert.ToDouble(seconds);
-            } catch (FormatException e)
+            } catch (FormatException)
             {
-                Logger.Log(LogLevel.Warning, $"A FormatException was thrown when converting RemainingWork value '{seconds}' to double. Defaulting to RemainingWork = 0 hours.");
+                Logger.Log(LogLevel.Warning, $"A FormatException was thrown when converting RemainingWork value '{seconds}' to double. Defaulting to RemainingWork = null.");
+                return null;
             }
             return TimeSpan.FromSeconds(secs).TotalHours;
         }

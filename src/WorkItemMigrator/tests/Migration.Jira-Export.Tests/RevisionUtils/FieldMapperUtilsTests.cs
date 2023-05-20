@@ -67,11 +67,14 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
-        public void When_calling_map_remaining_work_with_null_arguments_Then_zero_is_returned()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("Invalid")]
+        public void When_calling_map_remaining_work_with_invalid_arguments_Then_null_is_returned(string value)
         {
-            object output = FieldMapperUtils.MapRemainingWork(null);
+            object output = FieldMapperUtils.MapRemainingWork(value);
 
-            Assert.AreEqual(0, output);
+            Assert.AreEqual(null, output);
         }
 
         [Test]
