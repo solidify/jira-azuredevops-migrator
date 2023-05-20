@@ -1,5 +1,6 @@
 ﻿using Common.Config;
 using Migration.Common;
+using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
 using Newtonsoft.Json.Linq;
@@ -16,10 +17,19 @@ namespace JiraExport
     {
         public static object MapRemainingWork(string seconds)
         {
-            if (seconds == null)
-                throw new ArgumentNullException(nameof(seconds));
-
-            var secs = Convert.ToDouble(seconds);
+            var secs = 0d;
+            try
+            {
+                if(seconds == null)
+                {
+                    throw new FormatException();
+                }
+                secs = Convert.ToDouble(seconds);
+            } catch (FormatException)
+            {
+                Logger.Log(LogLevel.Warning, $"A FormatException was thrown when converting RemainingWork value '{seconds}' to double. Defaulting to RemainingWork = null.");
+                return null;
+            }
             return TimeSpan.FromSeconds(secs).TotalHours;
         }
 
