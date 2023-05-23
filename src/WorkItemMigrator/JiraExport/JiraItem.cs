@@ -39,17 +39,18 @@ namespace JiraExport
             var remoteIssue = jiraItem.RemoteIssue;
             Dictionary<string, object> fieldsTemp = ExtractFields(issueKey, remoteIssue, jiraProvider);
             
-            // Add copies of the fields using the CustomFieldName.
+            // Add CustomFieldName fields, copy over all non-custom fields.
             // These get removed as we loop over the changeLog, so we're left with the original Jira values by the time we reach firstRevision.
             Dictionary<string, object> fields = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
             foreach (var field in fieldsTemp)
             {
-                //We keep the originals keys also, as for some reason the iteration path isn't created without them, and I presume other things probably break too.
-                fields[field.Key] = field.Value;
                 var key = GetCustomFieldName(field.Key, jiraProvider);
                 if (!String.IsNullOrEmpty(key))
                 {
                     fields[key] = field.Value;
+                } else
+                {
+                    fields[field.Key] = field.Value;
                 }
             }
 
