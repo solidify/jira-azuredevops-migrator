@@ -24,7 +24,7 @@ Some of the capabilities include:
 
 ## Getting started
 
-The tools are provided as-is and will require detailed understanding of how to migrate work items between different systems in order to do a successful migration. If you need support or help with migrations feel free to [contact the team at Solidify](mailto:info@solidify.se) for expert consulting services.
+The tools are provided as-is and will require detailed understanding of how to migrate work items between different systems in order to do a successful migration.
 
 - See the [migration process](docs/overview.md) overview for information on how to get started.
 - Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/blog/jira-to-vsts-migration-work-items) for more context of the process.
@@ -32,13 +32,28 @@ The tools are provided as-is and will require detailed understanding of how to m
 
 ## Support
 
-Support and bug reporting are managed via **GitHub Issues**. Please create a new issue and fill in the corresponding issue template.
+If you need help with migrations, feel free to [contact the team at Solidify](mailto:support.jira-migrator@solidify.dev) for expert consulting services.
 
-Note: We do not answer Discussions, as these have far less traceability than Issues. Discussions are instead reserved for community discussions.
+Support and bug reporting are managed via [**GitHub Issues**](https://github.com/solidify/jira-azuredevops-migrator/issues). Please create a new issue and fill in the corresponding issue template.
 
-### Priority support
+Note: We do not answer Discussions, as these have less traceability than Issues. Discussions are instead reserved for community discussions.
 
-Priority support is part of our **Jira Migrator PRO offering**. Contact us for more information.
+## Jira Azure DevOps Migrator PRO
+
+The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more features and utilities to further increase your migration capabilities and streamline the migration workflow. [Contact us for more information](mailto:support.jira-migrator@solidify.dev)
+
+### Features
+
+**Jira Azure DevOps Migrator PRO** contains all the features in the **Community Edition**, plus the following additional functionality:
+
+- Priority support
+- Composite field mapper (consolidate multiple Jira fields into a single ADO field)
+- Migrate **Releases** and the **fixes version** field
+- Utilities for automating user mapping between Jira and Azure DevOps
+- Utilities for automatically generating the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
+- Utilities for viewing the Jira workflow and assisting with field and state mapping
+- Migrate Jira test data to Azure DevOps Test Plans, including the **QMetry**, **Zephyr** and **Xray** frameworks
+- Migrate **Confluence** pages to Azure DevOps Wikis
 
 ## FAQ - Frequently Asked Questions
 
