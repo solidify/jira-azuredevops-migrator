@@ -1,5 +1,7 @@
 # Jira to Azure DevOps work item migration tool
 
+![image](https://github.com/solidify/jira-azuredevops-migrator/assets/10683896/57a9f907-118c-4c56-9e42-80ec7a717590)
+
 The Jira to Azure DevOps work item migration tool lets you export data from Jira and import it as work items in Azure DevOps or Microsoft Team Foundation Server.
 
 |Build|Quality|Release|
