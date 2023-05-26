@@ -38,7 +38,7 @@ namespace Migration.Jira_Export.Tests
         {
             string[] args = new string[] {
                 "-u",
-                "alexander.hjelm@solidify.dev",
+                "john.doe@solidify.dev",
                 "-p",
                 "XXXXXXXXXXXXXXXXXXXXXXXX",
                 "--url",
