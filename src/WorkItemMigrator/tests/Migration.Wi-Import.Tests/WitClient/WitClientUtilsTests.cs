@@ -974,5 +974,37 @@ namespace Migration.Wi_Import.Tests
                 Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
             });
         }
+
+        [Test]
+        public void EncodeFileNameUsingJiraStandard_encodes_file_name_with_special_characters()
+        {
+            // Arrange
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            string fileName = "My File (Special).txt";
+            string expectedEncodedFileName = "My+File+%28Special%29.txt";
+
+            // Act
+            string encodedFileName = wiUtils.EncodeFileNameUsingJiraStandard(fileName);
+
+            // Assert
+            Assert.AreEqual(expectedEncodedFileName, encodedFileName);
+        }
+
+        [Test]
+        public void EncodeFileNameUsingJiraStandard_encodes_file_name_with_no_special_characters()
+        {
+            // Arrange
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            string fileName = "MyFile.txt";
+            string expectedEncodedFileName = "MyFile.txt";
+
+            // Act
+            string encodedFileName = wiUtils.EncodeFileNameUsingJiraStandard(fileName);
+
+            // Assert
+            Assert.AreEqual(expectedEncodedFileName, encodedFileName);
+        }
     }
 }

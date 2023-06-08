@@ -565,11 +565,19 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(rev));
             }
 
-            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
+            var filteredRelations = wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added));
+
+            foreach (var att in filteredRelations)
             {
-                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                var encodedFileName = HttpUtility.UrlEncode(fileName);
-                if (textField.Contains(fileName) || textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0 || textField.Contains("_thumb_" + att.AttOriginId))
+                string fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                string encodedFileName = EncodeFileNameUsingJiraStandard(fileName);
+                string restApiUrlOption = "/rest/api/3/attachment/content/" + att.AttOriginId;
+                if (
+                    textField.Contains(fileName)
+                    || textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0
+                    || textField.Contains("_thumb_" + att.AttOriginId)
+                    || textField.Contains(restApiUrlOption)
+                )
                 {
                     var tfsAtt = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
 
@@ -595,6 +603,15 @@ namespace WorkItemImport
                 wi.Fields[WiFieldReference.ChangedBy] = rev.Author;
             }
         }
+
+        public string EncodeFileNameUsingJiraStandard(string fileName)
+        {
+            string fileNameEncoded = HttpUtility.UrlEncode(fileName);
+            fileNameEncoded = fileNameEncoded.Replace("(", "%28");
+            fileNameEncoded = fileNameEncoded.Replace(")", "%29");
+            return fileNameEncoded;
+        }
+
 
         private void CorrectClosedByAndClosedDate(WiRevision rev, WorkItem wi)
         {
