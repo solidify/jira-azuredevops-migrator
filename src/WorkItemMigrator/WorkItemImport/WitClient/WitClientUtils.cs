@@ -565,10 +565,12 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(rev));
             }
 
-            foreach (var att in wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added)))
+            var filteredRelations = wiItem.Revisions.SelectMany(r => r.Attachments.Where(a => a.Change == ReferenceChangeType.Added));
+
+            foreach (var att in filteredRelations)
             {
                 var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                var encodedFileName = HttpUtility.UrlEncode(fileName);
+                var encodedFileName = EncodeFileNameUsingJiraStandard(fileName);
                 if (textField.Contains(fileName) || textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0 || textField.Contains("_thumb_" + att.AttOriginId))
                 {
                     var tfsAtt = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
@@ -595,6 +597,15 @@ namespace WorkItemImport
                 wi.Fields[WiFieldReference.ChangedBy] = rev.Author;
             }
         }
+
+        public string EncodeFileNameUsingJiraStandard(string fileName)
+        {
+            string fileNameEncoded = HttpUtility.UrlEncode(fileName);
+            fileNameEncoded = fileNameEncoded.Replace("(", "%28");
+            fileNameEncoded = fileNameEncoded.Replace(")", "%29");
+            return fileNameEncoded;
+        }
+
 
         private void CorrectClosedByAndClosedDate(WiRevision rev, WorkItem wi)
         {
