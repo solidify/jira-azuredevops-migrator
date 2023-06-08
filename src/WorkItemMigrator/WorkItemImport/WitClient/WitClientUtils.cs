@@ -569,9 +569,15 @@ namespace WorkItemImport
 
             foreach (var att in filteredRelations)
             {
-                var fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
-                var encodedFileName = EncodeFileNameUsingJiraStandard(fileName);
-                if (textField.Contains(fileName) || textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0 || textField.Contains("_thumb_" + att.AttOriginId))
+                string fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                string encodedFileName = EncodeFileNameUsingJiraStandard(fileName);
+                string restApiUrlOption = "/rest/api/3/attachment/content/" + att.AttOriginId;
+                if (
+                    textField.Contains(fileName)
+                    || textField.IndexOf(encodedFileName, StringComparison.OrdinalIgnoreCase) >= 0
+                    || textField.Contains("_thumb_" + att.AttOriginId)
+                    || textField.Contains(restApiUrlOption)
+                )
                 {
                     var tfsAtt = IdentifyAttachment(att, wi, isAttachmentMigratedDelegate);
 
