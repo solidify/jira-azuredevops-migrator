@@ -14,6 +14,7 @@
   "base-area-path": "Migrated",
   "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
+  "include-link-comments": true,
   "process-template": "Basic",
   "link-map": {
     "link": [

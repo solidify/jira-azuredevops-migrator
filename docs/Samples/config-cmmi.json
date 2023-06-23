@@ -14,6 +14,7 @@
     "base-area-path": "SourceProject_Migrated",
     "base-iteration-path": "SourceProject_Migrated",
     "ignore-failed-links": true,
+    "include-link-comments": true,
     "process-template": "CMMI",
     "link-map": {
         "link": [

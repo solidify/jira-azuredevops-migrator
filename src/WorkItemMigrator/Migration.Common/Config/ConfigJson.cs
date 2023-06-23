@@ -66,5 +66,8 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "using-jira-cloud")]
         public bool UsingJiraCloud { get; set; } = true;
+
+        [JsonProperty(PropertyName = "include-link-comments")]
+        public bool IncludeLinkComments { get; set; } = true;
     }
 }

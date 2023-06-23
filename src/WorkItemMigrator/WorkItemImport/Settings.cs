@@ -16,5 +16,6 @@
         public string BaseIterationPath { get; internal set; }
         public bool IgnoreFailedLinks { get; internal set; }
         public string ProcessTemplate { get; internal set; }
+        public bool IncludeLinkComments { get; internal set; }
     }
 }

@@ -90,7 +90,8 @@ namespace WorkItemImport
                     BaseAreaPath = config.BaseAreaPath ?? string.Empty, // Root area path that will prefix area path of each migrated item
                     BaseIterationPath = config.BaseIterationPath ?? string.Empty, // Root iteration path that will prefix each iteration
                     IgnoreFailedLinks = config.IgnoreFailedLinks,
-                    ProcessTemplate = config.ProcessTemplate
+                    ProcessTemplate = config.ProcessTemplate,
+                    IncludeLinkComments = config.IncludeLinkComments
                 };
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.
@@ -126,7 +127,7 @@ namespace WorkItemImport
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
-                        agent.ImportRevision(executionItem.Revision, wi);
+                        agent.ImportRevision(executionItem.Revision, wi, settings);
                         importedItems++;
                     }
                     catch (AbortMigrationException)
