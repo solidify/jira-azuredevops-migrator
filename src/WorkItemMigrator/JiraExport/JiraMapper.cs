@@ -45,9 +45,10 @@ namespace JiraExport
                 if (type != null)
                 {
                     var revisions = issue.Revisions.Select(r => MapRevision(r)).ToList();
+                    var revisionsSorted = GetSortedRevisions(revisions); // In some cases we have noticed that the issues appear out of order
                     wiItem.OriginId = issue.Key;
                     wiItem.Type = type;
-                    wiItem.Revisions = revisions;
+                    wiItem.Revisions = revisionsSorted;
                 }
                 else
                 {
@@ -56,6 +57,16 @@ namespace JiraExport
                 }
             }
             return wiItem;
+        }
+
+        internal List<WiRevision> GetSortedRevisions(List<WiRevision> revisions)
+        {
+            List<WiRevision> revisionsSorted = revisions.OrderBy(r => r.Time).ToList();
+            for (int i = 0; i < revisionsSorted.Count; i++)
+            {
+                revisionsSorted[i].Index = i;
+            }
+            return revisionsSorted;
         }
 
         internal Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings()

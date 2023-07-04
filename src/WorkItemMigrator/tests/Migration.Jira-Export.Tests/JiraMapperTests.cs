@@ -13,6 +13,7 @@ using NSubstitute;
 using System.Diagnostics.CodeAnalysis;
 using Type = Migration.Common.Config.Type;
 using System.Linq;
+using System;
 
 namespace Migration.Jira_Export.Tests
 {
@@ -229,6 +230,39 @@ namespace Migration.Jira_Export.Tests
             var actual = sut.InitializeFieldMappings();
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_calling_get_sorted_revisions_Then_the_expected_result_is_returned()
+        {
+            List<WiRevision> unsortedRevisions = new List<WiRevision>();
+
+            WiRevision rev0 = new WiRevision();
+            rev0.Index = 0;
+            rev0.Time = DateTime.Now;
+
+            WiRevision revPlus1 = new WiRevision();
+            revPlus1.Index = 1;
+            revPlus1.Time = DateTime.Now.AddDays(1);
+
+            WiRevision revMinus1 = new WiRevision();
+            revMinus1.Index = 2;
+            revMinus1.Time = DateTime.Now.AddDays(-1);
+
+            unsortedRevisions.Add(rev0);
+            unsortedRevisions.Add(revPlus1);
+            unsortedRevisions.Add(revMinus1);
+
+            JiraMapper sut = createJiraMapper();
+
+            var sortedRevisions = sut.GetSortedRevisions(unsortedRevisions);
+
+            Assert.AreEqual(sortedRevisions[0], unsortedRevisions[2]);
+            Assert.AreEqual(sortedRevisions[1], unsortedRevisions[0]);
+            Assert.AreEqual(sortedRevisions[2], unsortedRevisions[1]);
+            Assert.AreEqual(sortedRevisions[0].Index, 0);
+            Assert.AreEqual(sortedRevisions[1].Index, 1);
+            Assert.AreEqual(sortedRevisions[2].Index, 2);
         }
 
         private JiraSettings createJiraSettings()
