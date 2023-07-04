@@ -260,9 +260,9 @@ namespace Migration.Jira_Export.Tests
             Assert.AreEqual(sortedRevisions[0], unsortedRevisions[2]);
             Assert.AreEqual(sortedRevisions[1], unsortedRevisions[0]);
             Assert.AreEqual(sortedRevisions[2], unsortedRevisions[1]);
-            Assert.AreEqual(sortedRevisions[0].Index, 0);
-            Assert.AreEqual(sortedRevisions[1].Index, 1);
-            Assert.AreEqual(sortedRevisions[2].Index, 2);
+            Assert.AreEqual(0, sortedRevisions[0].Index);
+            Assert.AreEqual(1, sortedRevisions[1].Index);
+            Assert.AreEqual(2, sortedRevisions[2].Index);
         }
 
         private JiraSettings createJiraSettings()
