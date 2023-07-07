@@ -9,6 +9,7 @@ variables:
   BuildConfiguration: 'release'
   major: 3
   minor: 0
+  dotNetVersion: '3.1.x'
 
 name: $(major).$(minor)$(rev:.r)
 
@@ -25,6 +26,11 @@ steps:
   displayName: 'Version Assemblies'
   inputs:
     VersionRegex: '\d+\.\d+\.\d+'
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '$(dotNetVersion)'
 
 - task: NuGetCommand@2
   displayName: 'NuGet restore'
