@@ -90,11 +90,10 @@ namespace JiraExport
             return _jiraServiceWrapper.Issues.GetCommentsAsync(itemKey).Result;
         }
 
-        public bool GetCustomField(string fieldName, out CustomField customField)
+        public CustomField GetCustomField(string fieldName)
         {
             bool found = _jiraServiceWrapper.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out CustomField cF);
-            customField = cF;
-            return found;
+            return found ? cF : null;
         }
 
         public bool GetCustomFieldSerializer(string customType, out ICustomFieldValueSerializer serializer)

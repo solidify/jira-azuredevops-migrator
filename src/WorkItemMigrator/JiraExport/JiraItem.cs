@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 using Atlassian.Jira;
-using Atlassian.Jira.Remote;
 using Migration.Common;
 using Migration.Common.Log;
 
@@ -295,15 +293,17 @@ namespace JiraExport
 
         private static string GetCustomFieldId(string fieldName, IJiraProvider jira)
         {
-            if (jira.GetCustomField(fieldName, out var customField))
+            var customField = jira.GetCustomField(fieldName);
+            if (customField != null)
                 return customField.Id;
             else return null;
 
         }
 
-        private static string GetCustomFieldName(string fieldId, IJiraProvider jira)
+        protected static string GetCustomFieldName(string fieldId, IJiraProvider jira)
         {
-            if (jira.GetCustomField(fieldId, out var customField))
+            var customField = jira.GetCustomField(fieldId);
+            if (customField != null)
                 return customField.Name;
             else return null;
 
@@ -507,8 +507,8 @@ namespace JiraExport
         private static string[] ParseCustomField(string fieldName, JToken value, IJiraProvider provider)
         {
             var serializedValue = new string[] { };
-
-            if (provider.GetCustomField(fieldName, out var customField) &&
+            var customField = provider.GetCustomField(fieldName);
+            if (customField != null &&
                 customField != null &&
                 provider.GetCustomFieldSerializer(customField.CustomType, out var serializer))
             {
