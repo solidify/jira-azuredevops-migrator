@@ -427,7 +427,7 @@ namespace JiraExport
                 else if (type == JTokenType.Array && prop.Value.Any())
                 {
                     value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
-                    if (Regex.Match((string)value, "^[;]+$").Success || (string)value == "")
+                    if (Regex.Match((string)value, "^[;]+$", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Success || (string)value == "")
                         value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
                 }
                 else if (type == Newtonsoft.Json.Linq.JTokenType.Object && prop.Value["value"] != null)
