@@ -526,9 +526,18 @@ namespace WorkItemImport
 
                 object val = wi.Fields[key];
 
-                patchDocument.Add(
-                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, key, val)
-                );
+                if (val == null || val.ToString() == "")
+                {
+                    patchDocument.Add(
+                        JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Remove, key, null)
+                    );
+                }
+                else
+                {
+                    patchDocument.Add(
+                        JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Replace, key, val)
+                    );
+                }
             }
 
             try
