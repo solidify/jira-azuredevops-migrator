@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 using Atlassian.Jira;
-using Atlassian.Jira.Remote;
 using Migration.Common;
 using Migration.Common.Log;
 
@@ -38,7 +36,23 @@ namespace JiraExport
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
-            Dictionary<string, object> fields = ExtractFields(issueKey, remoteIssue, jiraProvider);
+            Dictionary<string, object> fieldsTemp = ExtractFields(issueKey, remoteIssue, jiraProvider);
+            
+            // Add CustomFieldName fields, copy over all non-custom fields.
+            // These get removed as we loop over the changeLog, so we're left with the original Jira values by the time we reach firstRevision.
+            Dictionary<string, object> fields = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var field in fieldsTemp)
+            {
+                var key = GetCustomFieldName(field.Key, jiraProvider);
+                if (!String.IsNullOrEmpty(key))
+                {
+                    fields[key] = field.Value;
+                } else
+                {
+                    fields[field.Key] = field.Value;
+                }
+            }
+
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
             var epicLinkField = jiraProvider.GetSettings().EpicLinkField;
@@ -279,8 +293,18 @@ namespace JiraExport
 
         private static string GetCustomFieldId(string fieldName, IJiraProvider jira)
         {
-            if (jira.GetCustomField(fieldName, out var customField))
+            var customField = jira.GetCustomField(fieldName);
+            if (customField != null)
                 return customField.Id;
+            else return null;
+
+        }
+
+        protected static string GetCustomFieldName(string fieldId, IJiraProvider jira)
+        {
+            var customField = jira.GetCustomField(fieldId);
+            if (customField != null)
+                return customField.Name;
             else return null;
 
         }
@@ -483,9 +507,8 @@ namespace JiraExport
         private static string[] ParseCustomField(string fieldName, JToken value, IJiraProvider provider)
         {
             var serializedValue = new string[] { };
-
-            if (provider.GetCustomField(fieldName, out var customField) &&
-                customField != null &&
+            var customField = provider.GetCustomField(fieldName);
+            if (customField != null &&
                 provider.GetCustomFieldSerializer(customField.CustomType, out var serializer))
             {
                 serializedValue = serializer.FromJson(value);
