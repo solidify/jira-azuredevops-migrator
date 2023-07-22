@@ -69,5 +69,7 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "include-link-comments")]
         public bool IncludeLinkComments { get; set; } = true;
+        [JsonProperty(PropertyName = "sleep-time-between-revision-import-milliseconds")]
+        public int SleepTimeBetweenRevisionImportMilliseconds { get; set; } = 0;
     }
 }

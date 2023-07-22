@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-
+using System.Threading;
 using Common.Config;
 
 using Microsoft.Extensions.CommandLineUtils;
@@ -129,6 +129,12 @@ namespace WorkItemImport
 
                         agent.ImportRevision(executionItem.Revision, wi, settings);
                         importedItems++;
+
+                        // Artifical wait (optional) to avoid throttling for ADO Services
+                        if(config.SleepTimeBetweenRevisionImportMilliseconds > 0)
+                        {
+                            Thread.Sleep(config.SleepTimeBetweenRevisionImportMilliseconds);
+                        }
                     }
                     catch (AbortMigrationException)
                     {

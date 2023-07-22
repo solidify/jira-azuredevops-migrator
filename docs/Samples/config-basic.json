@@ -15,6 +15,7 @@
   "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
   "include-link-comments": true,
+  "sleep-time-between-revision-import-milliseconds": 0,
   "process-template": "Basic",
   "link-map": {
     "link": [
