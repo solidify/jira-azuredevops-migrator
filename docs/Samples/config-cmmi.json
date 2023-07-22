@@ -15,6 +15,7 @@
     "base-iteration-path": "SourceProject_Migrated",
     "ignore-failed-links": true,
     "include-link-comments": true,
+    "sleep-time-between-revision-import-milliseconds": 0,
     "process-template": "CMMI",
     "link-map": {
         "link": [
