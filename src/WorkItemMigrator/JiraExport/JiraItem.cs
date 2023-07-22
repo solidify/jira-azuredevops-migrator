@@ -509,7 +509,6 @@ namespace JiraExport
             var serializedValue = new string[] { };
             var customField = provider.GetCustomField(fieldName);
             if (customField != null &&
-                customField != null &&
                 provider.GetCustomFieldSerializer(customField.CustomType, out var serializer))
             {
                 serializedValue = serializer.FromJson(value);
