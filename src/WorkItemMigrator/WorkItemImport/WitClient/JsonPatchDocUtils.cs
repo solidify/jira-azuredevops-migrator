@@ -13,11 +13,6 @@ namespace WorkItemImport.WitClient
                 throw new ArgumentException(nameof(key));
             }
 
-            if (value == null)
-            {
-                throw new ArgumentException(nameof(value));
-            }
-
             return new JsonPatchOperation()
             {
                 Operation = op,
