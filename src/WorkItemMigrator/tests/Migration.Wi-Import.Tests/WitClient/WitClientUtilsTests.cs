@@ -331,6 +331,34 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
+        public void When_calling_ensure_fields_on_a_closed_user_Story_with_Then_closed_date_is_added_to_fields()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WiRevision rev = new WiRevision();
+            rev.Fields = new List<WiField>();
+            rev.Index = 1;
+
+            WiField revState = new WiField();
+            revState.ReferenceName = WiFieldReference.State;
+            revState.Value = "New";
+            rev.Fields.Add(revState);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.State] = "Closed";
+
+            wiUtils.EnsureFieldsOnStateChange(rev, createdWI);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State), Is.EqualTo("New"));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedDate), Is.EqualTo(null));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedBy), Is.EqualTo(null));
+            });
+        }
+
+        [Test]
         public void When_calling_ensure_classification_fields_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
