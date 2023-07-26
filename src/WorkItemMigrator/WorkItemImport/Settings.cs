@@ -17,5 +17,6 @@
         public bool IgnoreFailedLinks { get; internal set; }
         public string ProcessTemplate { get; internal set; }
         public bool IncludeLinkComments { get; internal set; }
+        public bool IncludeCommits { get; internal set; }
     }
 }

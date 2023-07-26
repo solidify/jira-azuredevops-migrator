@@ -87,6 +87,13 @@ namespace Migration.Common.Config
                 }
                 result.TypeMap.Types.AddRange(types);
 
+                var repositories = obj.SelectToken("repository-map.repository").Select(li => li.ToObject<Repository>()).ToList();
+                if (result.RepositoryMap.Repositories == null)
+                {
+                    result.RepositoryMap.Repositories = new List<Repository>();
+                }
+                result.RepositoryMap.Repositories.AddRange(repositories);
+
             }
             catch (Exception)
             {

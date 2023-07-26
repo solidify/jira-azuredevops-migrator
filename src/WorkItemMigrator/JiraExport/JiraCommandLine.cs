@@ -89,7 +89,9 @@ namespace JiraExport
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
                     JQL = config.Query,
-                    UsingJiraCloud = config.UsingJiraCloud
+                    UsingJiraCloud = config.UsingJiraCloud,
+                    IncludeCommits = config.IncludeCommits,
+                    RepositoryMap = config.RepositoryMap
                 };
 
                 var jiraServiceWrapper = new JiraServiceWrapper(jiraSettings);

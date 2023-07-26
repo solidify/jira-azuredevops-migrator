@@ -1,4 +1,6 @@
 ﻿
+using Migration.Common.Config;
+
 namespace JiraExport
 {
     public class JiraSettings
@@ -14,6 +16,8 @@ namespace JiraExport
         public string AttachmentsDir { get; set; }
         public string JQL { get; set; }
         public bool UsingJiraCloud { get; set; }
+        public bool IncludeCommits { get; set; }
+        public RepositoryMap RepositoryMap { get; set; }
 
         public JiraSettings(string userID, string pass, string url, string project)
         {

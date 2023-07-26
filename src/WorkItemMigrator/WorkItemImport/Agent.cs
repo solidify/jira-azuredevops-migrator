@@ -120,7 +120,18 @@ namespace WorkItemImport
                     }
                 }
 
-                _witClientUtils.SaveWorkItemFields(wi);
+                // rev with a commit won't have meaningful information, skip saving fields
+                if (rev.Commit != null)
+                {
+                    if (settings.IncludeCommits)
+                    {
+                        _witClientUtils.SaveWorkItemArtifacts(rev, wi, settings);
+                    }
+                }
+                else
+                {
+                    _witClientUtils.SaveWorkItemFields(wi);
+                }
 
                 if (wi.Id.HasValue)
                 {
@@ -579,7 +590,6 @@ namespace WorkItemImport
 
             return success;
         }
-
         #endregion
     }
 }
