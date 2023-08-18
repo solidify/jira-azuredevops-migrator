@@ -51,6 +51,7 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 - Priority support
 - Composite field mapper (consolidate multiple Jira fields into a single ADO field)
 - Migrate **Releases** and the **fixes version** field
+- Select any property for **object**- and **array**-type fields for mapping.
 - Utilities for automating user mapping between Jira and Azure DevOps
 - Utilities for automatically generating the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
 - Utilities for viewing the Jira workflow and assisting with field and state mapping
