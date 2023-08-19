@@ -557,6 +557,42 @@ namespace WorkItemImport
             }
         }
 
+        public void SaveWorkItemArtifacts(WiRevision rev, WorkItem wi, Settings settings)
+        {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (rev.Commit == null)
+            {
+                return;
+            }
+
+            var patchDocument = new JsonPatchDocument
+            {
+                JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, settings.Project, rev.Commit.Repository, rev.Commit.Id),
+                JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, rev.Time),
+                JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, rev.Author)
+            };
+
+            try
+            {
+                if (wi.Id.HasValue)
+                    _witClientWrapper.UpdateWorkItem(patchDocument, wi.Id.Value);
+                else
+                    throw new MissingFieldException($"Work item ID was null: {wi.Url}");
+            }
+            catch (AggregateException ex)
+            {
+                foreach (Exception ex2 in ex.InnerExceptions)
+                {
+                    Logger.Log(LogLevel.Error, ex2.Message);
+                }
+                Logger.Log(LogLevel.Error, "Work Item " + wi.Id + " failed to save.");
+            }
+        }
+
         private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             if (wi == null)
