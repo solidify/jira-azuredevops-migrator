@@ -6,6 +6,18 @@ namespace WorkItemImport.WitClient
 {
     public static class JsonPatchDocUtils
     {
+        public class PatchOperationValue
+        {
+            public string Rel { get; set; }
+            public string Url { get; set; }
+            public Attributes Attributes { get; set; }
+        }
+
+        public class Attributes
+        {
+            public string Name { get; set; }
+        }
+
         public static JsonPatchOperation CreateJsonFieldPatchOp(Operation op, string key, object value)
         {
             if (string.IsNullOrEmpty(key))
@@ -42,10 +54,12 @@ namespace WorkItemImport.WitClient
             {
                 Operation = op,
                 Path = "/relations/-",
-                Value = new {
+                Value = new PatchOperationValue
+                {
                     Rel = "ArtifactLink",
                     Url = $"vstfs:///Git/Commit/{project}/{repository}/{commitId}",
-                    Attributes = new {
+                    Attributes = new Attributes
+                    {
                         Name = "Fixed in Commit"
                     }
                 }
