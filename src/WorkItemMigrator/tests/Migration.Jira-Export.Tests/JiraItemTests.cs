@@ -589,6 +589,7 @@ namespace Migration.Jira_Export.Tests
             string customFieldName = _fixture.Create<string>();
 
             var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'"+ customFieldId + @"': {'name':'SomeValue'}}");
+            var renderedFields = new JObject();
 
             var changelog = new List<JObject>();
 
@@ -596,7 +597,8 @@ namespace Migration.Jira_Export.Tests
             {
                 { "id", issueId },
                 { "key", issueKey },
-                { "fields", fields }
+                { "fields", fields },
+                { "renderedFields", renderedFields }
             };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
@@ -634,6 +636,7 @@ namespace Migration.Jira_Export.Tests
             string customFieldName = _fixture.Create<string>();
 
             var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'" + customFieldId + @"': {'name':'SomeValue', 'key':'"+ customFieldId + "'}}");
+            var renderedFields = new JObject();
 
             var changelog = new List<JObject>();
 
@@ -641,7 +644,8 @@ namespace Migration.Jira_Export.Tests
             {
                 { "id", issueId },
                 { "key", issueKey },
-                { "fields", fields }
+                { "fields", fields },
+                { "renderedFields", renderedFields }
             };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
