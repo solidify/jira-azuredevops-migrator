@@ -124,10 +124,10 @@ namespace JiraExport
                 foreach (var respository in commitRepositories)
                 {
                     var commits = respository.SelectTokens(".commits[*]");
-                    foreach (JObject commit in commits)
+                    foreach (JToken commit in commits)
                     {
                         var commitCreatedOn = commit.ExValue<DateTime>("$.authorTimestamp");
-                        var commitAuthor = GetAuthor(commit);
+                        var commitAuthor = GetAuthor(commit as JObject);
                         var jiraCommit = commit.ToObject<JiraCommit>();
                         var repositoryName = respository.SelectToken("$.name").Value<string>();
                         if (string.IsNullOrEmpty(repositoryName))
@@ -135,7 +135,7 @@ namespace JiraExport
                             continue;
                         }
 
-                        var hasRespositoryTarget = settings.RepositoryMap.Repositories.Any(r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
+                        var hasRespositoryTarget = settings.RepositoryMap.Repositories.Exists(r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
                         if (!hasRespositoryTarget)
                         {
                             continue;

@@ -70,10 +70,10 @@ namespace Migration.Wi_Import.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(jsonPatchOp.Operation, Operation.Add);
-                Assert.AreEqual(jsonPatchOp.Path, "/relations/-");
-                Assert.AreEqual(artifactLink.Rel, "ArtifactLink");
-                Assert.AreEqual(artifactLink.Url, $"vstfs:///Git/Commit/{project}/{repository}/{commitId}");
+                Assert.AreEqual(Operation.Add, jsonPatchOp.Operation);
+                Assert.AreEqual("/relations/-", jsonPatchOp.Path);
+                Assert.AreEqual("ArtifactLink", artifactLink.Rel);
+                Assert.AreEqual($"vstfs:///Git/Commit/{project}/{repository}/{commitId}", artifactLink.Url);
             });
         }
     }
