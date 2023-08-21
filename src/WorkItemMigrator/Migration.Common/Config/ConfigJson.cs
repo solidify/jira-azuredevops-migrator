@@ -54,7 +54,7 @@ namespace Common.Config
         [JsonProperty(PropertyName = "process-template")]
         public string ProcessTemplate { get; set; } = "Scrum";
 
-        [JsonProperty(PropertyName = "repository-map", Required = Required.Default)]
+        [JsonProperty(PropertyName = "repository-map")]
         public RepositoryMap RepositoryMap { get; set; }
 
         [JsonProperty(PropertyName = "type-map", Required = Required.Always)]
@@ -65,7 +65,6 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "rendered-fields")]
         public string[] RenderedFields { get; set; } = new string[] { "description", "comment" };
-
 
         [JsonProperty(PropertyName = "using-jira-cloud")]
         public bool UsingJiraCloud { get; set; } = true;
