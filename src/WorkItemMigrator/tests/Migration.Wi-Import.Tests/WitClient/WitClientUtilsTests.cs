@@ -68,9 +68,21 @@ namespace Migration.Wi_Import.Tests
                         else if (op.Path.StartsWith("/relations/"))
                         {
                             string rel = op.Value.GetType().GetProperty("rel")?.GetValue(op.Value, null).ToString();
+                            if(rel == null)
+                            {
+                                rel = op.Value.GetType().GetProperty("Rel")?.GetValue(op.Value, null).ToString();
+                            }
                             string url = op.Value.GetType().GetProperty("url")?.GetValue(op.Value, null).ToString();
+                            if (url == null)
+                            {
+                                url = op.Value.GetType().GetProperty("Url")?.GetValue(op.Value, null).ToString();
+                            }
                             object attributes = op.Value.GetType().GetProperty("attributes")?.GetValue(op.Value, null);
-                            string comment = attributes.GetType().GetProperty("comment")?.GetValue(attributes, null).ToString();
+                            if (attributes == null)
+                            {
+                                attributes = op.Value.GetType().GetProperty("Attributes")?.GetValue(op.Value, null);
+                            }
+                            string comment = attributes?.GetType().GetProperty("comment")?.GetValue(attributes, null).ToString();
 
                             WorkItemRelation wiRelation = new WorkItemRelation();
                             wiRelation.Rel = rel;
@@ -1000,6 +1012,51 @@ namespace Migration.Wi_Import.Tests
                 Assert.That(updatedWI.Fields[WiFieldReference.Title], Is.EqualTo(createdWI.Fields[WiFieldReference.Title]));
                 Assert.That(updatedWI.Fields[WiFieldReference.Description], Is.EqualTo(createdWI.Fields[WiFieldReference.Description]));
                 Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
+            });
+        }
+
+        [Test]
+        public void When_calling_save_workitem_artifacts_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.SaveWorkItemArtifacts(null, null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_save_workitem_artifacts_with_populated_workitem_Then_workitem_is_updated_in_store()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            WiRevision revision = new WiRevision();
+            revision.Commit = new WiCommit();
+            revision.Commit.Repository = "repository";
+            revision.Commit.Id = "1234567890";
+
+            Settings settings = new Settings("account", "project", "pat");
+
+            // Perform save
+            wiUtils.SaveWorkItemArtifacts(revision, createdWI, settings);
+
+            WorkItem updatedWI = null;
+
+            if (createdWI.Id.HasValue)
+            {
+                updatedWI = wiUtils.GetWorkItem(createdWI.Id.Value);
+            }
+
+            // Assertions
+            Assert.Multiple(() =>
+            {
+                Assert.That(updatedWI.Relations.First().Rel, Is.EqualTo("ArtifactLink"));
+                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo("vstfs:///Git/Commit/project/repository/1234567890"));
             });
         }
 

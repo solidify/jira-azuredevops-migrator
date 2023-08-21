@@ -64,6 +64,8 @@
     <Compile Include="Config\Link.cs" />
     <Compile Include="Config\LinkMap.cs" />
     <Compile Include="Config\Mapping.cs" />
+    <Compile Include="Config\RepositoryMap.cs" />
+    <Compile Include="Config\Repository.cs" />
     <Compile Include="Config\Value.cs" />
     <Compile Include="Config\Type.cs" />
     <Compile Include="Config\TypeMap.cs" />

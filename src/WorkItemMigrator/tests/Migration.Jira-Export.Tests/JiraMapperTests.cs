@@ -266,6 +266,14 @@ namespace Migration.Jira_Export.Tests
             linkMap.Links.AddRange(new Link[] { epicLinkMap, parentLinkMap });
             cjson.LinkMap = linkMap;
 
+            RepositoryMap repositoryMap = new RepositoryMap();
+            repositoryMap.Repositories = new List<Repository>();
+            Repository repository = new Repository();
+            repository.Source = "Sample Repository";
+            repository.Target = "Destination Repository";
+            repositoryMap.Repositories.Add(repository);
+            cjson.RepositoryMap = repositoryMap;
+
             JiraMapper sut = new JiraMapper(provider, cjson);
 
             return sut;

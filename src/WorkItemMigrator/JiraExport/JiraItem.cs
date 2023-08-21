@@ -116,6 +116,38 @@ namespace JiraExport
 
             List<JiraRevision> commentRevisions = BuildCommentRevisions(jiraItem, jiraProvider);
             listOfRevisions.AddRange(commentRevisions);
+
+            var settings = jiraProvider.GetSettings();
+            if (settings.IncludeCommits)
+            {
+                var commitRepositories = jiraProvider.GetCommitRepositories(jiraItem.Id);
+                foreach (var respository in commitRepositories)
+                {
+                    var commits = respository.SelectTokens(".commits[*]");
+                    foreach (JToken commit in commits)
+                    {
+                        var commitCreatedOn = commit.ExValue<DateTime>("$.authorTimestamp");
+                        var commitAuthor = GetAuthor(commit as JObject);
+                        var jiraCommit = commit.ToObject<JiraCommit>();
+                        var repositoryName = respository.SelectToken("$.name").Value<string>();
+                        if (string.IsNullOrEmpty(repositoryName))
+                        {
+                            continue;
+                        }
+
+                        var hasRespositoryTarget = settings.RepositoryMap.Repositories.Exists(r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
+                        if (!hasRespositoryTarget)
+                        {
+                            continue;
+                        }
+
+                        jiraCommit.Repository = repositoryName;
+                        var commitRevision = new JiraRevision(jiraItem) { Time = commitCreatedOn, Author = commitAuthor, Fields = new Dictionary<string, object>(), Commit = new RevisionAction<JiraCommit>() { ChangeType = RevisionChangeType.Added, Value = jiraCommit } };
+                        listOfRevisions.Add(commitRevision);
+                    }
+                }
+            }
+
             listOfRevisions.Sort();
 
             foreach (var revAndI in listOfRevisions.Select((r, i) => (r, i)))
@@ -524,6 +556,7 @@ namespace JiraExport
 
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
         public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
+        public string Id { get { return RemoteIssue.ExValue<string>("$.id"); } }
         public string EpicParent
         {
             get
