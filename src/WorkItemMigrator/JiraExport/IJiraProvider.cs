@@ -32,5 +32,6 @@ namespace JiraExport
         string GetCustomId(string propertyName);
         Task<List<RevisionAction<JiraAttachment>>> DownloadAttachments(JiraRevision rev);
 
+        IEnumerable<JObject> GetCommitRepositories(string issueId);
     }
 }

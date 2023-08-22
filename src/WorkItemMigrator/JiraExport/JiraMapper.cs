@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Common.Config;
 
 using Migration.Common;
@@ -55,6 +54,7 @@ namespace JiraExport
                     return null;
                 }
             }
+
             return wiItem;
         }
 
@@ -180,6 +180,39 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
+        internal WiCommit MapCommit(JiraRevision jiraRevision)
+        {
+            if (jiraRevision == null)
+                throw new ArgumentNullException(nameof(jiraRevision));
+
+            if (jiraRevision.Commit == null)
+            {
+                return null;
+            }
+
+            var jiraCommit = jiraRevision.Commit.Value;
+            var respositoryTarget = jiraCommit.Repository;
+
+            var respositoryOverride = _config
+                .RepositoryMap
+                .Repositories?
+                .Find(r => r.Source == respositoryTarget)?
+                .Target;
+
+            if (!string.IsNullOrEmpty(respositoryOverride))
+            {
+                respositoryTarget = respositoryOverride;
+            }
+
+            var commit = new WiCommit()
+            {
+                Id = jiraCommit.Id,
+                Repository = respositoryTarget,
+            };
+
+            return commit;
+        }
+
         internal List<WiLink> MapLinks(JiraRevision r)
         {
             if (r == null)
@@ -303,6 +336,7 @@ namespace JiraExport
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
+            var commit = MapCommit(r);
 
             return new WiRevision()
             {
@@ -313,7 +347,8 @@ namespace JiraExport
                 Attachments = attachments,
                 Fields = fields,
                 Links = links,
-                AttachmentReferences = attachments.Any()
+                AttachmentReferences = attachments.Any(),
+                Commit = commit
             };
         }
 
