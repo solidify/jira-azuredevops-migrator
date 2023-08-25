@@ -14,10 +14,18 @@ Example:
 }
 ```
 
-## 2. Why I am getting Unauthorized exception when running export?
+## 2. Why I am getting Unauthorized exception when running the export?
 
-- It might be that you are using your email as a username, try to use your username instead of an email address.
-- using Jira Cloud - it might be that you need to to use the API token as a password.
+- Ensure that your Jira credentials and Jira URL are correct.
+- Ensure that your `jira-export` command and all the flags are correct. See: <https://github.com/solidify/jira-azuredevops-migrator/blob/doc/update-usage-examples/docs/jira-export.md>
+- Try different combinations of your jira user/api credentials. The functionality here could depend on wether you are using Jira Cloud or Jira Server, as well as wether you have set your user's email as public in the user profile in Jira Cloud, and jira might not be accepting certain credentials. Try all combinations of the following:
+  - username: **email**
+  - username: **Jira Username**
+  - username: **accountId** (navigate to your user profile and find the accountId in the URL, for example: https://solidifydemo.atlassian.net/jira/people/ **6038bfcc25b84ea0696240d4**
+  - password: **user password** (same as login)
+  - password: **API token**
+
+If you are still not able to authenticate. Try and run the tool as another user. Also make sure to try as a user with admin privileges in your Jira organization.
 
 ## 3. How to map custom field by name?
 
@@ -54,7 +62,7 @@ Example:
 
 - User mapping differs between Jira Cloud and Jira Server. To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
-- When using Jira Cloud then firstly make sure in the config the '"using-jira-cloud": true' is set. The mapping file the should have accountId/email value pairs. To use email value pairs the users email should be set to public in the user profile in Jira Cloud, otherwise the tool cant get the email and will use accountId instead for mapping.
+- When using Jira Cloud then firstly make sure in the config the '"using-jira-cloud": true' is set. The user mapping file should have accountId/email value pairs. To use email value pairs the users email should be set to public in the user profile in Jira Cloud, otherwise the tool cant get the email and will use accountId instead for mapping.
 
     ```txt
     Jira.User1@some.domain=AzureDevOps.User1@some.domain
