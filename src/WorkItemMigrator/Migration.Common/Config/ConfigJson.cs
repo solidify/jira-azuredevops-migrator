@@ -76,6 +76,6 @@ namespace Common.Config
         public int SleepTimeBetweenRevisionImportMilliseconds { get; set; } = 0;
 
         [JsonProperty(PropertyName = "include-commits")]
-        public bool IncludeCommits { get; set; } = true;
+        public bool IncludeCommits { get; set; } = false;
     }
 }
