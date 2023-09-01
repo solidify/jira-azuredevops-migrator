@@ -123,7 +123,7 @@ namespace JiraExport
                     return (true, mappedValue);
                 }
             }
-            value = CorrectRenderedHtmlvalue(value, r);
+            value = CorrectRenderedHtmlvalue(value, r, config.IncludeJiraCssStyle);
 
             return (true, value);
         }
@@ -174,7 +174,7 @@ namespace JiraExport
             return iterationPath;
         }
 
-        public static string CorrectRenderedHtmlvalue(object value, JiraRevision revision)
+        public static string CorrectRenderedHtmlvalue(object value, JiraRevision revision, bool includeJiraStyle)
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
@@ -194,11 +194,14 @@ namespace JiraExport
 
             htmlValue = RevisionUtility.ReplaceHtmlElements(htmlValue);
 
-            string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
-            if (string.IsNullOrWhiteSpace(css))
-                Logger.Log(LogLevel.Warning, $"Could not read css styles for rendered field in {revision.OriginId}.");
-            else
-                htmlValue = "<style>" + css + "</style>" + htmlValue;
+            if (includeJiraStyle)
+            {
+                string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
+                if (string.IsNullOrWhiteSpace(css))
+                    Logger.Log(LogLevel.Warning, $"Could not read css styles for rendered field in {revision.OriginId}.");
+                else
+                    htmlValue = "<style>" + css + "</style>" + htmlValue;
+            }
 
             return htmlValue;
         }

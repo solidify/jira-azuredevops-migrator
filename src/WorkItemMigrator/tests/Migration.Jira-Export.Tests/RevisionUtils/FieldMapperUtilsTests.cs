@@ -339,7 +339,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             string description = string.Empty;
 
             //Act
-            string output = FieldMapperUtils.CorrectRenderedHtmlvalue(description, revision);
+            string output = FieldMapperUtils.CorrectRenderedHtmlvalue(description, revision, true);
 
             //Assert
             Assert.Multiple(() =>
@@ -367,7 +367,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
                 "<h>https://example.com</h>" +
                 "<span class=\"image-wrap\">span_text<img https://abc.com />image_alt</span>" +
                 "<a href=https://123.com class=\"user-hover\" link_meta>link_text</a>",
-                revision);
+                revision, true);
             string expected = "<h>https://example.com</h>" +
                 "<img https://abc.com />" +
                 "link_text";
@@ -377,7 +377,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         [Test]
         public void When_calling_map_correct_rendered_html_value_with_null_arguments_Then_and_exception_is_thrown()
         {
-            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.CorrectRenderedHtmlvalue(null, null); });
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.CorrectRenderedHtmlvalue(null, null, true); });
         }
 
         [Test]
