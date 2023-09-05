@@ -57,7 +57,7 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 - Utilities for automatically generating the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
 - Utilities for viewing the Jira workflow and assisting with field and state mapping
 
-#### Additional tools in the Atlassian Migration Suite:
+#### Additional tools in the Jira Azure DevOps Migrator PRO package:
 
 - Migrate Jira test data to Azure DevOps Test Plans, including the **QMetry**, **Zephyr** and **Xray** frameworks
 - Migrate **Confluence** pages to Azure DevOps Wikis
