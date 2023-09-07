@@ -123,7 +123,7 @@ namespace JiraExport
                     return (true, mappedValue);
                 }
             }
-            value = CorrectRenderedHtmlvalue(value, r, config.IncludeJiraCssStyle);
+            value = CorrectRenderedHtmlvalue(value, r, config.IncludeJiraCssStyles);
 
             return (true, value);
         }
