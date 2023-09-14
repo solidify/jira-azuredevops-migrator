@@ -27,17 +27,17 @@ Example:
 
 If you are still not able to authenticate. Try and run the tool as another user. Also make sure to try as a user with admin privileges in your Jira organization.
 
-## 3. How to map custom field by name?
+## 3. How to map custom field?
 
-- To map a custom field by name we have to add a mapping in the configuration file.
+- To map a custom field by value we have to add a mapping in the configuration file.
+- First, inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
 
 Example:
 
 ```json
 {
-    "source": "CustomFieldName",
-    "source-type": "name",
-    "target": "Microsoft.VSTS.TCM.ReproSteps"
+    "source": "customfield_12345",
+    "target": "Custom.TargetField"
 }
 ```
 
