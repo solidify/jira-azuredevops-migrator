@@ -85,3 +85,28 @@ Example:
     Jira.User2@some.domain=AzureDevOps.User2@some.domain
     Jira.User3@some.domain=AzureDevOps.User3@some.domain
     ```
+
+## 6. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
+
+You can migrate the logged and remaining time using the following field mappings.
+
+The history of the **logged time** and **remaining time** will be preserved on each revision, and thus the history of these fields will be migrated just like any other field.
+
+```json
+{
+  "source": "timespent$Rendered",
+  "target": "Custom.TimeSpentSecondsRendered"
+},
+{
+  "source": "timespent",
+  "target": "Custom.TimeSpentSeconds"
+},
+{
+  "source": "timeestimate$Rendered",
+  "target": "Custom.RemainingEstimateSecondsRendered"
+},
+{
+  "source": "timeestimate",
+  "target": "Custom.RemainingEstimateSeconds"
+}
+```
