@@ -559,7 +559,9 @@ namespace WorkItemImport
                     if (link.TargetWiId == -1)
                     {
                         var errorLevel = Settings.IgnoreFailedLinks ? LogLevel.Warning : LogLevel.Error;
-                        Logger.Log(errorLevel, $"'{link}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
+                        Logger.Log(errorLevel, $"'{link}' - target work item for Jira '{link.TargetOriginId}'" +
+                            $" is not yet created in Azure DevOps/TFS. You can safely ignore this warning if" +
+                            $" this work item is scheduled for import later in your migration.");
                         success = false;
                         continue;
                     }
