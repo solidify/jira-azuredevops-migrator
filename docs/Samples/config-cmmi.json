@@ -14,8 +14,8 @@
     "base-area-path": "SourceProject_Migrated",
     "base-iteration-path": "SourceProject_Migrated",
     "ignore-failed-links": true,
-    "include-link-comments": true,
-    "include-jira-css-styles": true,
+    "include-link-comments": false,
+    "include-jira-css-styles": false,
     "sleep-time-between-revision-import-milliseconds": 0,
     "process-template": "CMMI",
     "link-map": {
