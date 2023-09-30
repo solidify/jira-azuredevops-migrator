@@ -378,11 +378,11 @@ namespace JiraExport
                             ? $"Email is not public for user '{usernameOrAccountId}' in Jira," +
                             $" using usernameOrAccountId '{usernameOrAccountId}' for mapping." +
                             $" You may safely ignore this warning, unless there is a subsequent warning about" +
-                            $" the username/accountId being missing in the usermapping file." +
+                            $" the username/accountId being missing in the usermapping file."
                             : $"Email for user '{usernameOrAccountId}' not found in Jira," +
                             $" using username '{usernameOrAccountId}' for mapping." +
                             $" You may safely ignore this warning, unless there is a subsequent warning about" +
-                            $" the username/accountId being missing in the usermapping file." +
+                            $" the username/accountId being missing in the usermapping file."
                     );
                 }
                 email = isUserEmailMissing ? usernameOrAccountId : user.Email;
