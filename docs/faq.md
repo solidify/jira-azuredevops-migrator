@@ -112,3 +112,15 @@ The history of the **logged time** and **remaining time** will be preserved on e
   "target": "Custom.RemainingEstimateSeconds"
 }
 ```
+
+## 7. How to map datetime fields
+
+Here is how we can map datetime fields like ResolvedDate:
+
+```json
+{
+  "source": "resolutiondate",
+  "type": "datetime",
+  "target": "Microsoft.VSTS.Common.ResolvedDate"
+}
+```
