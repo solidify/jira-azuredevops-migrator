@@ -89,7 +89,7 @@ namespace JiraExport
                         Change = changeType,
                         SourceOriginId = r.ParentItem.Key,
                         TargetOriginId = linkedItemKey,
-                        WiType = linkType,
+                        WiType = linkType
                     };
 
                     links.Add(link);
