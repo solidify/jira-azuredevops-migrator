@@ -120,6 +120,8 @@ namespace JiraExport
 
                 var issues = jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions);
 
+                var createdWorkItems = new List<WiItem>();
+
                 foreach (var issue in issues)
                 {
                     if (issue == null)
@@ -128,10 +130,17 @@ namespace JiraExport
                     WiItem wiItem = mapper.Map(issue);
                     if (wiItem != null)
                     {
-                        localProvider.Save(wiItem);
-                        exportedItemsCount++;
-                        Logger.Log(LogLevel.Debug, $"Exported as type '{wiItem.Type}'.");
+                        createdWorkItems.Add(wiItem);
                     }
+                }
+
+                FixRevisionDates(createdWorkItems);
+
+                foreach (var wiItem in createdWorkItems)
+                {
+                    localProvider.Save(wiItem);
+                    exportedItemsCount++;
+                    Logger.Log(LogLevel.Debug, $"Exported as type '{wiItem.Type}'.");
                 }
             }
             catch (CommandParsingException e)
@@ -145,6 +154,58 @@ namespace JiraExport
             finally
             {
                 EndSession(itemsCount, sw);
+            }
+        }
+
+        private static void FixRevisionDates(List<WiItem> createdWorkItems)
+        {
+            var revisionsWithLinkChanges = new List<WiRevision>();
+            foreach (var wiItem in createdWorkItems)
+            {
+                revisionsWithLinkChanges.AddRange(wiItem.Revisions.Where(r => r.Links != null && r.Links.Count != 0));
+            }
+            bool anyRevisionTimeUpdated = true;
+            while (anyRevisionTimeUpdated)
+            {
+                anyRevisionTimeUpdated = false;
+                foreach (var rev1 in revisionsWithLinkChanges)
+                {
+                    var rev1LinkSourceWiIds = rev1.Links.Select(l => l.SourceOriginId).ToList();
+                    var revsWithOppositeLink = revisionsWithLinkChanges.Where(
+                        r => r.Links.Any(l => rev1LinkSourceWiIds.Contains(l.TargetOriginId))
+                    );
+                    foreach (var rev2 in revsWithOppositeLink)
+                    {
+                        if (rev2 != rev1)
+                        {
+                            foreach (var link1 in rev1.Links)
+                            {
+                                foreach (var link2 in rev2.Links)
+                                {
+                                    if (link1.SourceOriginId == link2.TargetOriginId || link1.TargetOriginId == link2.SourceOriginId)
+                                    {
+                                        if (link1.Change == ReferenceChangeType.Added && link2.Change == ReferenceChangeType.Removed
+                                            && rev1.Time < rev2.Time && Math.Abs((rev1.Time - rev2.Time).TotalSeconds) < 2
+                                            && link1.WiType == "System.LinkTypes.Hierarchy-Forward" && link2.WiType == "System.LinkTypes.Hierarchy-Reverse")
+                                        {
+                                            // rev1 should be moved back by 1 second
+                                            rev2.Time = rev2.Time.AddSeconds(-1);
+                                            anyRevisionTimeUpdated = true;
+                                        }
+                                        else if (link1.Change == ReferenceChangeType.Removed && link2.Change == ReferenceChangeType.Added
+                                            && rev1.Time > rev2.Time && Math.Abs((rev1.Time - rev2.Time).TotalSeconds) < 2
+                                            && link1.WiType == "System.LinkTypes.Hierarchy-Reverse" && link2.WiType == "System.LinkTypes.Hierarchy-Forward")
+                                        {
+                                            // rev2 should be moved back by 1 second
+                                            rev1.Time = rev1.Time.AddSeconds(-1);
+                                            anyRevisionTimeUpdated = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
