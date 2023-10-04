@@ -338,13 +338,11 @@ namespace JiraExport
             List<WiLink> links = MapLinks(r);
             var commit = MapCommit(r);
 
-            DateTime rTime = CorrectTime(r, attachments, fields, links);
-
             return new WiRevision()
             {
                 ParentOriginId = r.ParentItem.Key,
                 Index = r.Index,
-                Time = rTime,
+                Time = r.Time,
                 Author = MapUser(r.Author),
                 Attachments = attachments,
                 Fields = fields,
@@ -361,25 +359,6 @@ namespace JiraExport
 
             var email = _jiraProvider.GetUserEmail(sourceUser);
             return base.MapUser(email);
-        }
-
-        protected DateTime CorrectTime(JiraRevision r, List<WiAttachment> attachments, List<WiField> fields, List<WiLink> links)
-        {
-            var rTime = r.Time;
-
-            // If the only change is to remove a link, remove 1 second to ensure that Link Removals happen before
-            // the corresponding Link Additions, since this can be a problem in the raw jira data
-            if (
-                fields.Count == 0
-                && attachments.Count == 0
-                && links.Count == 1
-                && links[0].Change == ReferenceChangeType.Removed
-            )
-            {
-                rTime = rTime.AddSeconds(-1);
-            }
-
-            return rTime;
         }
 
         private HashSet<string> InitializeTypeMappings()

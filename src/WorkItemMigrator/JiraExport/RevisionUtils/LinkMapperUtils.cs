@@ -28,11 +28,8 @@ namespace JiraExport
                 var parentKeyStr = r.OriginId.Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
                 var childKeyStr = value?.ToString().Substring((value?.ToString()).LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
 
-                if (int.TryParse(parentKeyStr, out var parentKey) && int.TryParse(childKeyStr, out var childKey) && parentKey > childKey
-                    || childKeyStr == null) // For a removed EpicChildLink, the value will be null
-                {
-                    AddRemoveSingleLink(r, links, field, type, config);
-                }
+                if (int.TryParse(parentKeyStr, out var parentKey) && int.TryParse(childKeyStr, out var childKey) && parentKey > childKey)
+                    AddSingleLink(r, links, field, type, config);
             }
         }
 
