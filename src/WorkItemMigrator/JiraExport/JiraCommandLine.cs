@@ -51,7 +51,7 @@ namespace JiraExport
 
                 if (configOption.HasValue())
                 {
-                    ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
+                    return ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
@@ -62,7 +62,7 @@ namespace JiraExport
             });
         }
 
-        private void ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private int ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             var itemsCount = 0;
             var exportedItemsCount = 0;
@@ -137,15 +137,18 @@ namespace JiraExport
             catch (CommandParsingException e)
             {
                 Logger.Log(LogLevel.Error, $"Invalid command line option(s): {e}");
+                return -1;
             }
             catch (Exception e)
             {
                 Logger.Log(e, $"Unexpected migration error.");
+                return -1;
             }
             finally
             {
                 EndSession(itemsCount, sw);
             }
+            return 0;
         }
 
         private static void InitSession(ConfigJson config, string continueOnCritical)

@@ -55,7 +55,7 @@ namespace WorkItemImport
 
                 if (configOption.HasValue())
                 {
-                    ExecuteMigration(tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
+                    return ExecuteMigration(tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
@@ -66,7 +66,7 @@ namespace WorkItemImport
             });
         }
 
-        private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private int ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             ConfigJson config = null;
             var itemCount = 0;
@@ -101,7 +101,7 @@ namespace WorkItemImport
                 if (agent == null)
                 {
                     Logger.Log(LogLevel.Critical, "Azure DevOps/TFS initialization error.");
-                    return;
+                    return -1;
                 }
 
                 var executionBuilder = new ExecutionPlanBuilder(context);
@@ -158,15 +158,18 @@ namespace WorkItemImport
             catch (CommandParsingException e)
             {
                 Logger.Log(LogLevel.Error, $"Invalid command line option(s): {e}");
+                return -1;
             }
             catch (Exception e)
             {
                 Logger.Log(e, $"Unexpected migration error.");
+                return -1;
             }
             finally
             {
                 EndSession(itemCount, revisionCount, sw);
             }
+            return 0;
         }
 
         private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount, int revisionCount)
