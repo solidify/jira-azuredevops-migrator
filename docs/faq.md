@@ -25,6 +25,8 @@ Example:
   - password: **user password** (same as login)
   - password: **API token**
 
+Another problem could be that you have characters in your `--password` parameter that is reserved by the terminal, e.g. **dollar sign** ($) in Powershell. A potential solution sometimes is to escape any dollar sign characters. So make sure that your `--password` parameter is properly escaped, depending on what terminal you are using. Example for Powershell: `$` becomes `$. Otherwise you can always try a different terminal like CMD or bash.
+
 If you are still not able to authenticate. Try and run the tool as another user. Also make sure to try as a user with admin privileges in your Jira organization.
 
 ## 3. How to map custom field?
@@ -108,5 +110,17 @@ The history of the **logged time** and **remaining time** will be preserved on e
 {
   "source": "timeestimate",
   "target": "Custom.RemainingEstimateSeconds"
+}
+```
+
+## 7. How to map datetime fields
+
+Here is how we can map datetime fields like ResolvedDate:
+
+```json
+{
+  "source": "resolutiondate",
+  "type": "datetime",
+  "target": "Microsoft.VSTS.Common.ResolvedDate"
 }
 ```
