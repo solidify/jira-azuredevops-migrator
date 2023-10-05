@@ -201,9 +201,9 @@ namespace JiraExport
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) }});
         }
 
-        public void Run()
+        public int Run()
         {
-            commandLineApplication.Execute(args);
+            return commandLineApplication.Execute(args);
         }
     }
 }
