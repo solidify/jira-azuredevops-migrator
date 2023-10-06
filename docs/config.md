@@ -34,6 +34,7 @@ The migration configuration file is defined in a json file with the properties d
 |**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|
 |**include-link-comments**|False|boolean|Set to True to get a verbose comment on the work item for every work item link created. Default = True.|
 |**include-jira-css-styles**|True|boolean|Set to True to generate and include confluence CSS Stylesheets for description, repro steps and comments. Default = True.|
+|**ignore-empty-revisions**|False|boolean|Set to True to ignore importing empty revisions. Empty revisions will be created if you have historical revisions where none of the changed fields or links have been mapped. This may indicate that you have unmapped data, which will not be migrated. Default = False.|
 |**sleep-time-between-revision-import-milliseconds**|False|integer|How many milliseconds to sleep between each revision import. Use this if throttling is an issue for ADO Services. Default = 0 (no sleep).|
 |**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
