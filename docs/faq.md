@@ -21,7 +21,7 @@ Example:
 - Try different combinations of your jira user/api credentials. The functionality here could depend on wether you are using Jira Cloud or Jira Server, as well as wether you have set your user's email as public in the user profile in Jira Cloud, and jira might not be accepting certain credentials. Try all combinations of the following:
   - username: **email**
   - username: **Jira Username**
-  - username: **accountId** (navigate to your user profile and find the accountId in the URL, for example: https://solidifydemo.atlassian.net/jira/people/ **6038bfcc25b84ea0696240d4**
+  - username: **accountId** (navigate to your user profile and find the accountId in the URL, for example: <https://solidifydemo.atlassian.net/jira/people/>**6038bfcc25b84ea0696240d4**
   - password: **user password** (same as login)
   - password: **API token**
 
