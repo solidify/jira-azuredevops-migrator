@@ -64,15 +64,27 @@ Example:
 
 - User mapping differs between Jira Cloud and Jira Server. To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
-- When using Jira Cloud then firstly make sure in the config the '"using-jira-cloud": true' is set. The user mapping file should have accountId/email value pairs. To use email value pairs the users email should be set to public in the user profile in Jira Cloud, otherwise the tool cant get the email and will use accountId instead for mapping.
-
     ```txt
     Jira.User1@some.domain=AzureDevOps.User1@some.domain
     Jira.User2@some.domain=AzureDevOps.User2@some.domain
     Jira.User3@some.domain=AzureDevOps.User3@some.domain
     ```
 
-    or
+- When using Jira Cloud then firstly make sure in the config the '"using-jira-cloud": true' is set. The user mapping file should have accountId/email value pairs. To use email value pairs the users email should be set to public in the user profile in Jira Cloud, otherwise the tool cant get the email and will use accountId instead for mapping.
+
+- It can happen that the **JiraExporter** cannot find you users' email addresses. This will happen if e.g. your user has chosen not to make their email address public. You will then receive the following warning when running the **jira-expoprt.exe**:
+
+    ```
+    [W][01:57:30] Email is not public for user '630ddc7d316bbc88c1234e3b' in Jira, using usernameOrAccountId '630ddc7d316bbc88c1234e3b' for mapping.
+    ```
+
+    If you receive such a warning, you will need to map the users' IDs instead, just like you would with the emails. You will need to include the following line in your `users.txt`:
+
+    ```
+    630ddc7d316bbc88c1234e3b=AzureDevOps.User@some.domain
+    ```
+
+    The correct format of the `users.txt`-file would then be:
 
     ```txt
     JiraAccountId1=AzureDevOps.User1@some.domain
