@@ -24,9 +24,9 @@ namespace WorkItemImport
             InitCommandLine(args);
         }
 
-        public void Run()
+        public int Run()
         {
-            commandLineApplication.Execute(args);
+            return commandLineApplication.Execute(args);
         }
 
         private void InitCommandLine(params string[] args)
@@ -61,7 +61,7 @@ namespace WorkItemImport
                     commandLineApplication.ShowHelp();
                 }
 
-                return succeeded ? 0 : 1;
+                return succeeded ? 0 : -1;
             });
         }
 
