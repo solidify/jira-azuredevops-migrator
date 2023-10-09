@@ -83,8 +83,8 @@ Name-value pairs of work item types to map in the migration.
 |**for**|False|string|Types of work items this field should be migrated to, i.e. Bug, Task, Product backlog item in a comma-delimiter list. Default = "All".  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**not-for**|False|string|Negation of above, i.e this field is for a Bug only and nothing else.  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**type**|False|string|Data type, i.e string, int, double. Default = string|
-|**mapper**|False|string|Mapper function used for value translation. See section below for a quick summary of the available mappers.|
-|**mapping**|False|json|List of **values** to map to and from in the migration.|
+|**mapper**|False|string|Mapper function used for value translation. See the **Mappers** section below for a quick summary of the available mappers.|
+|**mapping**|False|json|List of **key value pairs** to map to and from in the migration. Use this instead of the **mapper** property if you need a simple key-value mapping.|
 
 ## Value properties
 
@@ -106,7 +106,7 @@ Name-value pairs of repositories to map in the migration.
 
 ## Mappers
 
-Currently the tool has a rather naive implementation for mapping certain constructs, this is something we would like to improve in the future. But for now it is what it is and the table below is intended as a summary/explanation.
+Mappers are functions used byt he **Jira Exporter** for transforming the data in the Jira issue fields. The table below is as a summary and explanation of the different mappers available.
 
 **Note**: the source code for the mapping logic is here: <https://github.com/solidify/jira-azuredevops-migrator/blob/master/src/WorkItemMigrator/JiraExport/JiraMapper.cs>
 
