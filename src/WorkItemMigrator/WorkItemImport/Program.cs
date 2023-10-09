@@ -6,7 +6,7 @@ namespace WorkItemImport
     static class Program
     {
         [STAThread]
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             VersionInfo.PrintInfoMessage("Work Item Importer");
 
