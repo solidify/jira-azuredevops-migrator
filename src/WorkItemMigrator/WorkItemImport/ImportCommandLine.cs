@@ -101,7 +101,7 @@ namespace WorkItemImport
                 if (agent == null)
                 {
                     Logger.Log(LogLevel.Critical, "Azure DevOps/TFS initialization error.");
-                    return;
+                    return false;
                 }
 
                 var executionBuilder = new ExecutionPlanBuilder(context);
