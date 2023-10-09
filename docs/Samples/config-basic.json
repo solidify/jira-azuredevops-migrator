@@ -16,6 +16,7 @@
   "ignore-failed-links": true,
   "include-link-comments": false,
   "include-jira-css-styles": false,
+  "ignore-empty-revisions": false,
   "sleep-time-between-revision-import-milliseconds": 0,
   "process-template": "Basic",
   "link-map": {
