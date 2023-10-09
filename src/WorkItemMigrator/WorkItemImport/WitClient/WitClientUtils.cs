@@ -668,11 +668,12 @@ namespace WorkItemImport
                         wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
                         || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase)
                     )
-                    && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase)
+                    && !(revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
+                    || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
                 )
             {
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = null });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = "" });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = "" });
             }
 
             if (
