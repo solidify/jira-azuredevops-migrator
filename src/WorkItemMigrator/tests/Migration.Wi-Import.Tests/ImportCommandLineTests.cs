@@ -48,9 +48,7 @@ namespace Migration.Wi_Import.Tests
 
             var sut = new ImportCommandLine(args);
 
-            Assert.That(() => sut.Run(), !Throws.InstanceOf<Exception>());
-
-
+            Assert.AreEqual(sut.Run(), -1);
         }
     }
 }

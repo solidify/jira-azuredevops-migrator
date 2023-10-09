@@ -49,7 +49,7 @@ namespace Migration.Jira_Export.Tests
 
             var sut = new JiraCommandLine(args);
 
-            Assert.That(() => sut.Run(), !Throws.InstanceOf<Exception>());
+            Assert.AreEqual(sut.Run(), -1);
         }
     }
 }
