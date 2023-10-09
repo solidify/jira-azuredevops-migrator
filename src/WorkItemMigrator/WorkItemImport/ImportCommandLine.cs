@@ -48,25 +48,24 @@ namespace WorkItemImport
             CommandOption forceOption = commandLineApplication.Option("--force", "Forces execution from start (instead of continuing from previous run)", CommandOptionType.NoValue);
             CommandOption continueOnCriticalOption = commandLineApplication.Option("--continue", "Continue execution upon a critical error", CommandOptionType.SingleValue);
 
-
             commandLineApplication.OnExecute(() =>
             {
                 bool forceFresh = forceOption.HasValue();
-
+                bool succeeded = true;
                 if (configOption.HasValue())
                 {
-                    ExecuteMigration(tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
+                    succeeded = ExecuteMigration(tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
                     commandLineApplication.ShowHelp();
                 }
 
-                return 0;
+                return succeeded ? 0 : 1;
             });
         }
 
-        private void ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private bool ExecuteMigration(CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             ConfigJson config = null;
             var itemCount = 0;
@@ -74,6 +73,7 @@ namespace WorkItemImport
             var importedItems = 0;
             var sw = new Stopwatch();
             sw.Start();
+            bool succeeded = true;
 
             try
             {
@@ -101,7 +101,7 @@ namespace WorkItemImport
                 if (agent == null)
                 {
                     Logger.Log(LogLevel.Critical, "Azure DevOps/TFS initialization error.");
-                    return;
+                    return false;
                 }
 
                 var executionBuilder = new ExecutionPlanBuilder(context);
@@ -117,7 +117,18 @@ namespace WorkItemImport
                     try
                     {
                         if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
+                        {
                             continue;
+                        }
+
+                        if (config.IgnoreEmptyRevisions &&
+                            executionItem.Revision.Fields.Count == 0 &&
+                            executionItem.Revision.Links.Count == 0 &&
+                            executionItem.Revision.Attachments.Count == 0)
+                        {
+                            Logger.Log(LogLevel.Info, $"Skipped processing empty revision: {executionItem.OriginId}, rev {executionItem.Revision.Index}");
+                            continue;
+                        }
 
                         WorkItem wi = null;
 
@@ -158,15 +169,18 @@ namespace WorkItemImport
             catch (CommandParsingException e)
             {
                 Logger.Log(LogLevel.Error, $"Invalid command line option(s): {e}");
+                succeeded = false;
             }
             catch (Exception e)
             {
                 Logger.Log(e, $"Unexpected migration error.");
+                succeeded = false;
             }
             finally
             {
                 EndSession(itemCount, revisionCount, sw);
             }
+            return succeeded;
         }
 
         private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount, int revisionCount)
