@@ -6,11 +6,11 @@ The migration process is done in two phases, first data is exported from Jira to
 
 The second step imports the data files to work items in Azure DevOps/TFS.
 
-The key capabilities of the tool includes:
+The key capabilities of the tool include:
 
 - Jira items are exported based on JQL queries.
 - Users can be translated during migration in order to maintain proper history.
-- Field mapping is provided to map fields from the source to target account based on configuration file.
+- Field mapping is provided to map fields from the source to target account based on a configuration file.
 - State mapping between Jira and Azure DevOps states.
 - History from Jira is maintained.
 - Dates such as created or changed date are maintained.
