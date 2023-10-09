@@ -117,7 +117,18 @@ namespace WorkItemImport
                     try
                     {
                         if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
+                        {
                             continue;
+                        }
+
+                        if (config.IgnoreEmptyRevisions &&
+                            executionItem.Revision.Fields.Count == 0 &&
+                            executionItem.Revision.Links.Count == 0 &&
+                            executionItem.Revision.Attachments.Count == 0)
+                        {
+                            Logger.Log(LogLevel.Info, $"Skipped processing empty revision: {executionItem.OriginId}, rev {executionItem.Revision.Index}");
+                            continue;
+                        }
 
                         WorkItem wi = null;
 

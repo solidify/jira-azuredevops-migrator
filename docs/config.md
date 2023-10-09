@@ -34,6 +34,7 @@ The migration configuration file is defined in a json file with the properties d
 |**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|
 |**include-link-comments**|False|boolean|Set to True to get a verbose comment on the work item for every work item link created. Default = True.|
 |**include-jira-css-styles**|True|boolean|Set to True to generate and include confluence CSS Stylesheets for description, repro steps and comments. Default = True.|
+|**ignore-empty-revisions**|False|boolean|Set to True to ignore importing empty revisions. Empty revisions will be created if you have historical revisions where none of the changed fields or links have been mapped. This may indicate that you have unmapped data, which will not be migrated. Default = False.|
 |**sleep-time-between-revision-import-milliseconds**|False|integer|How many milliseconds to sleep between each revision import. Use this if throttling is an issue for ADO Services. Default = 0 (no sleep).|
 |**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
@@ -82,8 +83,8 @@ Name-value pairs of work item types to map in the migration.
 |**for**|False|string|Types of work items this field should be migrated to, i.e. Bug, Task, Product backlog item in a comma-delimiter list. Default = "All".  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**not-for**|False|string|Negation of above, i.e this field is for a Bug only and nothing else.  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**type**|False|string|Data type, i.e string, int, double. Default = string|
-|**mapper**|False|string|Mapper function used for value translation. See section below for a quick summary of the available mappers.|
-|**mapping**|False|json|List of **values** to map to and from in the migration.|
+|**mapper**|False|string|Mapper function used for value translation. See the **Mappers** section below for a quick summary of the available mappers.|
+|**mapping**|False|json|List of **key value pairs** to map to and from in the migration. Use this instead of the **mapper** property if you need a simple key-value mapping.|
 
 ## Value properties
 
@@ -105,7 +106,7 @@ Name-value pairs of repositories to map in the migration.
 
 ## Mappers
 
-Currently the tool has a rather naive implementation for mapping certain constructs, this is something we would like to improve in the future. But for now it is what it is and the table below is intended as a summary/explanation.
+Mappers are functions used byt he **Jira Exporter** for transforming the data in the Jira issue fields. The table below is as a summary and explanation of the different mappers available.
 
 **Note**: the source code for the mapping logic is here: <https://github.com/solidify/jira-azuredevops-migrator/blob/master/src/WorkItemMigrator/JiraExport/JiraMapper.cs>
 
