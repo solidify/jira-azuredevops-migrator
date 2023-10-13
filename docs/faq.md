@@ -133,7 +133,20 @@ The history of the **logged time** and **remaining time** will be preserved on e
 }
 ```
 
-## 7. How to map datetime fields
+## 7. How to map custom userpicker fields
+
+Here is how we have successfully mapped userpicker fields in the past. `source` should be the field name:
+
+```json
+{
+    "source": "Userpicker Field Name Jira",
+    "target": "Custom.CustomUserPicker",
+    "source-type": "name",
+    "mapper": "MapUser"
+},
+```
+
+## 8. How to map datetime fields
 
 Here is how we can map datetime fields like ResolvedDate:
 
