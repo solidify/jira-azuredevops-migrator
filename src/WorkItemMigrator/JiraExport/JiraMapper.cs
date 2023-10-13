@@ -246,7 +246,7 @@ namespace JiraExport
             }
 
             // map epic link
-            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.GetSettings().EpicLinkField, "Epic", _config);
+            LinkMapperUtils.AddRemoveSingleLink(r, links, _config.EpicLinkField, "Epic", _config);
 
             // map parent
             LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
