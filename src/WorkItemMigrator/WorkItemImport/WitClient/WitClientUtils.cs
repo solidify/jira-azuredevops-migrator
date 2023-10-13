@@ -695,8 +695,8 @@ namespace WorkItemImport
 
             if (!wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
             {
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = null });
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = null });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = "" });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = "" });
             }
         }
 
