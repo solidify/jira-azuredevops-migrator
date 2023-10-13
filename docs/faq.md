@@ -31,8 +31,16 @@ If you are still not able to authenticate. Try and run the tool as another user.
 
 ## 3. How to map custom field?
 
-- To map a custom field by value we have to add a mapping in the configuration file.
-- First, inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
+- To map a custom field by value we have to add a mapping in the configuration file, using the custom field name:
+
+    ```
+    {
+        "source": "Custom Field Name Jira",
+        "source-type": "name",
+        "target": "Custom.CustomFieldNameADO"
+    },
+
+- Alternatively, we can map the filed kay instead of the name. Inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
 
 Example:
 
