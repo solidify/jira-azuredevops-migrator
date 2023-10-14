@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Microsoft.TeamFoundation.Core.WebApi;
+﻿using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
-
 using Migration.Common;
 using Migration.Common.Log;
 using Migration.WIContract;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
 using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using System.IO;
 
 namespace WorkItemImport
 {

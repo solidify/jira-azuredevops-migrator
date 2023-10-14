@@ -1,10 +1,9 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
+using NUnit.Framework;
 using System;
-using WorkItemImport;
 using System.Diagnostics.CodeAnalysis;
+using WorkItemImport;
 
 namespace Migration.Wi_Import.Tests
 {

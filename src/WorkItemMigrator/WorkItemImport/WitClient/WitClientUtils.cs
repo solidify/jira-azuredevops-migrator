@@ -1,16 +1,15 @@
-﻿using System;
+﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.VisualStudio.Services.WebApi.Patch;
+using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using Migration.Common;
+using Migration.Common.Log;
+using Migration.WIContract;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Microsoft.VisualStudio.Services.WebApi;
-using Microsoft.VisualStudio.Services.WebApi.Patch;
-using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-
-using Migration.Common;
-using Migration.Common.Log;
-using Migration.WIContract;
 using WorkItemImport.WitClient;
 
 namespace WorkItemImport
@@ -480,13 +479,13 @@ namespace WorkItemImport
                     }
                     catch (AggregateException e)
                     {
-                        if(e.InnerException.Message.Contains("TF237082"))
+                        if (e.InnerException.Message.Contains("TF237082"))
                         {
                             Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, But the attachment exceeds " +
                                 $"the supported file upload size. Skipping attachment: {attachment.FileName}. See full error " +
                                 $"message below.\n{e.InnerException.Message}");
                         }
-                        else if(e.InnerException.Message.Contains("VS403313"))
+                        else if (e.InnerException.Message.Contains("VS403313"))
                         {
                             Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, but hit the workitem attachment " +
                                 $"limit (cannot add more than 100 attachments. Skipping attachment: {attachment.FileName}");

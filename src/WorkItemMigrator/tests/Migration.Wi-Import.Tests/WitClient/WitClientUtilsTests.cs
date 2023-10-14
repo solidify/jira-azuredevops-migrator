@@ -1,20 +1,18 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System;
-using WorkItemImport;
-using Migration.WIContract;
-using System.Collections.Generic;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.TeamFoundation.Core.WebApi;
-using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-using Microsoft.VisualStudio.Services.WebApi.Patch;
-using System.Linq;
-
-using Migration.Common;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.VisualStudio.Services.WebApi.Patch;
+using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using Migration.Common;
+using Migration.WIContract;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using WorkItemImport;
 
 namespace Migration.Wi_Import.Tests
 {
@@ -68,7 +66,7 @@ namespace Migration.Wi_Import.Tests
                         else if (op.Path.StartsWith("/relations/"))
                         {
                             string rel = op.Value.GetType().GetProperty("rel")?.GetValue(op.Value, null).ToString();
-                            if(rel == null)
+                            if (rel == null)
                             {
                                 rel = op.Value.GetType().GetProperty("Rel")?.GetValue(op.Value, null).ToString();
                             }

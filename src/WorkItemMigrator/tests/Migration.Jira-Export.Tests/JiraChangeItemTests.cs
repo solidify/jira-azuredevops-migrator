@@ -1,9 +1,8 @@
-﻿using NUnit.Framework;
-
-using JiraExport;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
+using JiraExport;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests

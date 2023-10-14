@@ -1,7 +1,6 @@
-using NUnit.Framework;
-
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
+using NUnit.Framework;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.WIContract.Tests

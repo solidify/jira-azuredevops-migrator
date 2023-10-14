@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Migration.WIContract;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Migration.WIContract;
 
 namespace Migration.Common
 {
