@@ -1,17 +1,16 @@
-﻿using NUnit.Framework;
-
-using JiraExport;
-using AutoFixture.AutoNSubstitute;
+﻿using Atlassian.Jira;
+using Atlassian.Jira.Remote;
 using AutoFixture;
+using AutoFixture.AutoNSubstitute;
+using JiraExport;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
-using System.Diagnostics.CodeAnalysis;
-using System.Collections.Generic;
-using System.Linq;
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Web;
-using Atlassian.Jira;
-using Atlassian.Jira.Remote;
 
 namespace Migration.Jira_Export.Tests
 {
@@ -587,7 +586,7 @@ namespace Migration.Jira_Export.Tests
             string customFieldId = _fixture.Create<string>();
             string customFieldName = _fixture.Create<string>();
 
-            var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'"+ customFieldId + @"': {'name':'SomeValue'}}");
+            var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'" + customFieldId + @"': {'name':'SomeValue'}}");
             var renderedFields = new JObject();
 
             var changelog = new List<JObject>();
@@ -634,7 +633,7 @@ namespace Migration.Jira_Export.Tests
             string customFieldId = _fixture.Create<string>();
             string customFieldName = _fixture.Create<string>();
 
-            var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'" + customFieldId + @"': {'name':'SomeValue', 'key':'"+ customFieldId + "'}}");
+            var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'" + customFieldId + @"': {'name':'SomeValue', 'key':'" + customFieldId + "'}}");
             var renderedFields = new JObject();
 
             var changelog = new List<JObject>();

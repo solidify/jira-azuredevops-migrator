@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Common.Config;
+﻿using Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Migration.Common
 {

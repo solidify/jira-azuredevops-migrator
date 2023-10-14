@@ -1,17 +1,15 @@
-﻿using System;
+﻿using Atlassian.Jira;
+using Atlassian.Jira.Remote;
+using Migration.Common;
+using Migration.Common.Log;
+using Newtonsoft.Json.Linq;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using Atlassian.Jira;
-using Atlassian.Jira.Remote;
-using Migration.Common;
-using Migration.Common.Log;
-
-using Newtonsoft.Json.Linq;
-
-using RestSharp;
 
 namespace JiraExport
 {
