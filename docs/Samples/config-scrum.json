@@ -82,6 +82,7 @@
       {
         "source": "description",
         "target": "System.Description",
+        "not-for": "Bug",
         "mapper": "MapRendered"
       },
       {
