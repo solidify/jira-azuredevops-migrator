@@ -157,3 +157,25 @@ Here is how we can map datetime fields like ResolvedDate:
   "target": "Microsoft.VSTS.Common.ResolvedDate"
 }
 ```
+
+## 9. How to migrate an issue fields to a comment
+
+Through some manual intervention, we can migrate every historical value of an **issue field** to a **Work Item Comments**. Simply do the following:
+
+1. Map each of the desired fields to a unique token, e.g.:
+  ```json
+  {
+    "source": "customfield_10112",
+    "target": "5397700c-5bc3-4efe-b1e9-d626929b89ca"
+  },
+  {
+    "source": "customfield_10111",
+    "target": "e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667"
+  },
+  ```
+1. Run `JiraExport` as usual.
+1. Open up the `workspace` folder in an IDE like Visual Studio Code and do a search-replace across all contents in the whole `workspace` folder:
+1. Replace each unique token with `System.History`:
+   - `5397700c-5bc3-4efe-b1e9-d626929b89ca` > `System.History`
+   - `e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667` > `System.History`
+1. Run `WiImport` as usual.
