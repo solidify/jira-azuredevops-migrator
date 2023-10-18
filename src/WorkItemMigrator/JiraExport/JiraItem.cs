@@ -1,13 +1,11 @@
-﻿using System;
+﻿using Atlassian.Jira;
+using Migration.Common;
+using Migration.Common.Log;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-
-using Atlassian.Jira;
-using Migration.Common;
-using Migration.Common.Log;
-
-using Newtonsoft.Json.Linq;
 
 namespace JiraExport
 {
@@ -37,7 +35,7 @@ namespace JiraExport
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
             Dictionary<string, object> fieldsTemp = ExtractFields(issueKey, remoteIssue, jiraProvider);
-            
+
             // Add CustomFieldName fields, copy over all non-custom fields.
             // These get removed as we loop over the changeLog, so we're left with the original Jira values by the time we reach firstRevision.
             Dictionary<string, object> fields = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
@@ -47,7 +45,8 @@ namespace JiraExport
                 if (!String.IsNullOrEmpty(key))
                 {
                     fields[key] = field.Value;
-                } else
+                }
+                else
                 {
                     fields[field.Key] = field.Value;
                 }

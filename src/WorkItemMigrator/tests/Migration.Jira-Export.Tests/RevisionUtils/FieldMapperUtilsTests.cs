@@ -1,13 +1,12 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System;
+using Common.Config;
+using JiraExport;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
-using JiraExport;
-using Common.Config;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
@@ -272,7 +271,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
                             }
                         }
                     };
-            
+
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
             // Ensure a null value is added to the revision
             jiraRevision.Fields.Add("resolution", null);

@@ -106,8 +106,9 @@
             {
                 "source": "description",
                 "target": "System.Description",
+                "not-for": "Bug",
                 "mapper": "MapRendered"
-            },
+              },
             {
                 "source": "priority",
                 "target": "Microsoft.VSTS.Common.Priority",
@@ -283,7 +284,8 @@
             {
                 "source": "description",
                 "target": "Microsoft.VSTS.TCM.ReproSteps",
-                "for": "Bug"
+                "for": "Bug",
+                "mapper": "MapRendered"
             },
             {
                 "source": "environment",

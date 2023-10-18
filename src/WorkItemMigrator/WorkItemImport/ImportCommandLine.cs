@@ -1,16 +1,14 @@
-﻿using System;
+﻿using Common.Config;
+using Microsoft.Extensions.CommandLineUtils;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Migration.Common;
+using Migration.Common.Config;
+using Migration.Common.Log;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Common.Config;
-
-using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-
-using Migration.Common;
-using Migration.Common.Config;
-using Migration.Common.Log;
 
 namespace WorkItemImport
 {
@@ -143,7 +141,7 @@ namespace WorkItemImport
                         importedItems++;
 
                         // Artifical wait (optional) to avoid throttling for ADO Services
-                        if(config.SleepTimeBetweenRevisionImportMilliseconds > 0)
+                        if (config.SleepTimeBetweenRevisionImportMilliseconds > 0)
                         {
                             Thread.Sleep(config.SleepTimeBetweenRevisionImportMilliseconds);
                         }

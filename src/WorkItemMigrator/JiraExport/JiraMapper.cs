@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Common.Config;
-
+﻿using Common.Config;
 using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Migration.Jira-Export.Tests")]
 
@@ -371,7 +370,7 @@ namespace JiraExport
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
             // Store both the customFieldName and the sourceField as the changelog seems to only use the customFieldName, which is then passed into this function as the sourceField.
-            string customFieldName="";
+            string customFieldName = "";
             if (isCustomField)
             {
                 customFieldName = _jiraProvider.GetCustomId(sourceField);
@@ -391,7 +390,7 @@ namespace JiraExport
                     {
                         return (true, (T)value);
                     }
-                } 
+                }
                 else if (r.Fields.TryGetValue(customFieldName.ToLower(), out value))
                 {
                     if (mapperFunc != null)

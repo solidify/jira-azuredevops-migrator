@@ -74,6 +74,7 @@
       {
         "source": "description",
         "target": "System.Description",
+        "not-for": "Bug",
         "mapper": "MapRendered"
       },
       {
@@ -137,7 +138,8 @@
       {
         "source": "description",
         "target": "Microsoft.VSTS.TCM.ReproSteps",
-        "for": "Bug"
+        "for": "Bug",
+        "mapper": "MapRendered"
       }
     ]
   }

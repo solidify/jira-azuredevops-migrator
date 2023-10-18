@@ -1,11 +1,9 @@
-﻿using System;
+﻿using Migration.Common.Log;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-
-using Migration.Common.Log;
-
-using Newtonsoft.Json;
 
 namespace Migration.WIContract
 {

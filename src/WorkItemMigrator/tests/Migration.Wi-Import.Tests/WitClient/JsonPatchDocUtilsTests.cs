@@ -1,15 +1,11 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System;
-using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
-
+using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using NUnit.Framework;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using WorkItemImport.WitClient;
-using Newtonsoft.Json.Linq;
-using Microsoft.VisualStudio.Services.Common;
 using static WorkItemImport.WitClient.JsonPatchDocUtils;
 
 namespace Migration.Wi_Import.Tests

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Semver;
+using System;
 using System.Diagnostics;
 using System.Net.Http;
-using Newtonsoft.Json.Linq;
-using Semver;
 
 namespace Migration.Common.Log
 {

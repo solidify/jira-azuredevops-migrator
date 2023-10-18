@@ -1,16 +1,13 @@
-﻿using System;
+﻿using Common.Config;
+using Microsoft.Extensions.CommandLineUtils;
+using Migration.Common.Config;
+using Migration.Common.Log;
+using Migration.WIContract;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
-using Common.Config;
-
-using Microsoft.Extensions.CommandLineUtils;
-
-using Migration.Common.Config;
-using Migration.Common.Log;
-using Migration.WIContract;
 using static JiraExport.JiraProvider;
 
 namespace JiraExport

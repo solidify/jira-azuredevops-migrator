@@ -1,5 +1,5 @@
-﻿using System;
-using Migration.Common.Log;
+﻿using Migration.Common.Log;
+using System;
 
 namespace WorkItemImport
 {
