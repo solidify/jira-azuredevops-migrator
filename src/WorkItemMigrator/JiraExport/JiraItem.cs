@@ -205,11 +205,11 @@ namespace JiraExport
 
             if (UndoAttachmentChange(attachmentChange, attachments))
             {
-                attachmentChanges.Add(attachmentChange);
+                Logger.Log(LogLevel.Debug, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
             }
             else
             {
-                Logger.Log(LogLevel.Debug, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
+               attachmentChanges.Add(attachmentChange);
             }
         }
 
@@ -258,9 +258,9 @@ namespace JiraExport
             if (attachmentChange.ChangeType == RevisionChangeType.Removed)
             {
                 Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
-                return false;
+                return RemoveAttachment(attachmentChange, attachments);
             }
-            return RemoveAttachment(attachmentChange, attachments);
+            return false;
         }
 
         private static bool RemoveAttachment(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
