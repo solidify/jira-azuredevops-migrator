@@ -415,6 +415,39 @@ namespace WorkItemImport
             return descUpdated;
         }
 
+        public bool CorrectAcceptanceCriteria(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (wiItem == null)
+            {
+                throw new ArgumentException(nameof(wiItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            string acceptanceCriteria = wi.Fields[WiFieldReference.AcceptanceCriteria].ToString();
+            if (string.IsNullOrWhiteSpace(acceptanceCriteria))
+                return false;
+
+            bool updated = false;
+
+            CorrectImagePath(wi, wiItem, rev, ref acceptanceCriteria, ref updated, isAttachmentMigratedDelegate);
+
+            if (updated)
+            {
+                wi.Fields[WiFieldReference.AcceptanceCriteria] = acceptanceCriteria;
+            }
+
+            return updated;
+        }
+
         public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             if (wi == null)

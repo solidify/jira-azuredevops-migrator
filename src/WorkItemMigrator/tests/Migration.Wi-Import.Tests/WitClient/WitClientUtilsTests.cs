@@ -742,6 +742,17 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
+        public void When_calling_correct_acceptance_criteria_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.CorrectAcceptanceCriteria(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
         public void When_calling_correct_description_for_user_story_Then_description_is_updated_with_correct_image_urls()
         {
             string descriptionBeforeTransformation = "My description, including file: <img src=\"C:\\Temp\\workspace\\Attachments\\100\\my_image.png\">";
@@ -818,6 +829,46 @@ namespace Migration.Wi_Import.Tests
 
             Assert.That(createdWI.Fields[WiFieldReference.ReproSteps], Is.EqualTo(reproStepsAfterTransformation));
         }
+
+        [Test]
+        public void When_calling_correct_acceptance_criteria_for_user_story_Then_acceptance_criteria_is_updated_with_correct_image_urls()
+        {
+            string acceptanceCriteriaBeforeTransformation = "My description, including file: <img src=\"C:\\Temp\\workspace\\Attachments\\100\\my_image.png\">";
+            string acceptanceCriteriaAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            createdWI.Fields[WiFieldReference.AcceptanceCriteria] = acceptanceCriteriaBeforeTransformation;
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
+                Attributes = new Dictionary<string, object>() {
+                    { "comment", "Imported from Jira, original ID: 100" }
+                }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
+            att.AttOriginId = "100";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            WiItem wiItem = new WiItem();
+            wiItem.Revisions = new List<WiRevision>
+            {
+                revision
+            };
+
+            wiUtils.CorrectAcceptanceCriteria(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+
+            Assert.That(createdWI.Fields[WiFieldReference.AcceptanceCriteria], Is.EqualTo(acceptanceCriteriaAfterTransformation));
+        }
+
 
         [Test]
         public void When_calling_apply_attachments_with_empty_args_Then_an_exception_is_thrown()
