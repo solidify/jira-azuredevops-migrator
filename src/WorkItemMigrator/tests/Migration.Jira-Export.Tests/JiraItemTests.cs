@@ -150,7 +150,7 @@ namespace Migration.Jira_Export.Tests
             Assert.Multiple(() =>
             {
                 Assert.AreEqual(3, jiraItem.Revisions.Count);
-                Assert.IsTrue(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
+                Assert.IsFalse(jiraItem.Revisions.All(r => r.AttachmentActions.Count == 0));
             });
         }
 

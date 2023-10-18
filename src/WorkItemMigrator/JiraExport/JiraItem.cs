@@ -257,9 +257,9 @@ namespace JiraExport
         {
             if (attachmentChange.ChangeType == RevisionChangeType.Removed)
             {
-                Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
                 return RemoveAttachment(attachmentChange, attachments);
             }
+            Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
             return false;
         }
 
