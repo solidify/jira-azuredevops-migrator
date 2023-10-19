@@ -73,7 +73,7 @@ namespace Migration.Jira_Export.Tests
 
             var fields = JObject.Parse(@"{
                 'issuetype': {'name': 'Story'},
-                'EpicLinkField': 'EpicKey'
+                'Epic Link': 'EpicKey'
             }");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
@@ -88,7 +88,7 @@ namespace Migration.Jira_Export.Tests
                 new HistoryItem()
                 {
                     Id = 1,
-                    Field = "Parent",
+                    Field = "parent",
                     FieldType = "jira",
                     To = parentId,
                     ToString = parentKey
@@ -233,7 +233,7 @@ namespace Migration.Jira_Export.Tests
         private JiraSettings createJiraSettings()
         {
             JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
-            settings.EpicLinkField = "EpicLinkField";
+            settings.EpicLinkField = "Epic Link";
             settings.SprintField = "SprintField";
 
             return settings;
@@ -272,6 +272,8 @@ namespace Migration.Jira_Export.Tests
             repository.Target = "Destination Repository";
             repositoryMap.Repositories.Add(repository);
             cjson.RepositoryMap = repositoryMap;
+
+            cjson.EpicLinkField = "Epic Link";
 
             JiraMapper sut = new JiraMapper(provider, cjson);
 
