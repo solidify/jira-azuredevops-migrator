@@ -486,11 +486,11 @@ namespace JiraExport
                     value = prop.Value.Value<string>();
                 }
                 // User picker
-                else if (type == JTokenType.Object && prop.Value["accountId"] != null
+                else if (type == JTokenType.Object && (prop.Value["accountId"] != null || prop.Value["name"] != null)
                     && prop.Value["emailAddress"] != null && prop.Value["avatarUrls"] != null
                     && prop.Value["displayName"] != null)
                 {
-                    value = prop.Value["accountId"].ToString();
+                    value = extractAccountIdOrUsername(prop.Value);
                 }
                 else if (prop.Value.Type == JTokenType.Date)
                 {
