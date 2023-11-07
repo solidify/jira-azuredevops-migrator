@@ -369,29 +369,15 @@ namespace JiraExport
 
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
-            // Store both the customFieldName and the sourceField as the changelog seems to only use the customFieldName, which is then passed into this function as the sourceField.
-            string customFieldName = "";
             if (isCustomField)
             {
-                customFieldName = _jiraProvider.GetCustomId(sourceField);
+                var customFieldName = _jiraProvider.GetCustomId(sourceField);
+                sourceField = customFieldName;
             }
 
             return (r) =>
             {
-                object value;
-                // This sourceField is often actually the customFieldName.
-                if (r.Fields.TryGetValue(sourceField.ToLower(), out value))
-                {
-                    if (mapperFunc != null)
-                    {
-                        return (true, mapperFunc((T)value));
-                    }
-                    else
-                    {
-                        return (true, (T)value);
-                    }
-                }
-                else if (r.Fields.TryGetValue(customFieldName.ToLower(), out value))
+                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
                 {
                     if (mapperFunc != null)
                     {
