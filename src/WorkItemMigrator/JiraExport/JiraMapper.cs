@@ -75,6 +75,9 @@ namespace JiraExport
                 if (item.Source != null)
                 {
                     var isCustomField = item.SourceType == "name";
+                    if (isCustomField && _jiraProvider.GetCustomId(item.Source) == null)
+                        Logger.Log(LogLevel.Warning, $"Could not find the field id for '{item.Source}', please check the field mapping!");
+
                     Func<JiraRevision, (bool, object)> value;
 
                     if (item.Mapping?.Values != null)
@@ -371,8 +374,7 @@ namespace JiraExport
         {
             if (isCustomField)
             {
-                var customFieldName = _jiraProvider.GetCustomId(sourceField);
-                sourceField = customFieldName;
+                sourceField = _jiraProvider.GetCustomId(sourceField) ?? sourceField;
             }
 
             return (r) =>
