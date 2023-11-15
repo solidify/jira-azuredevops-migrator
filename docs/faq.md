@@ -51,7 +51,34 @@ Example:
 }
 ```
 
-## 4. How to migrate custom fields having dropdown lists?
+## 4. Guideline for migrating multiple projects
+
+### Scenario 1: Single project
+
+When migrating a single project, you may have issues with links to other issues that are in other projects or otherwise not captured by the JQL query.
+
+You can include such linked issues by setting the following property in the configuration file (**NOTE: the include-linked-issues-not-captured-by-query property is not yet implemented as of 2023-11-15**):
+
+```json
+  "include-linked-issues-not-captured-by-query": true
+```
+
+### Scenario 2: Multiple projects
+
+When migrating multiple project, one after another (or otherwise running several migrations with different queries in a serial fashion), you may get duplicate issues if you have enabled the *include-linked-issues-not-captured-by-query* flag.
+
+The recommendation is thus to turn this property (**NOTE: the include-linked-issues-not-captured-by-query property is not yet implemented as of 2023-11-15**):
+
+```json
+  "include-linked-issues-not-captured-by-query": false
+```
+
+When running multiple migrations, one after another, we recommend following the below guidelines:
+
+- Use one separate `workspace` folder per migration.
+- For every completed migration, locate the `itemsJournal.txt` file inside your `workspace` folder. Copy this file to the workspace folder of the next migration. Then proceed with the net migration. This will ensure that you do not get duplicates, and any cross-project or cross-query links will be intact.
+
+## 5. How to migrate custom fields having dropdown lists?
 
 - To map a custom field which is an dropdown list you can use MapArray mapper to get in a better way.
 Also take a look at the other possible [Mappers](config.md#mappers) to use.
@@ -68,7 +95,7 @@ Example:
 }
 ```
 
-## 5. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
+## 6. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
 
 - User mapping differs between Jira Cloud and Jira Server. To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
@@ -108,7 +135,7 @@ Example:
     Jira.User3@some.domain=AzureDevOps.User3@some.domain
     ```
 
-## 6. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
+## 7. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
 
 You can migrate the logged and remaining time using the following field mappings.
 
@@ -133,7 +160,7 @@ The history of the **logged time** and **remaining time** will be preserved on e
 }
 ```
 
-## 7. How to map custom userpicker fields
+## 8. How to map custom userpicker fields
 
 Here is how we have successfully mapped userpicker fields in the past. `source` should be the field name:
 
@@ -146,7 +173,7 @@ Here is how we have successfully mapped userpicker fields in the past. `source` 
 },
 ```
 
-## 8. How to map datetime fields
+## 9. How to map datetime fields
 
 Here is how we can map datetime fields like ResolvedDate:
 
@@ -158,7 +185,7 @@ Here is how we can map datetime fields like ResolvedDate:
 }
 ```
 
-## 9. How to migrate an issue fields to a comment
+## 10. How to migrate an issue fields to a comment
 
 Through some manual intervention, we can migrate every historical value of an **issue field** to a **Work Item Comments**. Simply do the following:
 
