@@ -28,11 +28,11 @@ The tools are provided as-is and will require detailed understanding of how to m
 * Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/blog/jira-to-vsts-migration-work-items) for more context of the process.
 * Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/blog/jira-azure-devops-migration) for a complete step-by-step walkthrough on a migration.
 
-## Jira Azure DevOps Migrator PRO
+# Jira Azure DevOps Migrator PRO
 
 The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more features and utilities to further increase your migration capabilities and streamline the migration workflow. [Contact us for more information](mailto:support.jira-migrator@solidify.dev)
 
-### Features
+## Features
 
 **Jira Azure DevOps Migrator PRO** contains all the features in the **Community Edition**, plus the following additional functionality:
 
@@ -48,7 +48,7 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 - Utilities for automatically generating the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
 - Utilities for viewing the Jira workflow and assisting with field and state mapping
 
-## Supported versions of ADO/Jira
+# Supported versions of ADO/Jira
 
 The Jira to Azure DevOps work item migration tool is officially supported on the following platforms:
 
