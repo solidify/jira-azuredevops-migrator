@@ -37,6 +37,7 @@ namespace JiraExport
 
             CommandOption userOption = commandLineApplication.Option("-u <username>", "Username for authentication", CommandOptionType.SingleValue);
             CommandOption passwordOption = commandLineApplication.Option("-p <password>", "Password for authentication", CommandOptionType.SingleValue);
+            CommandOption tokenOption = commandLineApplication.Option("-t <token>", "Bearer token for OAuth2 authentication", CommandOptionType.SingleValue);
             CommandOption urlOption = commandLineApplication.Option("--url <accounturl>", "Url for the account", CommandOptionType.SingleValue);
             CommandOption configOption = commandLineApplication.Option("--config <configurationfilename>", "Export the work items based on this configuration file", CommandOptionType.SingleValue);
             CommandOption forceOption = commandLineApplication.Option("--force", "Forces execution from start (instead of continuing from previous run)", CommandOptionType.NoValue);
@@ -49,7 +50,7 @@ namespace JiraExport
 
                 if (configOption.HasValue())
                 {
-                    succeeded = ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
+                    succeeded = ExecuteMigration(userOption, passwordOption, tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
@@ -60,7 +61,7 @@ namespace JiraExport
             });
         }
 
-        private bool ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private bool ExecuteMigration(CommandOption user, CommandOption password, CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             var itemsCount = 0;
             var exportedItemsCount = 0;
@@ -82,7 +83,7 @@ namespace JiraExport
 
                 var downloadOptions = (DownloadOptions)config.DownloadOptions;
 
-                var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
+                var jiraSettings = new JiraSettings(user.Value(), password.Value(), token.Value(), url.Value(), config.SourceProject)
                 {
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
