@@ -206,3 +206,24 @@ Through some manual intervention, we can migrate every historical value of an **
    - `5397700c-5bc3-4efe-b1e9-d626929b89ca` > `System.History`
    - `e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667` > `System.History`
 1. Run `WiImport` as usual.
+
+## 11. How to omit the Jira issue ID/key in the work item title
+
+By default, the field mapping for `System.Title` will be set up so that the title is prefixed with the Issue key. This can be prevented by omitting the **MapTitle mapper** from the field map in the configuration:
+
+```json
+  {
+    "source": "summary",
+    "target": "System.Title"
+  }
+```
+
+Instead of the default:
+
+```json
+  {
+    "source": "summary",
+    "target": "System.Title",
+    "mapper": "MapTitle"
+  }
+```
