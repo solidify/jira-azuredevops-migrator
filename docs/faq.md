@@ -33,12 +33,13 @@ If you are still not able to authenticate. Try and run the tool as another user.
 
 - To map a custom field by value we have to add a mapping in the configuration file, using the custom field name:
 
-    ```
+```json
     {
         "source": "Custom Field Name Jira",
         "source-type": "name",
         "target": "Custom.CustomFieldNameADO"
     },
+```
 
 - Alternatively, we can map the filed kay instead of the name. Inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
 
@@ -57,21 +58,25 @@ Example:
 
 When migrating a single project, you may have issues with links to other issues that are in other projects or otherwise not captured by the JQL query.
 
-You can include such linked issues by setting the following property in the configuration file (**NOTE: the include-linked-issues-not-captured-by-query property is not yet implemented as of 2023-11-15**):
+You can include such linked issues (all parents, epic links and sub items) by setting the following property in the configuration file:
 
 ```json
-  "include-linked-issues-not-captured-by-query": true
+  "download-options": 7
 ```
+
+See <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/config.md#download-options> for more information on the `download-options` property.
 
 ### Scenario 2: Multiple projects
 
 When migrating multiple project, one after another (or otherwise running several migrations with different queries in a serial fashion), you may get duplicate issues if you have enabled the *include-linked-issues-not-captured-by-query* flag.
 
-The recommendation is thus to turn this property (**NOTE: the include-linked-issues-not-captured-by-query property is not yet implemented as of 2023-11-15**):
+The recommendation is thus to turn off all linked issues (parents, epic links and sub items) by setting the following property in the configuration file:
 
 ```json
-  "include-linked-issues-not-captured-by-query": false
+  "download-options": 0
 ```
+
+See <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/config.md#download-options> for more information on the `download-options` property.
 
 When running multiple migrations, one after another, we recommend following the below guidelines:
 
