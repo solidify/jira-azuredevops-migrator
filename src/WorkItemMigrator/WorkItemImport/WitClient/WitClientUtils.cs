@@ -87,79 +87,11 @@ namespace WorkItemImport
                     {
                         if (ex2.Message.Contains("TF201036: You cannot add a Child link between work items"))
                         {
-                            Logger.Log(LogLevel.Warning, ex2.Message);
-                            Logger.Log(LogLevel.Warning, "Attempting to fix the above issue by removing the offending link and re-adding the correct link...");
-
-                            var wiTargetCurrent = GetWorkItem(link.TargetWiId);
-
-                            bool linkFixed = false;
-                            foreach (var relation in wiTargetCurrent.Relations)
-                            {
-                                if (relation.Rel == "System.LinkTypes.Hierarchy-Reverse")
-                                {
-                                    // Remove old link
-                                    WiLink linkToRemove = new WiLink();
-                                    linkToRemove.Change = ReferenceChangeType.Removed;
-                                    linkToRemove.SourceWiId = wiTargetCurrent.Id.Value;
-                                    linkToRemove.TargetWiId = int.Parse(relation.Url.Split('/').Last());
-                                    linkToRemove.WiType = "System.LinkTypes.Hierarchy-Reverse";
-                                    RemoveAndSaveLink(linkToRemove, wiTargetCurrent);
-
-                                    // Add new link again
-                                    var matchedRelations = wi.Relations.Where(r => r.Rel == "System.LinkTypes.Hierarchy-Forward" && r.Url.Split('/').Last() == link.TargetWiId.ToString());
-                                    wi.Relations.Remove(matchedRelations.First());
-                                    linkFixed = AddAndSaveLink(link, wi);
-                                    break;
-                                }
-                            }
-
-                            if (linkFixed)
-                            {
-                                Logger.Log(LogLevel.Warning, "Solved issue with conflicting child links. Continuing happily...");
-                            }
-                            else
-                            {
-                                Logger.Log(LogLevel.Error, "Could not solve issue with conflicting child links. This revision did" +
-                                    " not import successfully. You may see the wrong parent issue when verifying the work items.");
-                            }
+                            ForceSwapLinkAndSave(link, wi, ex2, "Reverse", GetWorkItem(link.TargetWiId), "child");
                         }
                         else if (ex2.Message.Contains("TF201036: You cannot add a Parent link between work items"))
                         {
-                            Logger.Log(LogLevel.Warning, ex2.Message);
-                            Logger.Log(LogLevel.Warning, "Attempting to fix the above issue by removing the offending link and re-adding the correct link...");
-
-                            var wiSourceCurrent = GetWorkItem(link.SourceWiId);
-
-                            bool linkFixed = false;
-                            foreach (var relation in wiSourceCurrent.Relations)
-                            {
-                                if (relation.Rel == "System.LinkTypes.Hierarchy-Reverse")
-                                {
-                                    // Remove old link
-                                    WiLink linkToRemove = new WiLink();
-                                    linkToRemove.Change = ReferenceChangeType.Removed;
-                                    linkToRemove.SourceWiId = wiSourceCurrent.Id.Value;
-                                    linkToRemove.TargetWiId = int.Parse(relation.Url.Split('/').Last());
-                                    linkToRemove.WiType = "System.LinkTypes.Hierarchy-Reverse";
-                                    RemoveAndSaveLink(linkToRemove, wiSourceCurrent);
-
-                                    // Add new link again
-                                    var matchedRelations = wi.Relations.Where(r => r.Rel == "System.LinkTypes.Hierarchy-Reverse" && r.Url.Split('/').Last() == link.TargetWiId.ToString());
-                                    wi.Relations.Remove(matchedRelations.First());
-                                    linkFixed = AddAndSaveLink(link, wi);
-                                    break;
-                                }
-                            }
-
-                            if (linkFixed)
-                            {
-                                Logger.Log(LogLevel.Warning, "Solved issue with conflicting parent links. Continuing happily...");
-                            }
-                            else
-                            {
-                                Logger.Log(LogLevel.Error, "Could not solve issue with conflicting parent links. This revision did" +
-                                    " not import successfully. You may see the wrong parent issue when verifying the work items.");
-                            }
+                            ForceSwapLinkAndSave(link, wi, ex2, "Forward", GetWorkItem(link.SourceWiId), "parent");
                         }
                         else
                         {
@@ -177,6 +109,43 @@ namespace WorkItemImport
             else
                 return false;
 
+        }
+
+        private void ForceSwapLinkAndSave(WiLink link, WorkItem wi, Exception ex2, string newLinkType, WorkItem wiTargetCurrent, string parentOrChild)
+        {
+            Logger.Log(LogLevel.Warning, ex2.Message);
+            Logger.Log(LogLevel.Warning, "Attempting to fix the above issue by removing the offending link and re-adding the correct link...");
+
+            bool linkFixed = false;
+            foreach (var relation in wiTargetCurrent.Relations)
+            {
+                if (relation.Rel == "System.LinkTypes.Hierarchy-Reverse")
+                {
+                    // Remove old link
+                    WiLink linkToRemove = new WiLink();
+                    linkToRemove.Change = ReferenceChangeType.Removed;
+                    linkToRemove.SourceWiId = wiTargetCurrent.Id.Value;
+                    linkToRemove.TargetWiId = int.Parse(relation.Url.Split('/').Last());
+                    linkToRemove.WiType = "System.LinkTypes.Hierarchy-Reverse";
+                    RemoveAndSaveLink(linkToRemove, wiTargetCurrent);
+
+                    // Add new link again
+                    var matchedRelations = wi.Relations.Where(r => r.Rel == "System.LinkTypes.Hierarchy-"+newLinkType && r.Url.Split('/').Last() == link.TargetWiId.ToString());
+                    wi.Relations.Remove(matchedRelations.First());
+                    linkFixed = AddAndSaveLink(link, wi);
+                    break;
+                }
+            }
+
+            if (linkFixed)
+            {
+                Logger.Log(LogLevel.Warning, $"Solved issue with conflicting {parentOrChild} links. Continuing happily...");
+            }
+            else
+            {
+                Logger.Log(LogLevel.Error, $"Could not solve issue with conflicting {parentOrChild} links. This revision did" +
+                    " not import successfully. You may see the wrong parent issue when verifying the work items.");
+            }
         }
 
         public bool RemoveAndSaveLink(WiLink link, WorkItem wi)
