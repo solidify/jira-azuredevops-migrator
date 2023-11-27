@@ -30,6 +30,10 @@
         "target": "System.LinkTypes.Hierarchy-Reverse"
       },
       {
+        "source": "Child",
+        "target": "System.LinkTypes.Hierarchy-Forward"
+      },
+      {
         "source": "Relates",
         "target": "System.LinkTypes.Related"
       },
