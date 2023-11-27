@@ -87,11 +87,11 @@ namespace WorkItemImport
                     {
                         if (ex2.Message.Contains("TF201036: You cannot add a Child link between work items"))
                         {
-                            ForceSwapLinkAndSave(link, wi, ex2, "Reverse", GetWorkItem(link.TargetWiId), "child");
+                            ForceSwapLinkAndSave(link, wi, ex2, "Forward", GetWorkItem(link.TargetWiId), "child");
                         }
                         else if (ex2.Message.Contains("TF201036: You cannot add a Parent link between work items"))
                         {
-                            ForceSwapLinkAndSave(link, wi, ex2, "Forward", GetWorkItem(link.SourceWiId), "parent");
+                            ForceSwapLinkAndSave(link, wi, ex2, "Reverse", GetWorkItem(link.SourceWiId), "parent");
                         }
                         else
                         {
@@ -130,7 +130,7 @@ namespace WorkItemImport
                     RemoveAndSaveLink(linkToRemove, wiTargetCurrent);
 
                     // Add new link again
-                    var matchedRelations = wi.Relations.Where(r => r.Rel == "System.LinkTypes.Hierarchy-"+newLinkType && r.Url.Split('/').Last() == link.TargetWiId.ToString());
+                    var matchedRelations = wi.Relations.Where(r => r.Rel == "System.LinkTypes.Hierarchy-" + newLinkType && r.Url.Split('/').Last() == link.TargetWiId.ToString());
                     wi.Relations.Remove(matchedRelations.First());
                     linkFixed = AddAndSaveLink(link, wi);
                     break;
