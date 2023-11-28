@@ -37,7 +37,7 @@ If you are still not able to authenticate. Try and run the tool as another user.
     {
         "source": "Custom Field Name Jira",
         "source-type": "name",
-        "target": "Custom.CustomFieldNameADO"
+        "target": "Custom.TargetField"
     },
 ```
 
@@ -51,6 +51,17 @@ Example:
     "target": "Custom.TargetField"
 }
 ```
+
+### (Troubleshooting) My custom field is not migrated correctly/not migrated at all.
+
+If your custom field is not imported correctly into Azure DevOps, please go through the following checklist and ensure that every step has been followed:
+
+1. Ensure that the field is created in the correct Azure DevOps process model, and that the field is existing on the correct work item type.
+2. Ensure that the `target` of your field mapping is set to the **Field reference name** of the ADO field, not the **Field name** (Observe that these two are different!!!)
+
+    For example, if the **field name** is `MyField`, the **field reference name** is usually something like `Custom.MyField` (for ADO Services) or `MyCompany.MyField` (for ADO Server). Spaces are not allowed in the **field reference name**.
+
+    Here is a reference sheet with all of the default fields: https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops (click each field to open up the documentation page and view the field reference name).
 
 ## 4. Guideline for migrating multiple projects
 
