@@ -90,7 +90,8 @@ namespace WorkItemImport
                     IgnoreFailedLinks = config.IgnoreFailedLinks,
                     ProcessTemplate = config.ProcessTemplate,
                     IncludeLinkComments = config.IncludeLinkComments,
-                    IncludeCommits = config.IncludeCommits
+                    IncludeCommits = config.IncludeCommits,
+                    FieldMap = config.FieldMap
                 };
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.

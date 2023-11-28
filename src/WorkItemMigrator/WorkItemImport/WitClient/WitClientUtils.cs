@@ -463,6 +463,39 @@ namespace WorkItemImport
             return descUpdated;
         }
 
+        public bool CorrectRenderedField(WorkItem wi, WiItem wiItem, WiRevision rev, string fieldRef, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (wiItem == null)
+            {
+                throw new ArgumentException(nameof(wiItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            string fieldValue = wi.Fields[fieldRef].ToString();
+            if (string.IsNullOrWhiteSpace(fieldValue))
+                return false;
+
+            bool updated = false;
+
+            CorrectImagePath(wi, wiItem, rev, ref fieldValue, ref updated, isAttachmentMigratedDelegate);
+
+            if (updated)
+            {
+                wi.Fields[fieldRef] = fieldValue;
+            }
+
+            return updated;
+        }
+
         public bool CorrectAcceptanceCriteria(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             if (wi == null)
