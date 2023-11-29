@@ -63,6 +63,10 @@ If your custom field is not imported correctly into Azure DevOps, please go thro
 
     Here is a reference sheet with all of the default fields: https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops (click each field to open up the documentation page and view the field reference name).
 
+### (Troubleshooting) I receive errore like: **VS403691: Update to work item 165 had two or more updates for field with reference name 'Custom.XXX'. A field cannot be updated more than once in the same update."**
+
+This error is usually indicative of incorrect configuration on the user's side. Please follow the checklist [here](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/faq.md#troubleshooting-my-custom-field-is-not-migrated-correctlynot-migrated-at-all) to ensure that you do not have any issues with your `config.json` file.
+
 ## 4. Guideline for migrating multiple projects
 
 ### Scenario 1: Single project
