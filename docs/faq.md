@@ -41,7 +41,7 @@ If you are still not able to authenticate. Try and run the tool as another user.
     },
 ```
 
-- Alternatively, we can map the filed kay instead of the name. Inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
+- Alternatively, we can map the field key instead of the name. Inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
 
 Example:
 
