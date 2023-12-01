@@ -15,3 +15,5 @@ $1000 / Jira organization (or server) / month
 
 The extension can be evaluated during a 30 days period.
 All prices excl. VAT.
+
+[Contact us](mailto:support.jira-migrator@solidify.dev) for more information.
