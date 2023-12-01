@@ -485,12 +485,19 @@ namespace JiraExport
                 {
                     value = prop.Value.Value<string>();
                 }
-                // User picker
+                // User picker, cloud
                 else if (type == JTokenType.Object && prop.Value["accountId"] != null
                     && prop.Value["emailAddress"] != null && prop.Value["avatarUrls"] != null
                     && prop.Value["displayName"] != null)
                 {
                     value = prop.Value["accountId"].ToString();
+                }
+                // User picker, on-prem
+                else if (type == JTokenType.Object && prop.Value["key"] != null
+                    && prop.Value["emailAddress"] != null && prop.Value["avatarUrls"] != null
+                    && prop.Value["displayName"] != null)
+                {
+                    value = prop.Value["key"].ToString();
                 }
                 else if (prop.Value.Type == JTokenType.Date)
                 {
