@@ -58,4 +58,4 @@ steps:
   inputs:
     scriptSource: 'filePath'
     scriptPath: '$(System.DefaultWorkingDirectory)\test\integration\smoke-tests.py'
-    arguments: '$(AdoOrganizationUrl) $(AdoProjectName) $(AdoApiToken) $(JiraUrl) $(JiraUser) $(JiraApiToken) $(JiraProject) $(System.DefaultWorkingDirectory)\test\integration\jira-migrator-workspace\users.txt'
+    arguments: '$(AdoOrganizationUrl) $(AdoProjectName) $(AdoApiToken) $(JiraUrl) $(JiraUser) $(JiraApiToken) $(JiraProject) $(System.DefaultWorkingDirectory)\test\integration\users.txt'
