@@ -20,7 +20,7 @@ steps:
     script: |
       $file = "$(System.DefaultWorkingDirectory)\test\integration\config.json"
       $str_find = "__workspace__"
-      $str_replace = "$(System.DefaultWorkingDirectory)\test\integration\jira-migrator-workspace"
+      $str_replace = "$(System.DefaultWorkingDirectory)\workspace"
       $str_replace = $str_replace -replace "\\", "\\"
       ((Get-Content -path $file -Raw) -replace $str_find, $str_replace) | Set-Content -Path $file
       cat $file
@@ -53,7 +53,7 @@ steps:
     targetType: 'inline'
     script: |
       New-Item -Path "$(System.DefaultWorkingDirectory)" -Name "workspace" -ItemType Directory
-      Copy-Item "$(System.DefaultWorkingDirectory)\test\integration\users.txt" -Destination "$(System.DefaultWorkingDirectory)"
+      Copy-Item "$(System.DefaultWorkingDirectory)\test\integration\users.txt" -Destination "$(System.DefaultWorkingDirectory)\workspace"
 
 - script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
   displayName: jira-export.exe
