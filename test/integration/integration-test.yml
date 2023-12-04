@@ -47,6 +47,14 @@ steps:
     scriptPath: '$(System.DefaultWorkingDirectory)\test\integration\delete-work-items.py'
     arguments: '$(AdoOrganizationUrl) $(AdoProjectName) $(AdoApiToken)'
 
+- task: PowerShell@2
+  displayName: Create workspace and copy users.txt
+  inputs:
+    targetType: 'inline'
+    script: |
+      New-Item -Path "$(System.DefaultWorkingDirectory)" -Name "workspace" -ItemType Directory
+      Copy-Item "$(System.DefaultWorkingDirectory)\test\integration\users.txt" -Destination "$(System.DefaultWorkingDirectory)"
+
 - script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
   displayName: jira-export.exe
 
