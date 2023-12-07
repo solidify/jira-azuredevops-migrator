@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>JiraExport</RootNamespace>
-    <TargetFramework>net7</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>C:\temp\jirapublish\</PublishUrl>

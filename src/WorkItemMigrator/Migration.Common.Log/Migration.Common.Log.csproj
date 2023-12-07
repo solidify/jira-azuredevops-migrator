@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
     <AssemblyTitle>Migration.Common.Log</AssemblyTitle>
     <Product>Migration.Common.Log</Product>
     <Copyright>Copyright ©  2019</Copyright>

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
     <AssemblyTitle>Migration.WIContract</AssemblyTitle>
     <Product>Migration.WIContract</Product>
     <Copyright>Copyright (c) Solidify</Copyright>
