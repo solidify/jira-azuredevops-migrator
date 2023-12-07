@@ -9,7 +9,7 @@ variables:
   BuildConfiguration: 'release'
   major: 3
   minor: 0
-  dotNetVersion: '7.0.x'
+  dotNetVersion: '6.0.x'
 
 name: $(major).$(minor)$(rev:.r)
 
