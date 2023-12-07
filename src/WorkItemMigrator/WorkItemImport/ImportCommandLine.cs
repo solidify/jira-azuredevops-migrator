@@ -141,7 +141,7 @@ namespace WorkItemImport
                             continue;
                         }
 
-                        agent.ImportRevision(executionItem.Revision, wi, settings);
+                        agent.ImportRevision(executionItem.Revision, wi, settings, executionItem.IsFinal);
 
                         // Artifical wait (optional) to avoid throttling for ADO Services
                         if (config.SleepTimeBetweenRevisionImportMilliseconds > 0)

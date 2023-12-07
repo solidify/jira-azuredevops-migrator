@@ -7,6 +7,8 @@ namespace WorkItemImport
         public string OriginId { get; set; }
         public int RevIndex { get; set; }
         public DateTime Time { get; set; }
+        /// <summary> Is this the final/latest revision for the work item? </summary>
+        public bool IsFinal { get; set; } = false;
 
         public int CompareTo(RevisionReference other)
         {
