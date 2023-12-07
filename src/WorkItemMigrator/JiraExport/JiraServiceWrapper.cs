@@ -3,6 +3,7 @@ using Atlassian.Jira.Remote;
 using JiraExport;
 using Migration.Common.Log;
 using RestSharp;
+using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,6 +28,10 @@ namespace JiraExport
 
                 _jira = Jira.CreateRestClient(jiraSettings.Url, jiraSettings.UserID, jiraSettings.Pass);
                 _jira.RestClient.RestSharpClient.AddDefaultHeader("X-Atlassian-Token", "no-check");
+
+                if (!string.IsNullOrWhiteSpace(jiraSettings.Token))
+                    _jira.RestClient.RestSharpClient.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(jiraSettings.Token, "Bearer");
+
                 if (jiraSettings.UsingJiraCloud)
                     _jira.RestClient.Settings.EnableUserPrivacyMode = true;
             }

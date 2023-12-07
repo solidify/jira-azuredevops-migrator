@@ -1,16 +1,13 @@
-﻿using System;
+﻿using Common.Config;
+using Microsoft.Extensions.CommandLineUtils;
+using Migration.Common.Config;
+using Migration.Common.Log;
+using Migration.WIContract;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
-using Common.Config;
-
-using Microsoft.Extensions.CommandLineUtils;
-
-using Migration.Common.Config;
-using Migration.Common.Log;
-using Migration.WIContract;
 using static JiraExport.JiraProvider;
 
 namespace JiraExport
@@ -40,6 +37,7 @@ namespace JiraExport
 
             CommandOption userOption = commandLineApplication.Option("-u <username>", "Username for authentication", CommandOptionType.SingleValue);
             CommandOption passwordOption = commandLineApplication.Option("-p <password>", "Password for authentication", CommandOptionType.SingleValue);
+            CommandOption tokenOption = commandLineApplication.Option("-t <token>", "Bearer token for OAuth2 authentication", CommandOptionType.SingleValue);
             CommandOption urlOption = commandLineApplication.Option("--url <accounturl>", "Url for the account", CommandOptionType.SingleValue);
             CommandOption configOption = commandLineApplication.Option("--config <configurationfilename>", "Export the work items based on this configuration file", CommandOptionType.SingleValue);
             CommandOption forceOption = commandLineApplication.Option("--force", "Forces execution from start (instead of continuing from previous run)", CommandOptionType.NoValue);
@@ -48,25 +46,27 @@ namespace JiraExport
             commandLineApplication.OnExecute(() =>
             {
                 bool forceFresh = forceOption.HasValue();
+                bool succeeded = true;
 
                 if (configOption.HasValue())
                 {
-                    ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
+                    succeeded = ExecuteMigration(userOption, passwordOption, tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
                     commandLineApplication.ShowHelp();
                 }
 
-                return 0;
+                return succeeded ? 0 : -1;
             });
         }
 
-        private void ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private bool ExecuteMigration(CommandOption user, CommandOption password, CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             var itemsCount = 0;
             var exportedItemsCount = 0;
             var sw = new Stopwatch();
+            bool succeeded = true;
             sw.Start();
 
             try
@@ -83,7 +83,7 @@ namespace JiraExport
 
                 var downloadOptions = (DownloadOptions)config.DownloadOptions;
 
-                var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
+                var jiraSettings = new JiraSettings(user.Value(), password.Value(), token.Value(), url.Value(), config.SourceProject)
                 {
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
@@ -120,6 +120,8 @@ namespace JiraExport
 
                 var issues = jiraProvider.EnumerateIssues(jiraSettings.JQL, skips, downloadOptions);
 
+                var createdWorkItems = new List<WiItem>();
+
                 foreach (var issue in issues)
                 {
                     if (issue == null)
@@ -128,23 +130,85 @@ namespace JiraExport
                     WiItem wiItem = mapper.Map(issue);
                     if (wiItem != null)
                     {
-                        localProvider.Save(wiItem);
-                        exportedItemsCount++;
-                        Logger.Log(LogLevel.Debug, $"Exported as type '{wiItem.Type}'.");
+                        createdWorkItems.Add(wiItem);
                     }
+                }
+
+                FixRevisionDates(createdWorkItems);
+
+                foreach (var wiItem in createdWorkItems)
+                {
+                    localProvider.Save(wiItem);
+                    exportedItemsCount++;
+                    Logger.Log(LogLevel.Debug, $"Exported as type '{wiItem.Type}'.");
                 }
             }
             catch (CommandParsingException e)
             {
                 Logger.Log(LogLevel.Error, $"Invalid command line option(s): {e}");
+                succeeded = false;
             }
             catch (Exception e)
             {
                 Logger.Log(e, $"Unexpected migration error.");
+                succeeded = false;
             }
             finally
             {
                 EndSession(itemsCount, sw);
+            }
+            return succeeded;
+        }
+
+        private static void FixRevisionDates(List<WiItem> createdWorkItems)
+        {
+            var revisionsWithLinkChanges = new List<WiRevision>();
+            foreach (var wiItem in createdWorkItems)
+            {
+                revisionsWithLinkChanges.AddRange(wiItem.Revisions.Where(r => r.Links != null && r.Links.Count != 0));
+            }
+            bool anyRevisionTimeUpdated = true;
+            while (anyRevisionTimeUpdated)
+            {
+                anyRevisionTimeUpdated = false;
+                foreach (var rev1 in revisionsWithLinkChanges)
+                {
+                    var rev1LinkSourceWiIds = rev1.Links.Select(l => l.SourceOriginId).ToList();
+                    var revsWithOppositeLink = revisionsWithLinkChanges.Where(
+                        r => r.Links.Any(l => rev1LinkSourceWiIds.Contains(l.TargetOriginId))
+                    );
+                    foreach (var rev2 in revsWithOppositeLink)
+                    {
+                        if (rev2 != rev1)
+                        {
+                            foreach (var link1 in rev1.Links)
+                            {
+                                foreach (var link2 in rev2.Links)
+                                {
+                                    if (link1.SourceOriginId == link2.TargetOriginId || link1.TargetOriginId == link2.SourceOriginId)
+                                    {
+                                        if (link1.Change == ReferenceChangeType.Added && link2.Change == ReferenceChangeType.Removed
+                                            && rev1.Time < rev2.Time && Math.Abs((rev1.Time - rev2.Time).TotalSeconds) < 2
+                                            && link1.WiType == "System.LinkTypes.Hierarchy-Forward" && link2.WiType == "System.LinkTypes.Hierarchy-Reverse")
+                                        {
+                                            // rev1 should be moved back by 1 second
+                                            rev2.Time = rev2.Time.AddSeconds(-1);
+                                            anyRevisionTimeUpdated = true;
+                                        }
+                                        else if (link1.Change == ReferenceChangeType.Removed && link2.Change == ReferenceChangeType.Added
+                                            && rev1.Time > rev2.Time && Math.Abs((rev1.Time - rev2.Time).TotalSeconds) < 2
+                                            && link1.WiType == "System.LinkTypes.Hierarchy-Reverse" && link2.WiType == "System.LinkTypes.Hierarchy-Forward")
+                                        {
+                                            // rev2 should be moved back by 1 second
+                                            rev1.Time = rev1.Time.AddSeconds(-1);
+                                            anyRevisionTimeUpdated = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -201,9 +265,9 @@ namespace JiraExport
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) }});
         }
 
-        public void Run()
+        public int Run()
         {
-            commandLineApplication.Execute(args);
+            return commandLineApplication.Execute(args);
         }
     }
 }

@@ -1,16 +1,15 @@
-﻿using System;
+﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.VisualStudio.Services.WebApi.Patch;
+using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using Migration.Common;
+using Migration.Common.Log;
+using Migration.WIContract;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Microsoft.VisualStudio.Services.WebApi;
-using Microsoft.VisualStudio.Services.WebApi.Patch;
-using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-
-using Migration.Common;
-using Migration.Common.Log;
-using Migration.WIContract;
 using WorkItemImport.WitClient;
 
 namespace WorkItemImport
@@ -83,10 +82,21 @@ namespace WorkItemImport
                 }
                 catch (AggregateException ex)
                 {
-                    Logger.Log(LogLevel.Error, ex.Message);
+                    Logger.Log(LogLevel.Warning, ex.Message);
                     foreach (Exception ex2 in ex.InnerExceptions)
                     {
-                        Logger.Log(LogLevel.Error, ex2.Message);
+                        if (ex2.Message.Contains("TF201036: You cannot add a Child link between work items"))
+                        {
+                            ForceSwapLinkAndSave(link, wi, ex2, "Forward", GetWorkItem(link.TargetWiId), "child");
+                        }
+                        else if (ex2.Message.Contains("TF201036: You cannot add a Parent link between work items"))
+                        {
+                            ForceSwapLinkAndSave(link, wi, ex2, "Reverse", GetWorkItem(link.SourceWiId), "parent");
+                        }
+                        else
+                        {
+                            Logger.Log(LogLevel.Error, ex2.Message);
+                        }
                     }
                     return false;
                 }
@@ -99,6 +109,43 @@ namespace WorkItemImport
             else
                 return false;
 
+        }
+
+        private void ForceSwapLinkAndSave(WiLink link, WorkItem wi, Exception ex2, string newLinkType, WorkItem wiTargetCurrent, string parentOrChild)
+        {
+            Logger.Log(LogLevel.Warning, ex2.Message);
+            Logger.Log(LogLevel.Warning, "Attempting to fix the above issue by removing the offending link and re-adding the correct link...");
+
+            bool linkFixed = false;
+            foreach (var relation in wiTargetCurrent.Relations)
+            {
+                if (relation.Rel == "System.LinkTypes.Hierarchy-Reverse")
+                {
+                    // Remove old link
+                    WiLink linkToRemove = new WiLink();
+                    linkToRemove.Change = ReferenceChangeType.Removed;
+                    linkToRemove.SourceWiId = wiTargetCurrent.Id.Value;
+                    linkToRemove.TargetWiId = int.Parse(relation.Url.Split('/').Last());
+                    linkToRemove.WiType = "System.LinkTypes.Hierarchy-Reverse";
+                    RemoveAndSaveLink(linkToRemove, wiTargetCurrent);
+
+                    // Add new link again
+                    var matchedRelations = wi.Relations.Where(r => r.Rel == "System.LinkTypes.Hierarchy-" + newLinkType && r.Url.Split('/').Last() == link.TargetWiId.ToString());
+                    wi.Relations.Remove(matchedRelations.First());
+                    linkFixed = AddAndSaveLink(link, wi);
+                    break;
+                }
+            }
+
+            if (linkFixed)
+            {
+                Logger.Log(LogLevel.Warning, $"Solved issue with conflicting {parentOrChild} links. Continuing happily...");
+            }
+            else
+            {
+                Logger.Log(LogLevel.Error, $"Could not solve issue with conflicting {parentOrChild} links. This revision did" +
+                    " not import successfully. You may see the wrong parent issue when verifying the work items.");
+            }
         }
 
         public bool RemoveAndSaveLink(WiLink link, WorkItem wi)
@@ -416,6 +463,72 @@ namespace WorkItemImport
             return descUpdated;
         }
 
+        public bool CorrectRenderedField(WorkItem wi, WiItem wiItem, WiRevision rev, string fieldRef, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (wiItem == null)
+            {
+                throw new ArgumentException(nameof(wiItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            string fieldValue = wi.Fields[fieldRef].ToString();
+            if (string.IsNullOrWhiteSpace(fieldValue))
+                return false;
+
+            bool updated = false;
+
+            CorrectImagePath(wi, wiItem, rev, ref fieldValue, ref updated, isAttachmentMigratedDelegate);
+
+            if (updated)
+            {
+                wi.Fields[fieldRef] = fieldValue;
+            }
+
+            return updated;
+        }
+
+        public bool CorrectAcceptanceCriteria(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        {
+            if (wi == null)
+            {
+                throw new ArgumentException(nameof(wi));
+            }
+
+            if (wiItem == null)
+            {
+                throw new ArgumentException(nameof(wiItem));
+            }
+
+            if (rev == null)
+            {
+                throw new ArgumentException(nameof(rev));
+            }
+
+            string acceptanceCriteria = wi.Fields[WiFieldReference.AcceptanceCriteria].ToString();
+            if (string.IsNullOrWhiteSpace(acceptanceCriteria))
+                return false;
+
+            bool updated = false;
+
+            CorrectImagePath(wi, wiItem, rev, ref acceptanceCriteria, ref updated, isAttachmentMigratedDelegate);
+
+            if (updated)
+            {
+                wi.Fields[WiFieldReference.AcceptanceCriteria] = acceptanceCriteria;
+            }
+
+            return updated;
+        }
+
         public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
         {
             if (wi == null)
@@ -480,13 +593,13 @@ namespace WorkItemImport
                     }
                     catch (AggregateException e)
                     {
-                        if(e.InnerException.Message.Contains("TF237082"))
+                        if (e.InnerException.Message.Contains("TF237082"))
                         {
                             Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, But the attachment exceeds " +
                                 $"the supported file upload size. Skipping attachment: {attachment.FileName}. See full error " +
                                 $"message below.\n{e.InnerException.Message}");
                         }
-                        else if(e.InnerException.Message.Contains("VS403313"))
+                        else if (e.InnerException.Message.Contains("VS403313"))
                         {
                             Logger.Log(LogLevel.Warning, $"'{rev}' - tried to add an attachment, but hit the workitem attachment " +
                                 $"limit (cannot add more than 100 attachments. Skipping attachment: {attachment.FileName}");
@@ -668,11 +781,12 @@ namespace WorkItemImport
                         wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
                         || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase)
                     )
-                    && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase)
+                    && !(revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
+                    || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
                 )
             {
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = null });
-                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = null });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = "" });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedBy, Value = "" });
             }
 
             if (

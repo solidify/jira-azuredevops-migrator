@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Microsoft.TeamFoundation.Core.WebApi;
+﻿using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
-
 using Migration.Common;
 using Migration.Common.Log;
 using Migration.WIContract;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
 using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using System.IO;
 
 namespace WorkItemImport
 {
@@ -98,6 +94,20 @@ namespace WorkItemImport
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
+                if (wi.Fields.ContainsKey(WiFieldReference.AcceptanceCriteria) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.AcceptanceCriteria].ToString()))
+                {
+                    Logger.Log(LogLevel.Debug, $"Correcting acceptance criteria on separate revision on '{rev}'.");
+
+                    try
+                    {
+                        _witClientUtils.CorrectAcceptanceCriteria(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex, $"Failed to correct acceptance criteria for '{wi.Id}', rev '{rev}'.");
+                    }
+                }
+
                 _witClientUtils.SaveWorkItemAttachments(rev, wi);
 
                 foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
@@ -117,6 +127,34 @@ namespace WorkItemImport
                     catch (Exception ex)
                     {
                         Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                    }
+
+                    // Correct other HTMl fields than description
+                    foreach (var field in settings.FieldMap.Fields)
+                    {
+                        if (
+                            field.Mapper == "MapRendered"
+                            && (field.For == "All" || field.For.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && (field.NotFor == null || !field.NotFor.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && wi.Fields.ContainsKey(field.Target)
+                            && field.Target != WiFieldReference.Description
+                        )
+                        {
+                            try
+                            {
+                                _witClientUtils.CorrectRenderedField(
+                                    wi,
+                                    _context.GetItem(rev.ParentOriginId),
+                                    rev,
+                                    field.Target,
+                                    _context.Journal.IsAttachmentMigrated
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                            }
+                        }
                     }
                 }
 

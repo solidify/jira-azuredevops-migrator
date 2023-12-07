@@ -37,6 +37,7 @@
         public static string BoardColumn => "System.BoardColumn";
         public static string BoardColumnDone => "System.BoardColumnDone";
         public static string BoardLane => "System.BoardLane";
+        public static string AcceptanceCriteria => "Microsoft.VSTS.Common.AcceptanceCriteria";
 
     }
 }

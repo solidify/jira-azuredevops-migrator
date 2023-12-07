@@ -1,10 +1,9 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System.Collections.Generic;
-using System;
 using Migration.WIContract;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Common.Tests
