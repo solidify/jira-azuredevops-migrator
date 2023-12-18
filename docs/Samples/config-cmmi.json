@@ -104,6 +104,12 @@
                 "mapper": "MapUser"
             },
             {
+                "source": "Sprint",
+                "source-type": "name",
+                "target": "System.IterationPath",
+                "mapper": "MapSprint"
+            },
+            {
                 "source": "description",
                 "target": "System.Description",
                 "not-for": "Bug",
