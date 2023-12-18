@@ -248,7 +248,7 @@ Instead of the default:
   }
 ```
 
-## 13. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported.
+## 12. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported.
 
 The issue is usually a malformed query. Mak sure that you have tried all of the following solutions:
 
