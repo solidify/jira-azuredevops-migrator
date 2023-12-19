@@ -250,14 +250,14 @@ Instead of the default:
 
 ## 12. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported.
 
-The issue is usually a malformed query. Mak sure that you have tried all of the following solutions:
+The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 
 - Ensure that the `query` property in your `config.json` file follows correct [JQL syntax](https://www.atlassian.com/software/jira/guides/jql/overview)
   - You can set up the corresponding JQL query in the issues view in your Jira project to debug the query.
 - Ensure that you don't have any issues with [authorization](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/faq.md#2-why-i-am-getting-unauthorized-exception-when-running-the-export).
 - In the `project` clause of your query, try both the prject name, project key and project ID
 
-If all of the aboce suggestions fail, verifu that you are able to reach the issue search rest API endpoint outside of the Exporter. Try to see if you can set up a query in [postman](https://www.postman.com/) or similar, with the same JQL query as you are trying in your config.json-file, with the same user + API token/password and let me know the result of that.
+If all of the aboce suggestions fail, verifu that you are able to reach the issue search rest API endpoint outside of the Exporter. Try to see if you can set up a Rest query in [postman](https://www.postman.com/) or similar, with the same JQL query as you are trying in your config.json-file, with the same user + API token/password and let me know the result of that.
 
 Here is an example in curl:
 
