@@ -70,8 +70,7 @@ namespace Migration.Wi_Import.Tests
                 Assert.AreEqual("/relations/-", jsonPatchOp.Path);
                 Assert.AreEqual("ArtifactLink", artifactLink.Rel);
                 Assert.AreEqual($"vstfs:///Git/Commit/{projectId}%2F{repositoryId}%2F{commitId}", artifactLink.Url);
-
-			});
+            });
         }
     }
 }

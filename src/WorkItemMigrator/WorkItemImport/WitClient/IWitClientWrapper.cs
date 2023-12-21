@@ -14,8 +14,8 @@ namespace WorkItemImport
         WorkItem GetWorkItem(int wiId);
         WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId);
         TeamProject GetProject(string projectId);
-		GitRepository GetRepository(string project, string repository);
-		List<WorkItemRelationType> GetRelationTypes();
+        GitRepository GetRepository(string project, string repository);
+        List<WorkItemRelationType> GetRelationTypes();
         AttachmentReference CreateAttachment(WiAttachment attachment);
     }
 }
