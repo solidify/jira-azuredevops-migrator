@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
@@ -12,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using WorkItemImport;
 
 namespace Migration.Wi_Import.Tests
@@ -124,7 +127,26 @@ namespace Migration.Wi_Import.Tests
                 return tp;
             }
 
-            public List<WorkItemRelationType> GetRelationTypes()
+			public GitRepository GetRepository(string project, string repository)
+			{
+				GitRepository gr = new GitRepository();
+				Guid repoGuid;
+
+				// Create a new instance of the MD5CryptoServiceProvider object.
+				MD5 md5Hasher = MD5.Create();
+
+				// Convert the input string to a byte array and compute the hash.
+				byte[] data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(project));
+
+				// Create a new Guid using the hash value.
+				repoGuid = new Guid(md5Hasher.ComputeHash(Encoding.Default.GetBytes(project)));
+                gr.Id = repoGuid;
+                gr.Name = repository;
+
+				return gr;
+			}
+
+			public List<WorkItemRelationType> GetRelationTypes()
             {
                 WorkItemRelationType hierarchyForward = new WorkItemRelationType
                 {

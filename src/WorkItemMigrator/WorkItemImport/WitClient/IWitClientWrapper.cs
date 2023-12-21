@@ -1,4 +1,5 @@
 ﻿using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Migration.WIContract;
@@ -13,7 +14,8 @@ namespace WorkItemImport
         WorkItem GetWorkItem(int wiId);
         WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId);
         TeamProject GetProject(string projectId);
-        List<WorkItemRelationType> GetRelationTypes();
+		GitRepository GetRepository(string project, string repository);
+		List<WorkItemRelationType> GetRelationTypes();
         AttachmentReference CreateAttachment(WiAttachment attachment);
     }
 }

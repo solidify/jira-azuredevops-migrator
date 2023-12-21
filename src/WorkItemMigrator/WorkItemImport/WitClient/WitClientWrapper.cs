@@ -1,4 +1,5 @@
 ﻿using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
@@ -21,6 +22,7 @@ namespace WorkItemImport
         private ProjectHttpClient ProjectClient { get; }
         private VssConnection Connection { get; }
         private TeamProjectReference TeamProject { get; }
+		private GitHttpClient GitClient { get; }
 
         public WitClientWrapper(string collectionUri, string project, string personalAccessToken)
         {
@@ -29,7 +31,8 @@ namespace WorkItemImport
             WitClient = Connection.GetClient<WorkItemTrackingHttpClient>();
             ProjectClient = Connection.GetClient<ProjectHttpClient>();
             TeamProject = ProjectClient.GetProject(project).Result;
-        }
+			GitClient = Connection.GetClient<GitHttpClient>();
+		}
 
         public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
         {
@@ -103,6 +106,10 @@ namespace WorkItemImport
         {
             return ProjectClient.GetProject(projectId).Result;
         }
+		public GitRepository GetRepository(string project, string repository)
+		{
+			return GitClient.GetRepositoryAsync(project, repository).Result;
+		}
 
         public List<WorkItemRelationType> GetRelationTypes()
         {
