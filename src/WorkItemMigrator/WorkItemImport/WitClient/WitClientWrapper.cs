@@ -106,6 +106,7 @@ namespace WorkItemImport
         {
             return ProjectClient.GetProject(projectId).Result;
         }
+
         public GitRepository GetRepository(string project, string repository)
         {
             return GitClient.GetRepositoryAsync(project, repository).Result;
