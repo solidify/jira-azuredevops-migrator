@@ -110,13 +110,13 @@ namespace WorkItemImport
         public TeamProject GetProject(string projectId)
         {
             // Check cache first
-            if (_projectCache.TryGetValue(projectId, out var cachedProject))
+            if (_projectCache.TryGetValue(projectId, out TeamProject cachedProject))
             {
                 return cachedProject;
             }
 
             // If not in cache, fetch and store in cache
-            var project = ProjectClient.GetProject(projectId).Result;
+            TeamProject project = ProjectClient.GetProject(projectId).Result;
             _projectCache[projectId] = project;
             return project;
         }
@@ -126,13 +126,13 @@ namespace WorkItemImport
             string cacheKey = $"{project}-{repository}";
 
             // Check cache first
-            if (_repositoryCache.TryGetValue(cacheKey, out var cachedRepository))
+            if (_repositoryCache.TryGetValue(cacheKey, out GitRepository cachedRepository))
             {
                 return cachedRepository;
             }
 
             // If not in cache, fetch and store in cache
-            var repo = GitClient.GetRepositoryAsync(project, repository).Result;
+            GitRepository repo = GitClient.GetRepositoryAsync(project, repository).Result;
             _repositoryCache[cacheKey] = repo;
             return repo;
         }

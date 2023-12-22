@@ -121,7 +121,13 @@ namespace Migration.Wi_Import.Tests
                 }
                 else
                 {
-                    tp.Id = Guid.NewGuid();
+                    // Create a new instance of the MD5CryptoServiceProvider object.
+                    MD5 md5Hasher = MD5.Create();
+
+                    // Create a new Guid using the hash value.
+                    projGuid = new Guid(md5Hasher.ComputeHash(Encoding.Default.GetBytes(projectId)));
+
+                    tp.Id = projGuid;
                     tp.Name = projectId;
                 }
                 return tp;
@@ -131,18 +137,21 @@ namespace Migration.Wi_Import.Tests
             {
                 GitRepository gr = new GitRepository();
                 Guid repoGuid;
+                if (Guid.TryParse(repository, out repoGuid))
+                {
+                    gr.Id = repoGuid;
+                }
+                else
+                {
+                    // Create a new instance of the MD5CryptoServiceProvider object.
+                    MD5 md5Hasher = MD5.Create();
 
-                // Create a new instance of the MD5CryptoServiceProvider object.
-                MD5 md5Hasher = MD5.Create();
+                    // Create a new Guid using the hash value.
+                    repoGuid = new Guid(md5Hasher.ComputeHash(Encoding.Default.GetBytes($"{project}-{repository}")));
 
-                // Convert the input string to a byte array and compute the hash.
-                byte[] data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(project));
-
-                // Create a new Guid using the hash value.
-                repoGuid = new Guid(md5Hasher.ComputeHash(Encoding.Default.GetBytes(project)));
-                gr.Id = repoGuid;
-                gr.Name = repository;
-
+                    gr.Id = repoGuid;
+                    gr.Name = repository;
+                }
                 return gr;
             }
 
@@ -1113,6 +1122,13 @@ namespace Migration.Wi_Import.Tests
 
             Settings settings = new Settings("account", "project", "pat");
 
+            // Create a new instance of the MD5CryptoServiceProvider object.
+            MD5 md5Hasher = MD5.Create();
+
+            // Create a new Guid using the hash value.
+            Guid projGuid = new Guid(md5Hasher.ComputeHash(Encoding.Default.GetBytes(settings.Project)));
+            Guid repoGuid = new Guid(md5Hasher.ComputeHash(Encoding.Default.GetBytes($"{settings.Project}-{revision.Commit.Repository}")));
+
             // Perform save
             wiUtils.SaveWorkItemArtifacts(revision, createdWI, settings);
 
@@ -1127,7 +1143,7 @@ namespace Migration.Wi_Import.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(updatedWI.Relations.First().Rel, Is.EqualTo("ArtifactLink"));
-                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo("vstfs:///Git/Commit/project/repository/1234567890"));
+                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo($"vstfs:///Git/Commit/{projGuid}%2F{repoGuid}%2F1234567890"));
             });
         }
 
