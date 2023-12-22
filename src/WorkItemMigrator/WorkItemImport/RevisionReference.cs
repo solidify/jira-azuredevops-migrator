@@ -23,7 +23,7 @@ namespace WorkItemImport
 
         public bool Equals(RevisionReference other)
         {
-            return OriginId.Equals(other.OriginId, StringComparison.InvariantCultureIgnoreCase) && RevIndex == other.RevIndex;
+            return OriginId.Equals(other?.OriginId, StringComparison.InvariantCultureIgnoreCase) && RevIndex == other?.RevIndex;
         }
 
         public override bool Equals(object obj)
