@@ -13,8 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using WorkItemImport;
 
 namespace Migration.Wi_Import.Tests
@@ -26,6 +24,8 @@ namespace Migration.Wi_Import.Tests
         private class MockedWitClientWrapper : IWitClientWrapper
         {
             private int _wiIdCounter = 1;
+            public Guid projectId = Guid.NewGuid();
+            public Guid repositoryId = Guid.NewGuid();
             public Dictionary<int, WorkItem> _wiCache = new Dictionary<int, WorkItem>();
 
             public MockedWitClientWrapper()
@@ -121,7 +121,7 @@ namespace Migration.Wi_Import.Tests
                 }
                 else
                 {
-                    tp.Id = Guid.NewGuid();
+                    tp.Id = this.projectId;
                     tp.Name = projectId;
                 }
                 return tp;
@@ -130,17 +130,7 @@ namespace Migration.Wi_Import.Tests
             public GitRepository GetRepository(string project, string repository)
             {
                 GitRepository gr = new GitRepository();
-                Guid repoGuid;
-
-                // Create a new instance of the MD5CryptoServiceProvider object.
-                MD5 md5Hasher = MD5.Create();
-
-                // Convert the input string to a byte array and compute the hash.
-                byte[] data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(project));
-
-                // Create a new Guid using the hash value.
-                repoGuid = new Guid(md5Hasher.ComputeHash(Encoding.Default.GetBytes(project)));
-                gr.Id = repoGuid;
+                gr.Id = repositoryId;
                 gr.Name = repository;
 
                 return gr;
@@ -1127,7 +1117,8 @@ namespace Migration.Wi_Import.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(updatedWI.Relations.First().Rel, Is.EqualTo("ArtifactLink"));
-                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo("vstfs:///Git/Commit/project/repository/1234567890"));
+                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo($"vstfs:///Git/Commit/" +
+                    $"{witClientWrapper.projectId}%2F{witClientWrapper.repositoryId}%2F{revision.Commit.Id}"));
             });
         }
 
