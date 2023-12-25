@@ -1,4 +1,5 @@
 ﻿using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
@@ -8,6 +9,7 @@ using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Migration.Common.Log;
 using Migration.WIContract;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -17,10 +19,15 @@ namespace WorkItemImport
 {
     public class WitClientWrapper : IWitClientWrapper
     {
+        // Cache fields
+        private ConcurrentDictionary<string, TeamProject> _projectCache = new ConcurrentDictionary<string, TeamProject>();
+        private ConcurrentDictionary<string, GitRepository> _repositoryCache = new ConcurrentDictionary<string, GitRepository>();
+
         private WorkItemTrackingHttpClient WitClient { get; }
         private ProjectHttpClient ProjectClient { get; }
         private VssConnection Connection { get; }
         private TeamProjectReference TeamProject { get; }
+        private GitHttpClient GitClient { get; }
 
         public WitClientWrapper(string collectionUri, string project, string personalAccessToken)
         {
@@ -29,6 +36,7 @@ namespace WorkItemImport
             WitClient = Connection.GetClient<WorkItemTrackingHttpClient>();
             ProjectClient = Connection.GetClient<ProjectHttpClient>();
             TeamProject = ProjectClient.GetProject(project).Result;
+            GitClient = Connection.GetClient<GitHttpClient>();
         }
 
         public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
@@ -101,7 +109,32 @@ namespace WorkItemImport
 
         public TeamProject GetProject(string projectId)
         {
-            return ProjectClient.GetProject(projectId).Result;
+            // Check cache first
+            if (_projectCache.TryGetValue(projectId, out var cachedProject))
+            {
+                return cachedProject;
+            }
+
+            // If not in cache, fetch and store in cache
+            var project = ProjectClient.GetProject(projectId).Result;
+            _projectCache[projectId] = project;
+            return project;
+        }
+
+        public GitRepository GetRepository(string project, string repository)
+        {
+            string cacheKey = $"{project}-{repository}";
+
+            // Check cache first
+            if (_repositoryCache.TryGetValue(cacheKey, out var cachedRepository))
+            {
+                return cachedRepository;
+            }
+
+            // If not in cache, fetch and store in cache
+            var repo = GitClient.GetRepositoryAsync(project, repository).Result;
+            _repositoryCache[cacheKey] = repo;
+            return repo;
         }
 
         public List<WorkItemRelationType> GetRelationTypes()

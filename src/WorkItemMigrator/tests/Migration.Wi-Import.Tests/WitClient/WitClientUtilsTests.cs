@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
@@ -23,6 +24,8 @@ namespace Migration.Wi_Import.Tests
         private class MockedWitClientWrapper : IWitClientWrapper
         {
             private int _wiIdCounter = 1;
+            public Guid projectId = Guid.NewGuid();
+            public Guid repositoryId = Guid.NewGuid();
             public Dictionary<int, WorkItem> _wiCache = new Dictionary<int, WorkItem>();
 
             public MockedWitClientWrapper()
@@ -118,10 +121,19 @@ namespace Migration.Wi_Import.Tests
                 }
                 else
                 {
-                    tp.Id = Guid.NewGuid();
+                    tp.Id = this.projectId;
                     tp.Name = projectId;
                 }
                 return tp;
+            }
+
+            public GitRepository GetRepository(string project, string repository)
+            {
+                GitRepository gr = new GitRepository();
+                gr.Id = repositoryId;
+                gr.Name = repository;
+
+                return gr;
             }
 
             public List<WorkItemRelationType> GetRelationTypes()
@@ -1105,7 +1117,8 @@ namespace Migration.Wi_Import.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(updatedWI.Relations.First().Rel, Is.EqualTo("ArtifactLink"));
-                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo("vstfs:///Git/Commit/project/repository/1234567890"));
+                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo($"vstfs:///Git/Commit/" +
+                    $"{witClientWrapper.projectId}%2F{witClientWrapper.repositoryId}%2F{revision.Commit.Id}"));
             });
         }
 
