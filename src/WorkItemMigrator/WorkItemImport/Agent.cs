@@ -128,6 +128,34 @@ namespace WorkItemImport
                     {
                         Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
                     }
+
+                    // Correct other HTMl fields than description
+                    foreach (var field in settings.FieldMap.Fields)
+                    {
+                        if (
+                            field.Mapper == "MapRendered"
+                            && (field.For == "All" || field.For.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && (field.NotFor == null || !field.NotFor.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && wi.Fields.ContainsKey(field.Target)
+                            && field.Target != WiFieldReference.Description
+                        )
+                        {
+                            try
+                            {
+                                _witClientUtils.CorrectRenderedField(
+                                    wi,
+                                    _context.GetItem(rev.ParentOriginId),
+                                    rev,
+                                    field.Target,
+                                    _context.Journal.IsAttachmentMigrated
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                            }
+                        }
+                    }
                 }
 
                 // rev with a commit won't have meaningful information, skip saving fields

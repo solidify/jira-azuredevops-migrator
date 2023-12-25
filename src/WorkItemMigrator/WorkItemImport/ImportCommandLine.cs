@@ -90,7 +90,8 @@ namespace WorkItemImport
                     IgnoreFailedLinks = config.IgnoreFailedLinks,
                     ProcessTemplate = config.ProcessTemplate,
                     IncludeLinkComments = config.IncludeLinkComments,
-                    IncludeCommits = config.IncludeCommits
+                    IncludeCommits = config.IncludeCommits,
+                    FieldMap = config.FieldMap
                 };
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.
@@ -119,15 +120,6 @@ namespace WorkItemImport
                             continue;
                         }
 
-                        if (config.IgnoreEmptyRevisions &&
-                            executionItem.Revision.Fields.Count == 0 &&
-                            executionItem.Revision.Links.Count == 0 &&
-                            executionItem.Revision.Attachments.Count == 0)
-                        {
-                            Logger.Log(LogLevel.Info, $"Skipped processing empty revision: {executionItem.OriginId}, rev {executionItem.Revision.Index}");
-                            continue;
-                        }
-
                         WorkItem wi = null;
 
                         if (executionItem.WiId > 0)
@@ -137,8 +129,18 @@ namespace WorkItemImport
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
-                        agent.ImportRevision(executionItem.Revision, wi, settings);
                         importedItems++;
+
+                        if (config.IgnoreEmptyRevisions &&
+                            executionItem.Revision.Fields.Count == 0 &&
+                            executionItem.Revision.Links.Count == 0 &&
+                            executionItem.Revision.Attachments.Count == 0)
+                        {
+                            Logger.Log(LogLevel.Info, $"Skipped processing empty revision: {executionItem.OriginId}, rev {executionItem.Revision.Index}");
+                            continue;
+                        }
+
+                        agent.ImportRevision(executionItem.Revision, wi, settings);
 
                         // Artifical wait (optional) to avoid throttling for ADO Services
                         if (config.SleepTimeBetweenRevisionImportMilliseconds > 0)

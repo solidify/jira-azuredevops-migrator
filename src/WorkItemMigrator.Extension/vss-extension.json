@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
     "id": "jira-devops-migration",
-    "name": "Jira to Azure DevOps/TFS work item migration tool",
+    "name": "Jira to Azure DevOps/TFS work item migration tool (FREE)",
     "version": "0.0.1",
     "public": false,
     "publisher": "solidify",
@@ -57,6 +57,9 @@
       },
       "privacypolicy": {
         "path": "PRIVACY.md"
+      },
+      "pricing": {
+        "path": "PRICING.md"
       }
     }
   }

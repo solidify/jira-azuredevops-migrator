@@ -70,11 +70,13 @@ namespace JiraExport
             if (!hasFieldValue)
                 return (false, null);
 
-            foreach (var item in config.FieldMap.Fields)
+            foreach (var item in config.FieldMap.Fields.Where(i => i.Mapping?.Values != null))
             {
-                if ((((item.Source == itemSource && item.Target == itemTarget) && (item.For.Contains(targetWit) || item.For == "All")) ||
-                      item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
-                      item.Mapping?.Values != null)
+                var sourceAndTargetMatch = item.Source == itemSource && item.Target == itemTarget;
+                var forOrAllMatch = item.For.Contains(targetWit) || item.For == "All";  // matches "For": "All", or when this Wit is specifically named.
+                var notForMatch = !string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit);  // matches if not-for is specified and doesn't contain this Wit.
+
+                if (sourceAndTargetMatch && (forOrAllMatch || notForMatch))
                 {
                     if (value == null)
                     {
@@ -89,7 +91,6 @@ namespace JiraExport
                 }
             }
             return (true, value);
-
         }
 
         public static (bool, object) MapRenderedValue(JiraRevision r, string sourceField, bool isCustomField, string customFieldName, ConfigJson config)

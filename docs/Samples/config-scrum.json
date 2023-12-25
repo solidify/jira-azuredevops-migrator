@@ -30,6 +30,10 @@
         "target": "System.LinkTypes.Hierarchy-Reverse"
       },
       {
+        "source": "Child",
+        "target": "System.LinkTypes.Hierarchy-Forward"
+      },
+      {
         "source": "Relates",
         "target": "System.LinkTypes.Related"
       },
@@ -227,7 +231,8 @@
       {
         "source": "description",
         "target": "Microsoft.VSTS.TCM.ReproSteps",
-        "for": "Bug"
+        "for": "Bug",
+        "mapper": "MapRendered"
       }
     ]
   }

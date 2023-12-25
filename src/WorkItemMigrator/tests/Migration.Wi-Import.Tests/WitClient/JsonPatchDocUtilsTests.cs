@@ -58,10 +58,10 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_create_json_artifact_link_field_patch_op_Then_a_correct_op_is_returned()
         {
-            string project = "project";
-            string repository = "repository";
-            string commitId = "commitId";
-            JsonPatchOperation jsonPatchOp = JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, project, repository, commitId);
+            string projectId = Guid.NewGuid().ToString();
+            string repositoryId = Guid.NewGuid().ToString();
+            string commitId = Guid.NewGuid().ToString();
+            JsonPatchOperation jsonPatchOp = JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, projectId, repositoryId, commitId);
             PatchOperationValue artifactLink = jsonPatchOp.Value as PatchOperationValue;
 
             Assert.Multiple(() =>
@@ -69,7 +69,7 @@ namespace Migration.Wi_Import.Tests
                 Assert.AreEqual(Operation.Add, jsonPatchOp.Operation);
                 Assert.AreEqual("/relations/-", jsonPatchOp.Path);
                 Assert.AreEqual("ArtifactLink", artifactLink.Rel);
-                Assert.AreEqual($"vstfs:///Git/Commit/{project}/{repository}/{commitId}", artifactLink.Url);
+                Assert.AreEqual($"vstfs:///Git/Commit/{projectId}%2F{repositoryId}%2F{commitId}", artifactLink.Url);
             });
         }
     }
