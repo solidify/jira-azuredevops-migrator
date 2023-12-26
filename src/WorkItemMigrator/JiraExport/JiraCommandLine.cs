@@ -155,7 +155,7 @@ namespace JiraExport
             }
             finally
             {
-                EndSession(itemsCount, sw);
+                EndSession(exportedItemsCount, sw);
             }
             return succeeded;
         }
@@ -225,7 +225,7 @@ namespace JiraExport
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
             var jiraVersion = jiraProvider.GetJiraVersion();
 
-            Logger.Log(LogLevel.Info, $"Export started. Exporting {itemsCount} items.");
+            Logger.Log(LogLevel.Info, $"Export started. Selecting {itemsCount} items.");
 
             Logger.StartSession("Jira Export",
                 "jira-export-started",
@@ -251,15 +251,15 @@ namespace JiraExport
                     { "hosting-type", jiraVersion.DeploymentType } });
         }
 
-        private static void EndSession(int itemsCount, Stopwatch sw)
+        private static void EndSession(int exportedItemsCount, Stopwatch sw)
         {
             sw.Stop();
 
-            Logger.Log(LogLevel.Info, $"Export complete. Exported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+            Logger.Log(LogLevel.Info, $"Export complete. Exported {exportedItemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
             Logger.EndSession("jira-export-completed",
                 new Dictionary<string, string>() {
-                    { "item-count", itemsCount.ToString() },
+                    { "item-count", exportedItemsCount.ToString() },
                     { "error-count", Logger.Errors.ToString() },
                     { "warning-count", Logger.Warnings.ToString() },
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) }});
