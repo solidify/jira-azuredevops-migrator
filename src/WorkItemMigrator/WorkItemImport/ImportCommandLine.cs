@@ -91,7 +91,8 @@ namespace WorkItemImport
                     ProcessTemplate = config.ProcessTemplate,
                     IncludeLinkComments = config.IncludeLinkComments,
                     IncludeCommits = config.IncludeCommits,
-                    FieldMap = config.FieldMap
+                    FieldMap = config.FieldMap,
+                    SuppressNotifications = config.SuppressNotifications
                 };
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.
@@ -125,7 +126,7 @@ namespace WorkItemImport
                         if (executionItem.WiId > 0)
                             wi = agent.GetWorkItem(executionItem.WiId);
                         else
-                            wi = agent.CreateWorkItem(executionItem.WiType, executionItem.Revision.Time, executionItem.Revision.Author);
+                            wi = agent.CreateWorkItem(executionItem.WiType, settings.SuppressNotifications, executionItem.Revision.Time, executionItem.Revision.Author);
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 

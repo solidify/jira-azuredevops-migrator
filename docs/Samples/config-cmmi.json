@@ -17,6 +17,7 @@
     "include-link-comments": false,
     "include-jira-css-styles": false,
     "ignore-empty-revisions": false,
+    "suppress-notifications": false,
     "sleep-time-between-revision-import-milliseconds": 0,
     "process-template": "CMMI",
     "link-map": {

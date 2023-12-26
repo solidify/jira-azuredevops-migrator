@@ -39,7 +39,7 @@ namespace WorkItemImport
             GitClient = Connection.GetClient<GitHttpClient>();
         }
 
-        public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
+        public WorkItem CreateWorkItem(string wiType, bool suppressNotifications, DateTime? createdDate = null, string createdBy = "")
         {
             JsonPatchDocument patchDoc = new JsonPatchDocument
             {
@@ -71,7 +71,7 @@ namespace WorkItemImport
             WorkItem wiOut;
             try
             {
-                wiOut = WitClient.CreateWorkItemAsync(document: patchDoc, project: TeamProject.Name, type: wiType, bypassRules: true, expand: WorkItemExpand.All).Result;
+                wiOut = WitClient.CreateWorkItemAsync(document: patchDoc, project: TeamProject.Name, type: wiType, bypassRules: true, suppressNotifications: suppressNotifications, expand: WorkItemExpand.All).Result;
             }
             catch (Exception e)
             {
@@ -102,9 +102,9 @@ namespace WorkItemImport
             return wiOut;
         }
 
-        public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
+        public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId, bool suppressNotifications)
         {
-            return WitClient.UpdateWorkItemAsync(document: patchDocument, id: workItemId, bypassRules: true, expand: WorkItemExpand.All).Result;
+            return WitClient.UpdateWorkItemAsync(document: patchDocument, id: workItemId, suppressNotifications, bypassRules: true, expand: WorkItemExpand.All).Result;
         }
 
         public TeamProject GetProject(string projectId)
