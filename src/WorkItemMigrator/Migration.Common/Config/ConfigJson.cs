@@ -83,5 +83,9 @@ namespace Common.Config
 
         [JsonProperty(PropertyName = "ignore-empty-revisions")]
         public bool IgnoreEmptyRevisions { get; set; } = false;
+
+        [JsonProperty(PropertyName = "suppress-notifications")]
+        public bool SuppressNotifications { get; set; } = false;
+        
     }
 }

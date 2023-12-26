@@ -33,7 +33,7 @@ namespace Migration.Wi_Import.Tests
 
             }
 
-            public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
+            public WorkItem CreateWorkItem(string wiType, bool suppressNotifications, DateTime? createdDate = null, string createdBy = "")
             {
                 WorkItem workItem = new WorkItem();
                 workItem.Id = _wiIdCounter;
@@ -54,7 +54,7 @@ namespace Migration.Wi_Import.Tests
                 return _wiCache[wiId];
             }
 
-            public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
+            public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId, bool suppressNotifications)
             {
                 WorkItem wi = _wiCache[workItemId];
                 foreach (JsonPatchOperation op in patchDocument)
@@ -252,7 +252,7 @@ namespace Migration.Wi_Import.Tests
             rev.Fields = new List<WiField>();
             rev.Index = 0;
 
-            WorkItem createdWI = sut.CreateWorkItem("User Story");
+            WorkItem createdWI = sut.CreateWorkItem("User Story", false);
 
             IdentityRef assignedTo = new IdentityRef();
             assignedTo.UniqueName = "Mr. Test";
@@ -284,7 +284,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
             DateTime now = DateTime.Now;
 
@@ -336,7 +336,7 @@ namespace Migration.Wi_Import.Tests
             revState.Value = "New";
             rev.Fields.Add(revState);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.State] = "Done";
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
 
@@ -367,7 +367,7 @@ namespace Migration.Wi_Import.Tests
             revState.Value = "New";
             rev.Fields.Add(revState);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.State] = "Closed";
 
             wiUtils.EnsureFieldsOnStateChange(rev, createdWI);
@@ -426,7 +426,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
@@ -454,7 +454,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Bug");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Bug", false);
 
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
@@ -505,7 +505,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Task", false);
             WorkItem retrievedWI = null;
             if (createdWI.Id.HasValue)
             {
@@ -529,7 +529,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.AddAndSaveLink(null, null),
+                () => wiUtils.AddAndSaveLink(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -539,8 +539,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
+
+            Settings settings = _fixture.Create<Settings>();
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
@@ -550,7 +552,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -567,7 +569,9 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            Settings settings = _fixture.Create<Settings>();
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             var attachment = new WorkItemRelation();
             attachment.Title = "LinkTitle";
             attachment.Rel = "AttachedFile";
@@ -578,7 +582,7 @@ namespace Migration.Wi_Import.Tests
                     { "name", "filename.png" }
             };
             createdWI.Relations.Add(attachment);
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
@@ -588,7 +592,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
             WorkItemRelation rel = createdWI.Relations.Where(rl => rl.Rel != "AttachedFile").Single();
 
@@ -605,8 +609,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            Settings settings = _fixture.Create<Settings>();
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
             var attachment = new WorkItemRelation();
             attachment.Title = "LinkTitle";
             attachment.Rel = "AttachedFile";
@@ -626,7 +632,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -644,7 +650,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.RemoveAndSaveLink(null, null),
+                () => wiUtils.RemoveAndSaveLink(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -654,12 +660,14 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+
+            Settings settings = _fixture.Create<Settings>();
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
 
-            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings);
 
             Assert.That(result, Is.EqualTo(false));
         }
@@ -670,8 +678,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
+
+            Settings settings = _fixture.Create<Settings>();
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
@@ -681,9 +691,9 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
-            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings);
 
             Assert.Multiple(() =>
             {
@@ -712,7 +722,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Task", false);
             createdWI.Fields[WiFieldReference.History] = commentBeforeTransformation;
             createdWI.Relations.Add(new WorkItemRelation()
             {
@@ -773,7 +783,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.Description] = descriptionBeforeTransformation;
             createdWI.Relations.Add(new WorkItemRelation()
             {
@@ -812,7 +822,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Bug");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Bug", false);
             createdWI.Fields[WiFieldReference.ReproSteps] = reproStepsBeforeTransformation;
             createdWI.Relations.Add(new WorkItemRelation()
             {
@@ -851,7 +861,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.AcceptanceCriteria] = acceptanceCriteriaBeforeTransformation;
             createdWI.Relations.Add(new WorkItemRelation()
             {
@@ -899,7 +909,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
@@ -929,7 +939,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
@@ -961,7 +971,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
@@ -992,7 +1002,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.SaveWorkItemAttachments(null, null),
+                () => wiUtils.SaveWorkItemAttachments(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -1003,7 +1013,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.SaveWorkItemFields(null),
+                () => wiUtils.SaveWorkItemFields(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -1013,8 +1023,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            Settings settings = _fixture.Create<Settings>();
 
             // Add attachment
             WiAttachment att = new WiAttachment();
@@ -1027,8 +1039,8 @@ namespace Migration.Wi_Import.Tests
             revision.Attachments.Add(att);
 
             // Perform save
-            wiUtils.SaveWorkItemAttachments(revision, createdWI);
-            wiUtils.SaveWorkItemFields(createdWI);
+            wiUtils.SaveWorkItemAttachments(revision, createdWI, settings);
+            wiUtils.SaveWorkItemFields(createdWI, settings);
 
             // Assertions
             Assert.Multiple(() =>
@@ -1046,8 +1058,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            Settings settings = _fixture.Create<Settings>();
 
             // Add fields
             createdWI.Fields[WiFieldReference.Title] = "My work item";
@@ -1057,8 +1071,8 @@ namespace Migration.Wi_Import.Tests
             WiRevision revision = new WiRevision();
 
             // Perform save
-            wiUtils.SaveWorkItemAttachments(revision, createdWI);
-            wiUtils.SaveWorkItemFields(createdWI);
+            wiUtils.SaveWorkItemAttachments(revision, createdWI, settings);
+            wiUtils.SaveWorkItemFields(createdWI, settings);
 
             WorkItem updatedWI = null;
 
@@ -1093,7 +1107,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
 
             WiRevision revision = new WiRevision();

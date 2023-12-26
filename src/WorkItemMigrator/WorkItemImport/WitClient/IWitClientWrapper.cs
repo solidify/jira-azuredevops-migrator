@@ -10,9 +10,9 @@ namespace WorkItemImport
 {
     public interface IWitClientWrapper
     {
-        WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "");
+        WorkItem CreateWorkItem(string wiType, bool suppressNotifications, DateTime? createdDate = null, string createdBy = "");
         WorkItem GetWorkItem(int wiId);
-        WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId);
+        WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId, bool suppressNotifications);
         TeamProject GetProject(string projectId);
         GitRepository GetRepository(string project, string repository);
         List<WorkItemRelationType> GetRelationTypes();
