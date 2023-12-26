@@ -308,7 +308,10 @@ namespace JiraExport
                             if (include)
                             {
                                 value = TruncateField(value, fieldreference);
-
+                                if(value == null)
+                                {
+                                    value = "";
+                                }
                                 Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {
