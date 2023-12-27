@@ -248,7 +248,21 @@ Instead of the default:
   }
 ```
 
-## 12. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported.
+## 12. How to limit the number of issues to be exported during JIRA export (pagination)
+
+If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
+
+```
+project = "PROJECTKEY" AND id >= 10000 AND id < 11000
+project = "PROJECTKEY" AND id >= 11000 AND id < 12000
+project = "PROJECTKEY" AND id >= 12000 AND id < 13000
+```
+
+And so on.
+
+You can always use the **issues** view in your Jira project to experiment with different JQL queries.
+
+## 13. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported.
 
 The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 

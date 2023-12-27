@@ -21,5 +21,6 @@ namespace WorkItemImport
         public bool IncludeLinkComments { get; internal set; }
         public bool IncludeCommits { get; internal set; }
         public FieldMap FieldMap { get; internal set; }
+        public bool SuppressNotifications { get; internal set; }
     }
 }
