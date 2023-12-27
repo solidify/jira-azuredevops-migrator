@@ -1,5 +1,6 @@
 ﻿
 using Migration.Common.Config;
+using Newtonsoft.Json.Linq;
 
 namespace JiraExport
 {
@@ -7,6 +8,7 @@ namespace JiraExport
     {
         public string UserID { get; private set; }
         public string Pass { get; private set; }
+        public string Token { get; private set; }
         public string Url { get; private set; }
         public string Project { get; set; }
         public string EpicLinkField { get; set; }
@@ -19,10 +21,11 @@ namespace JiraExport
         public bool IncludeCommits { get; set; }
         public RepositoryMap RepositoryMap { get; set; }
 
-        public JiraSettings(string userID, string pass, string url, string project)
+        public JiraSettings(string userID, string pass, string token, string url, string project)
         {
             UserID = userID;
             Pass = pass;
+            Token = token;
             Url = url;
             Project = project;
         }

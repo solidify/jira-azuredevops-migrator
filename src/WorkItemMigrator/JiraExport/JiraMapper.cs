@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Common.Config;
-
+﻿using Common.Config;
 using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Migration.Jira-Export.Tests")]
 
@@ -109,6 +108,9 @@ namespace JiraExport
                                 break;
                             case "MapRendered":
                                 value = r => FieldMapperUtils.MapRenderedValue(r, item.Source, isCustomField, _jiraProvider.GetCustomId(item.Source), _config);
+                                break;
+                            case "MapLexoRank":
+                                value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapLexoRank);
                                 break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
@@ -246,7 +248,7 @@ namespace JiraExport
             }
 
             // map epic link
-            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.GetSettings().EpicLinkField, "Epic", _config);
+            LinkMapperUtils.AddRemoveSingleLink(r, links, _config.EpicLinkField, "Epic", _config);
 
             // map parent
             LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
@@ -309,7 +311,10 @@ namespace JiraExport
                             if (include)
                             {
                                 value = TruncateField(value, fieldreference);
-
+                                if(value == null)
+                                {
+                                    value = "";
+                                }
                                 Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {
@@ -371,7 +376,7 @@ namespace JiraExport
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
             // Store both the customFieldName and the sourceField as the changelog seems to only use the customFieldName, which is then passed into this function as the sourceField.
-            string customFieldName="";
+            string customFieldName = "";
             if (isCustomField)
             {
                 customFieldName = _jiraProvider.GetCustomId(sourceField);
@@ -391,7 +396,7 @@ namespace JiraExport
                     {
                         return (true, (T)value);
                     }
-                } 
+                }
                 else if (r.Fields.TryGetValue(customFieldName.ToLower(), out value))
                 {
                     if (mapperFunc != null)

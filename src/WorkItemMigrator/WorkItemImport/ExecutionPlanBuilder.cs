@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Migration.Common;
+using Migration.Common.Log;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Migration.Common;
-using Migration.Common.Log;
 
 namespace WorkItemImport
 {

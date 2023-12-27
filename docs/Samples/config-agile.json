@@ -17,6 +17,7 @@
   "include-link-comments": false,
   "include-jira-css-styles": false,
   "ignore-empty-revisions": false,
+  "suppress-notifications": false,
   "sleep-time-between-revision-import-milliseconds": 0,
   "process-template": "Agile",
   "link-map": {
@@ -28,6 +29,10 @@
       {
         "source": "Parent",
         "target": "System.LinkTypes.Hierarchy-Reverse"
+      },
+      {
+        "source": "Child",
+        "target": "System.LinkTypes.Hierarchy-Forward"
       },
       {
         "source": "Relates",
@@ -76,8 +81,15 @@
         "mapper": "MapUser"
       },
       {
+        "source": "Sprint",
+        "source-type": "name",
+        "target": "System.IterationPath",
+        "mapper": "MapSprint"
+      },
+      {
         "source": "description",
         "target": "System.Description",
+        "not-for": "Bug",
         "mapper": "MapRendered"
       },
       {
@@ -187,7 +199,8 @@
       {
         "source": "description",
         "target": "Microsoft.VSTS.TCM.ReproSteps",
-        "for": "Bug"
+        "for": "Bug",
+        "mapper": "MapRendered"
       },
       {
         "source": "environment",

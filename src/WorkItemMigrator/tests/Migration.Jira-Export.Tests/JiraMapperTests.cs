@@ -1,18 +1,17 @@
-﻿using NUnit.Framework;
-
-using JiraExport;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using Migration.WIContract;
 using Common.Config;
-using System.Collections.Generic;
+using JiraExport;
 using Migration.Common;
 using Migration.Common.Config;
+using Migration.WIContract;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using NUnit.Framework;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Type = Migration.Common.Config.Type;
 using System.Linq;
+using Type = Migration.Common.Config.Type;
 
 namespace Migration.Jira_Export.Tests
 {
@@ -74,7 +73,7 @@ namespace Migration.Jira_Export.Tests
 
             var fields = JObject.Parse(@"{
                 'issuetype': {'name': 'Story'},
-                'EpicLinkField': 'EpicKey'
+                'Epic Link': 'EpicKey'
             }");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
@@ -89,7 +88,7 @@ namespace Migration.Jira_Export.Tests
                 new HistoryItem()
                 {
                     Id = 1,
-                    Field = "Parent",
+                    Field = "parent",
                     FieldType = "jira",
                     To = parentId,
                     ToString = parentKey
@@ -201,9 +200,9 @@ namespace Migration.Jira_Export.Tests
         {
             string sourceTitle =
                 "test task with max name length - 0123456789012345678901234567890123456789012345"
-                +"678901234567890123456789012345678901234567890123456789012345678901234567890123"
-                +"456789012345678901234567890123456789012345678901234567890123456789012345678901"
-                +"23456789012345678901234567890";
+                + "678901234567890123456789012345678901234567890123456789012345678901234567890123"
+                + "456789012345678901234567890123456789012345678901234567890123456789012345678901"
+                + "23456789012345678901234567890";
             string expected =
                 "test task with max name length - 0123456789012345678901234567890123456789012345"
                 + "678901234567890123456789012345678901234567890123456789012345678901234567890123"
@@ -211,7 +210,7 @@ namespace Migration.Jira_Export.Tests
                 + "23456789012345678...";
 
             JiraMapper sut = createJiraMapper();
-            string actual= (string)sut.TruncateField(sourceTitle, WiFieldReference.Title);
+            string actual = (string)sut.TruncateField(sourceTitle, WiFieldReference.Title);
 
             Assert.AreEqual(expected, actual);
         }
@@ -233,8 +232,8 @@ namespace Migration.Jira_Export.Tests
 
         private JiraSettings createJiraSettings()
         {
-            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
-            settings.EpicLinkField = "EpicLinkField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
+            settings.EpicLinkField = "Epic Link";
             settings.SprintField = "SprintField";
 
             return settings;
@@ -273,6 +272,8 @@ namespace Migration.Jira_Export.Tests
             repository.Target = "Destination Repository";
             repositoryMap.Repositories.Add(repository);
             cjson.RepositoryMap = repositoryMap;
+
+            cjson.EpicLinkField = "Epic Link";
 
             JiraMapper sut = new JiraMapper(provider, cjson);
 

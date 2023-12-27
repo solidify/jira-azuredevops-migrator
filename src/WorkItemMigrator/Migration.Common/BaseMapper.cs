@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Migration.Common.Log;
+using System;
 using System.Collections.Generic;
-using Migration.Common.Log;
 
 namespace Migration.Common
 {

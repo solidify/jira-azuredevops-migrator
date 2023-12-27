@@ -33,14 +33,15 @@ If you are still not able to authenticate. Try and run the tool as another user.
 
 - To map a custom field by value we have to add a mapping in the configuration file, using the custom field name:
 
-    ```
+```json
     {
         "source": "Custom Field Name Jira",
         "source-type": "name",
-        "target": "Custom.CustomFieldNameADO"
+        "target": "Custom.TargetField"
     },
+```
 
-- Alternatively, we can map the filed kay instead of the name. Inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
+- Alternatively, we can map the field key instead of the name. Inspect the REST API response to find the **field key** for your custom field. This is usually something like **customfield_12345**.
 
 Example:
 
@@ -51,7 +52,53 @@ Example:
 }
 ```
 
-## 4. How to migrate custom fields having dropdown lists?
+### (Troubleshooting) My custom field is not migrated correctly/not migrated at all.
+
+If your custom field is not imported correctly into Azure DevOps, please go through the following checklist and ensure that every step has been followed:
+
+1. Ensure that the field is created in the correct Azure DevOps process model, and that the field is existing on the correct work item type.
+2. Ensure that the `target` of your field mapping is set to the **Field reference name** of the ADO field, not the **Field name** (Observe that these two are different!!!)
+
+    For example, if the **field name** is `MyField`, the **field reference name** is usually something like `Custom.MyField` (for ADO Services) or `MyCompany.MyField` (for ADO Server). Spaces are not allowed in the **field reference name**.
+
+    Here is a reference sheet with all of the default fields: https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops (click each field to open up the documentation page and view the field reference name).
+
+### (Troubleshooting) I receive errors like: **VS403691: Update to work item 165 had two or more updates for field with reference name 'Custom.XXX'. A field cannot be updated more than once in the same update."**
+
+This error is usually indicative of incorrect configuration on the user's side. Please follow the checklist [here](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/faq.md#troubleshooting-my-custom-field-is-not-migrated-correctlynot-migrated-at-all) (the section above this one, in the same document) to ensure that you do not have any issues with your `config.json` file.
+
+## 4. Guideline for migrating multiple projects
+
+### Scenario 1: Single project
+
+When migrating a single project, you may have issues with links to other issues that are in other projects or otherwise not captured by the JQL query.
+
+You can include such linked issues (all parents, epic links and sub items) by setting the following property in the configuration file:
+
+```json
+  "download-options": 7
+```
+
+See <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/config.md#download-options> for more information on the `download-options` property.
+
+### Scenario 2: Multiple projects
+
+When migrating multiple project, one after another (or otherwise running several migrations with different queries in a serial fashion), you may get duplicate issues if you have enabled the *include-linked-issues-not-captured-by-query* flag.
+
+The recommendation is thus to turn off all linked issues (parents, epic links and sub items) by setting the following property in the configuration file:
+
+```json
+  "download-options": 0
+```
+
+See <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/config.md#download-options> for more information on the `download-options` property.
+
+When running multiple migrations, one after another, we recommend following the below guidelines:
+
+- Use one separate `workspace` folder per migration.
+- For every completed migration, locate the `itemsJournal.txt` file inside your `workspace` folder. Copy this file to the workspace folder of the next migration. Then proceed with the net migration. This will ensure that you do not get duplicates, and any cross-project or cross-query links will be intact.
+
+## 5. How to migrate custom fields having dropdown lists?
 
 - To map a custom field which is an dropdown list you can use MapArray mapper to get in a better way.
 Also take a look at the other possible [Mappers](config.md#mappers) to use.
@@ -68,7 +115,7 @@ Example:
 }
 ```
 
-## 5. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
+## 6. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
 
 - User mapping differs between Jira Cloud and Jira Server. To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
@@ -108,7 +155,7 @@ Example:
     Jira.User3@some.domain=AzureDevOps.User3@some.domain
     ```
 
-## 6. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
+## 7. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
 
 You can migrate the logged and remaining time using the following field mappings.
 
@@ -133,7 +180,7 @@ The history of the **logged time** and **remaining time** will be preserved on e
 }
 ```
 
-## 7. How to map custom userpicker fields
+## 8. How to map custom userpicker fields
 
 Here is how we have successfully mapped userpicker fields in the past. `source` should be the field name:
 
@@ -146,7 +193,7 @@ Here is how we have successfully mapped userpicker fields in the past. `source` 
 },
 ```
 
-## 8. How to map datetime fields
+## 9. How to map datetime fields
 
 Here is how we can map datetime fields like ResolvedDate:
 
@@ -156,4 +203,84 @@ Here is how we can map datetime fields like ResolvedDate:
   "type": "datetime",
   "target": "Microsoft.VSTS.Common.ResolvedDate"
 }
+```
+
+## 10. How to migrate an issue fields to a comment
+
+Through some manual intervention, we can migrate every historical value of an **issue field** to a **Work Item Comments**. Simply do the following:
+
+1. Map each of the desired fields to a unique token, e.g.:
+  ```json
+  {
+    "source": "customfield_10112",
+    "target": "5397700c-5bc3-4efe-b1e9-d626929b89ca"
+  },
+  {
+    "source": "customfield_10111",
+    "target": "e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667"
+  },
+  ```
+1. Run `JiraExport` as usual.
+1. Open up the `workspace` folder in an IDE like Visual Studio Code and do a search-replace across all contents in the whole `workspace` folder:
+1. Replace each unique token with `System.History`:
+   - `5397700c-5bc3-4efe-b1e9-d626929b89ca` > `System.History`
+   - `e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667` > `System.History`
+1. Run `WiImport` as usual.
+
+## 11. How to omit the Jira issue ID/key in the work item title
+
+By default, the field mapping for `System.Title` will be set up so that the title is prefixed with the Issue key. This can be prevented by omitting the **MapTitle mapper** from the field map in the configuration:
+
+```json
+  {
+    "source": "summary",
+    "target": "System.Title"
+  }
+```
+
+Instead of the default:
+
+```json
+  {
+    "source": "summary",
+    "target": "System.Title",
+    "mapper": "MapTitle"
+  }
+```
+
+## 12. How to limit the number of issues to be exported during JIRA export (pagination)
+
+If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
+
+```
+project = "PROJECTKEY" AND id >= 10000 AND id < 11000
+project = "PROJECTKEY" AND id >= 11000 AND id < 12000
+project = "PROJECTKEY" AND id >= 12000 AND id < 13000
+```
+
+And so on.
+
+You can always use the **issues** view in your Jira project to experiment with different JQL queries.
+
+## 13. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported.
+
+The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
+
+- Ensure that the `query` property in your `config.json` file follows correct [JQL syntax](https://www.atlassian.com/software/jira/guides/jql/overview)
+  - You can set up the corresponding JQL query in the issues view in your Jira project to debug the query.
+- Ensure that you don't have any issues with [authorization](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/faq.md#2-why-i-am-getting-unauthorized-exception-when-running-the-export).
+- In the `project` clause of your query, try both the prject name, project key and project ID
+
+If all of the aboce suggestions fail, verifu that you are able to reach the issue search rest API endpoint outside of the Exporter. Try to see if you can set up a Rest query in [postman](https://www.postman.com/) or similar, with the same JQL query as you are trying in your config.json-file, with the same user + API token/password and let me know the result of that.
+
+Here is an example in curl:
+
+```txt
+curl -D- 
+  -u johnie:johnie 
+  -X POST 
+  -H "Content-Type: application/json" 
+  --data '{"jql":"project = QA","startAt":0,"maxResults":2,"fields":["id","key"]}' 
+
+ "http://johnie:8081/rest/api/2/search"
 ```
