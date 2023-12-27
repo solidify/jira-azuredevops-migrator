@@ -1,13 +1,12 @@
-﻿using NUnit.Framework;
-
-using JiraExport;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
+using JiraExport;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using NUnit.Framework;
 using RestSharp;
-using System.Linq;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Migration.Jira_Export.Tests
 {
@@ -31,7 +30,7 @@ namespace Migration.Jira_Export.Tests
             //Arrange
             string customFieldId = _fixture.Create<string>();
             string propertyName = _fixture.Create<string>(); ;
-            
+
             var apiResponse = JArray.Parse(
                 $"[{{ 'id': 'customfield_00001', 'name': 'Story'}}, " +
                 $"{{ 'id': '{customFieldId}', 'name': '{propertyName}'}}]");
@@ -144,7 +143,7 @@ namespace Migration.Jira_Export.Tests
                 Assert.AreEqual(1, jiraServiceMock.RestClient.ReceivedCalls().Count());
                 Assert.AreEqual(customFieldId1, actualId1);
                 Assert.AreEqual(customFieldId2, actualId2);
-            });            
+            });
         }
     }
 }

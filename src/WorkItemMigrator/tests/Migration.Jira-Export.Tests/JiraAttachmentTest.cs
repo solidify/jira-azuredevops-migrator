@@ -1,8 +1,7 @@
-﻿using NUnit.Framework;
-
-using JiraExport;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
+using JiraExport;
+using NUnit.Framework;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests
@@ -39,7 +38,7 @@ namespace Migration.Jira_Export.Tests
         {
             JiraAttachment sut1 = new JiraAttachment();
             JiraAttachment sut2 = new JiraAttachment();
-            
+
             string idString = "id";
 
             sut1.Id = idString;

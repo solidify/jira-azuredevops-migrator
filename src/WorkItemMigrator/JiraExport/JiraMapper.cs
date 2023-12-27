@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Common.Config;
-
+﻿using Common.Config;
 using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Migration.Jira-Export.Tests")]
 
@@ -33,7 +31,7 @@ namespace JiraExport
 
         internal WiItem Map(JiraItem issue)
         {
-            if(issue == null)
+            if (issue == null)
                 throw new ArgumentNullException(nameof(issue));
 
             var wiItem = new WiItem();
@@ -55,6 +53,7 @@ namespace JiraExport
                     return null;
                 }
             }
+
             return wiItem;
         }
 
@@ -183,6 +182,39 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
+        internal WiCommit MapCommit(JiraRevision jiraRevision)
+        {
+            if (jiraRevision == null)
+                throw new ArgumentNullException(nameof(jiraRevision));
+
+            if (jiraRevision.Commit == null)
+            {
+                return null;
+            }
+
+            var jiraCommit = jiraRevision.Commit.Value;
+            var respositoryTarget = jiraCommit.Repository;
+
+            var respositoryOverride = _config
+                .RepositoryMap
+                .Repositories?
+                .Find(r => r.Source == respositoryTarget)?
+                .Target;
+
+            if (!string.IsNullOrEmpty(respositoryOverride))
+            {
+                respositoryTarget = respositoryOverride;
+            }
+
+            var commit = new WiCommit()
+            {
+                Id = jiraCommit.Id,
+                Repository = respositoryTarget,
+            };
+
+            return commit;
+        }
+
         internal List<WiLink> MapLinks(JiraRevision r)
         {
             if (r == null)
@@ -216,7 +248,7 @@ namespace JiraExport
             }
 
             // map epic link
-            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.GetSettings().EpicLinkField, "Epic", _config);
+            LinkMapperUtils.AddRemoveSingleLink(r, links, _config.EpicLinkField, "Epic", _config);
 
             // map parent
             LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
@@ -278,6 +310,11 @@ namespace JiraExport
 
                             if (include)
                             {
+                                value = TruncateField(value, fieldreference);
+                                if(value == null)
+                                {
+                                    value = "";
+                                }
                                 Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {
@@ -304,6 +341,7 @@ namespace JiraExport
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
+            var commit = MapCommit(r);
 
             return new WiRevision()
             {
@@ -314,7 +352,8 @@ namespace JiraExport
                 Attachments = attachments,
                 Fields = fields,
                 Links = links,
-                AttachmentReferences = attachments.Any()
+                AttachmentReferences = attachments.Any(),
+                Commit = commit
             };
         }
 
@@ -336,15 +375,29 @@ namespace JiraExport
 
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
+            // Store both the customFieldName and the sourceField as the changelog seems to only use the customFieldName, which is then passed into this function as the sourceField.
+            string customFieldName = "";
             if (isCustomField)
             {
-                var customFieldName = _jiraProvider.GetCustomId(sourceField);
-                sourceField = customFieldName;
+                customFieldName = _jiraProvider.GetCustomId(sourceField);
             }
 
             return (r) =>
             {
-                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
+                object value;
+                // This sourceField is often actually the customFieldName.
+                if (r.Fields.TryGetValue(sourceField.ToLower(), out value))
+                {
+                    if (mapperFunc != null)
+                    {
+                        return (true, mapperFunc((T)value));
+                    }
+                    else
+                    {
+                        return (true, (T)value);
+                    }
+                }
+                else if (r.Fields.TryGetValue(customFieldName.ToLower(), out value))
                 {
                     if (mapperFunc != null)
                     {
@@ -363,7 +416,7 @@ namespace JiraExport
         }
 
         #endregion
-        
+
         private List<string> GetWorkItemTypes(params string[] notFor)
         {
             List<string> list;
@@ -376,6 +429,27 @@ namespace JiraExport
                 list = _targetTypes.ToList();
             }
             return list;
+        }
+
+        internal object TruncateField(object value, string field)
+        {
+            if (value == null) return value;
+            string valueStr = value.ToString();
+            var fieldLimits = new Dictionary<string, int>()
+            {
+                { WiFieldReference.Title, 255 }
+            };
+            if (fieldLimits.ContainsKey(field))
+            {
+                int limit = fieldLimits[field];
+                if (valueStr.Length > limit)
+                {
+                    string truncated = valueStr.Substring(0, limit - 3) + "...";
+                    Logger.Log(LogLevel.Warning, $"Field {field} was truncated. Maximum length: {limit}, new value: {truncated}");
+                    return truncated;
+                }
+            }
+            return valueStr;
         }
     }
 }

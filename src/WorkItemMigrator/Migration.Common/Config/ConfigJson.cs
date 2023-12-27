@@ -54,6 +54,9 @@ namespace Common.Config
         [JsonProperty(PropertyName = "process-template")]
         public string ProcessTemplate { get; set; } = "Scrum";
 
+        [JsonProperty(PropertyName = "repository-map")]
+        public RepositoryMap RepositoryMap { get; set; }
+
         [JsonProperty(PropertyName = "type-map", Required = Required.Always)]
         public TypeMap TypeMap { get; set; }
 
@@ -63,8 +66,26 @@ namespace Common.Config
         [JsonProperty(PropertyName = "rendered-fields")]
         public string[] RenderedFields { get; set; } = new string[] { "description", "comment" };
 
-
         [JsonProperty(PropertyName = "using-jira-cloud")]
         public bool UsingJiraCloud { get; set; } = true;
+
+        [JsonProperty(PropertyName = "include-link-comments")]
+        public bool IncludeLinkComments { get; set; } = true;
+
+        [JsonProperty(PropertyName = "sleep-time-between-revision-import-milliseconds")]
+        public int SleepTimeBetweenRevisionImportMilliseconds { get; set; } = 0;
+
+        [JsonProperty(PropertyName = "include-commits")]
+        public bool IncludeCommits { get; set; } = false;
+
+        [JsonProperty(PropertyName = "include-jira-css-styles")]
+        public bool IncludeJiraCssStyles { get; set; } = true;
+
+        [JsonProperty(PropertyName = "ignore-empty-revisions")]
+        public bool IgnoreEmptyRevisions { get; set; } = false;
+
+        [JsonProperty(PropertyName = "suppress-notifications")]
+        public bool SuppressNotifications { get; set; } = false;
+        
     }
 }

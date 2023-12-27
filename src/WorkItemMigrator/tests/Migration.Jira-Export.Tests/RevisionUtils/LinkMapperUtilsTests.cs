@@ -1,15 +1,14 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System;
+using Common.Config;
+using JiraExport;
+using Migration.Common.Config;
+using Migration.WIContract;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
-using JiraExport;
-using Migration.WIContract;
-using Common.Config;
-using Migration.Common.Config;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
@@ -25,13 +24,15 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             var provider = _fixture.Freeze<IJiraProvider>();
 
-            JObject remoteIssue = new JObject();
-            remoteIssue.Add("fields", new JObject());
-            remoteIssue.Add("renderedFields", new JObject());
-            remoteIssue.Add("key", issueKey);
+            JObject remoteIssue = new JObject
+            {
+                { "fields", new JObject() },
+                { "renderedFields", new JObject() },
+                { "key", issueKey }
+            };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
-            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
             settings.SprintField = "SprintField";
             provider.GetSettings().ReturnsForAnyArgs(settings);
 
@@ -82,8 +83,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -120,8 +123,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -167,8 +172,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -217,8 +224,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 
@@ -269,8 +278,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             ConfigJson configJson = new ConfigJson();
 
             configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>();
-            configJson.LinkMap.Links.Add(link);
+            configJson.LinkMap.Links = new List<Link>
+            {
+                link
+            };
 
             List<WiLink> links = new List<WiLink>();
 

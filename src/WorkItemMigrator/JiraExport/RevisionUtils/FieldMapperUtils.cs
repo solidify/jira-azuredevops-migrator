@@ -1,6 +1,7 @@
 ﻿using Common.Config;
 using JiraExport.RevisionUtils;
 using Migration.Common;
+using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
 using Newtonsoft.Json.Linq;
@@ -18,10 +19,20 @@ namespace JiraExport
     {
         public static object MapRemainingWork(string seconds)
         {
-            if (seconds == null)
-                throw new ArgumentNullException(nameof(seconds));
-
-            var secs = Convert.ToDouble(seconds);
+            var secs = 0d;
+            try
+            {
+                if (seconds == null)
+                {
+                    throw new FormatException();
+                }
+                secs = Convert.ToDouble(seconds);
+            }
+            catch (FormatException)
+            {
+                Logger.Log(LogLevel.Warning, $"A FormatException was thrown when converting RemainingWork value '{seconds}' to double. Defaulting to RemainingWork = null.");
+                return null;
+            }
             return TimeSpan.FromSeconds(secs).TotalHours;
         }
 
@@ -61,12 +72,18 @@ namespace JiraExport
             if (!hasFieldValue)
                 return (false, null);
 
-            foreach (var item in config.FieldMap.Fields)
+            foreach (var item in config.FieldMap.Fields.Where(i => i.Mapping?.Values != null))
             {
-                if ((((item.Source == itemSource && item.Target == itemTarget) && (item.For.Contains(targetWit) || item.For == "All")) ||
-                      item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
-                      item.Mapping?.Values != null)
+                var sourceAndTargetMatch = item.Source == itemSource && item.Target == itemTarget;
+                var forOrAllMatch = item.For.Contains(targetWit) || item.For == "All";  // matches "For": "All", or when this Wit is specifically named.
+                var notForMatch = !string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit);  // matches if not-for is specified and doesn't contain this Wit.
+
+                if (sourceAndTargetMatch && (forOrAllMatch || notForMatch))
                 {
+                    if (value == null)
+                    {
+                        return (true, null);
+                    }
                     var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
                     if (string.IsNullOrEmpty(mappedValue))
                     {
@@ -76,7 +93,6 @@ namespace JiraExport
                 }
             }
             return (true, value);
-
         }
 
         public static (bool, object) MapRenderedValue(JiraRevision r, string sourceField, bool isCustomField, string customFieldName, ConfigJson config)
@@ -111,7 +127,7 @@ namespace JiraExport
                     return (true, mappedValue);
                 }
             }
-            value = CorrectRenderedHtmlvalue(value, r);
+            value = CorrectRenderedHtmlvalue(value, r, config.IncludeJiraCssStyles);
 
             return (true, value);
         }
@@ -155,8 +171,9 @@ namespace JiraExport
 
             var iterationPaths = iterationPathsString.Split(',').AsEnumerable();
             iterationPaths = iterationPaths.Select(ip => ip.Trim());
-
             var iterationPath = iterationPaths.Last();
+
+            iterationPath = ReplaceAzdoInvalidCharacters(iterationPath);
 
             return iterationPath;
         }
@@ -206,7 +223,7 @@ namespace JiraExport
             return rank;
         }
 
-        public static string CorrectRenderedHtmlvalue(object value, JiraRevision revision)
+        public static string CorrectRenderedHtmlvalue(object value, JiraRevision revision, bool includeJiraStyle)
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
@@ -226,11 +243,14 @@ namespace JiraExport
 
             htmlValue = RevisionUtility.ReplaceHtmlElements(htmlValue);
 
-            string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
-            if (string.IsNullOrWhiteSpace(css))
-                Logger.Log(LogLevel.Warning, $"Could not read css styles for rendered field in {revision.OriginId}.");
-            else
-                htmlValue = "<style>" + css + "</style>" + htmlValue;
+            if (includeJiraStyle)
+            {
+                string css = ReadEmbeddedFile("JiraExport.jirastyles.css");
+                if (string.IsNullOrWhiteSpace(css))
+                    Logger.Log(LogLevel.Warning, $"Could not read css styles for rendered field in {revision.OriginId}.");
+                else
+                    htmlValue = "<style>" + css + "</style>" + htmlValue;
+            }
 
             return htmlValue;
         }
@@ -260,6 +280,11 @@ namespace JiraExport
             }
 
             return sourceField;
+        }
+
+        private static string ReplaceAzdoInvalidCharacters(string inputString)
+        {
+            return Regex.Replace(inputString, "[/$?*:\"&<>#%|+]", "", RegexOptions.None, TimeSpan.FromMilliseconds(100));
         }
     }
 

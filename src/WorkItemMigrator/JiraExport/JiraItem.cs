@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Atlassian.Jira;
-using Atlassian.Jira.Remote;
+﻿using Atlassian.Jira;
 using Migration.Common;
 using Migration.Common.Log;
-
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace JiraExport
 {
@@ -37,7 +34,24 @@ namespace JiraExport
         {
             string issueKey = jiraItem.Key;
             var remoteIssue = jiraItem.RemoteIssue;
-            Dictionary<string, object> fields = ExtractFields(issueKey, remoteIssue, jiraProvider);
+            Dictionary<string, object> fieldsTemp = ExtractFields(issueKey, remoteIssue, jiraProvider);
+
+            // Add CustomFieldName fields, copy over all non-custom fields.
+            // These get removed as we loop over the changeLog, so we're left with the original Jira values by the time we reach firstRevision.
+            Dictionary<string, object> fields = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var field in fieldsTemp)
+            {
+                var key = GetCustomFieldName(field.Key, jiraProvider);
+                if (!String.IsNullOrEmpty(key))
+                {
+                    fields[key] = field.Value;
+                }
+                else
+                {
+                    fields[field.Key] = field.Value;
+                }
+            }
+
             List<JiraAttachment> attachments = ExtractAttachments(remoteIssue.SelectTokens("$.fields.attachment[*]").Cast<JObject>()) ?? new List<JiraAttachment>();
             List<JiraLink> links = ExtractLinks(issueKey, remoteIssue.SelectTokens("$.fields.issuelinks[*]").Cast<JObject>()) ?? new List<JiraLink>();
             var epicLinkField = jiraProvider.GetSettings().EpicLinkField;
@@ -65,57 +79,24 @@ namespace JiraExport
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
                 foreach (var item in items)
                 {
-                    if (item.Field == "Epic Link" && !string.IsNullOrWhiteSpace(epicLinkField))
+                    switch (item.Field)
                     {
-                        fieldChanges[epicLinkField] = item.ToString;
-
-                        // undo field change
-                        if (string.IsNullOrWhiteSpace(item.From))
-                            fields.Remove(epicLinkField);
-                        else
-                            fields[epicLinkField] = item.FromString;
-                    }
-                    else if (item.Field == "Parent" || item.Field == "IssueParentAssociation")
-                    {
-                        fieldChanges["parent"] = item.ToString;
-
-                        // undo field change
-                        if (string.IsNullOrWhiteSpace(item.From))
-                            fields.Remove("parent");
-                        else
-                            fields["parent"] = item.FromString;
-                    }
-                    else if (item.Field == "Link")
-                    {
-                        var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
-                        if (linkChange == null)
-                            continue;
-
-                        linkChanges.Add(linkChange);
-
-                        UndoLinkChange(linkChange, links);
-                    }
-                    else if (item.Field == "Attachment")
-                    {
-                        var attachmentChange = TransformAttachmentChange(item);
-                        if (attachmentChange == null)
-                            continue;
-
-                        attachmentChanges.Add(attachmentChange);
-
-                        UndoAttachmentChange(attachmentChange, attachments);
-                    }
-                    else
-                    {
-                        var (fieldref, from, to) = TransformFieldChange(item, jiraProvider);
-
-                        fieldChanges[fieldref] = to;
-
-                        // undo field change
-                        if (string.IsNullOrEmpty(from))
-                            fields.Remove(fieldref);
-                        else
-                            fields[fieldref] = from;
+                        case "Epic Link" when !string.IsNullOrWhiteSpace(epicLinkField):
+                            HandleCustomFieldChange(item, epicLinkField, fieldChanges, fields);
+                            break;
+                        case "Parent":
+                        case "IssueParentAssociation":
+                            HandleCustomFieldChange(item, "parent", fieldChanges, fields);
+                            break;
+                        case "Link":
+                            HandleLinkChange(item, issueKey, jiraProvider, linkChanges, links);
+                            break;
+                        case "Attachment":
+                            HandleAttachmentChange(item, attachmentChanges, attachments);
+                            break;
+                        default:
+                            HandleFieldChange(item, jiraProvider, fieldChanges, fields);
+                            break;
                     }
                 }
 
@@ -134,12 +115,102 @@ namespace JiraExport
 
             List<JiraRevision> commentRevisions = BuildCommentRevisions(jiraItem, jiraProvider);
             listOfRevisions.AddRange(commentRevisions);
+
+            var settings = jiraProvider.GetSettings();
+            if (settings.IncludeCommits)
+            {
+                if (settings.RepositoryMap == null)
+                {
+                    Logger.Log(LogLevel.Warning, $"IncludeCommits was 'true' in the config, but no RepositoryMap was specified in the config. " +
+                        $"Please add a RepositoryMap in order to migrate git artifact links. Git artifacts will be skipped for now...");
+                }
+                else
+                {
+                    var commitRepositories = jiraProvider.GetCommitRepositories(jiraItem.Id);
+                    foreach (var respository in commitRepositories)
+                    {
+                        var commits = respository.SelectTokens(".commits[*]");
+                        foreach (JToken commit in commits)
+                        {
+                            var commitCreatedOn = commit.ExValue<DateTime>("$.authorTimestamp");
+                            var commitAuthor = GetAuthor(commit as JObject);
+                            var jiraCommit = commit.ToObject<JiraCommit>();
+                            var repositoryName = respository.SelectToken("$.name").Value<string>();
+                            if (string.IsNullOrEmpty(repositoryName))
+                            {
+                                continue;
+                            }
+
+                            var hasRespositoryTarget = settings.RepositoryMap.Repositories.Exists(r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
+                            if (!hasRespositoryTarget)
+                            {
+                                continue;
+                            }
+
+                            jiraCommit.Repository = repositoryName;
+                            var commitRevision = new JiraRevision(jiraItem) { Time = commitCreatedOn, Author = commitAuthor, Fields = new Dictionary<string, object>(), Commit = new RevisionAction<JiraCommit>() { ChangeType = RevisionChangeType.Added, Value = jiraCommit } };
+                            listOfRevisions.Add(commitRevision);
+                        }
+                    }
+                }
+            }
+
             listOfRevisions.Sort();
 
             foreach (var revAndI in listOfRevisions.Select((r, i) => (r, i)))
                 revAndI.Item1.Index = revAndI.Item2;
 
             return listOfRevisions;
+        }
+
+        private static void HandleCustomFieldChange(JiraChangeItem item, string customFieldName, Dictionary<string, object> fieldChanges, Dictionary<string, object> fields)
+        {
+            fieldChanges[customFieldName] = item.ToString;
+
+            // undo field change
+            if (string.IsNullOrWhiteSpace(item.From))
+                fields.Remove(customFieldName);
+            else
+                fields[customFieldName] = item.FromString;
+        }
+
+        private static void HandleFieldChange(JiraChangeItem item, IJiraProvider jiraProvider, Dictionary<string, object> fieldChanges, Dictionary<string, object> fields)
+        {
+            var (fieldref, from, to) = TransformFieldChange(item, jiraProvider);
+
+            fieldChanges[fieldref] = to;
+
+            // undo field change
+            if (string.IsNullOrEmpty(from))
+                fields.Remove(fieldref);
+            else
+                fields[fieldref] = from;
+        }
+
+        private static void HandleLinkChange(JiraChangeItem item, string issueKey, IJiraProvider jiraProvider, List<RevisionAction<JiraLink>> linkChanges, List<JiraLink> links)
+        {
+            var linkChange = TransformLinkChange(item, issueKey, jiraProvider);
+            if (linkChange == null)
+                return;
+
+            linkChanges.Add(linkChange);
+            UndoLinkChange(linkChange, links);
+        }
+
+        private static void HandleAttachmentChange(JiraChangeItem item, List<RevisionAction<JiraAttachment>> attachmentChanges, List<JiraAttachment> attachments)
+        {
+            var attachmentChange = TransformAttachmentChange(item);
+            if (attachmentChange == null)
+                return;
+
+            if (UndoAttachmentChange(attachmentChange, attachments))
+            {
+                attachmentChanges.Add(attachmentChange);
+            }
+            else
+            {
+                Logger.Log(LogLevel.Debug, $"Attachment {item.ToString ?? item.FromString} cannot be migrated because it was deleted.");
+            }
         }
 
         private static List<JiraRevision> BuildCommentRevisions(JiraItem jiraItem, IJiraProvider jiraProvider)
@@ -182,18 +253,24 @@ namespace JiraExport
             };
         }
 
-        private static void UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
+        private static bool UndoAttachmentChange(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
         {
             if (attachmentChange.ChangeType == RevisionChangeType.Removed)
             {
                 Logger.Log(LogLevel.Debug, $"Skipping undo for attachment '{attachmentChange.ToString()}'.");
-                return;
+                return false;
             }
+            return RemoveAttachment(attachmentChange, attachments);
+        }
 
-            if (attachments.Remove(attachmentChange.Value))
+        private static bool RemoveAttachment(RevisionAction<JiraAttachment> attachmentChange, List<JiraAttachment> attachments)
+        {
+            var result = attachments.Remove(attachmentChange.Value);
+            if (result)
                 Logger.Log(LogLevel.Debug, $"Undone attachment '{attachmentChange.ToString()}'.");
             else
                 Logger.Log(LogLevel.Debug, $"No attachment to undo for '{attachmentChange.ToString()}'.");
+            return result;
         }
 
         private static RevisionAction<JiraAttachment> TransformAttachmentChange(JiraChangeItem item)
@@ -255,8 +332,18 @@ namespace JiraExport
 
         private static string GetCustomFieldId(string fieldName, IJiraProvider jira)
         {
-            if (jira.GetCustomField(fieldName, out var customField))
+            var customField = jira.GetCustomField(fieldName);
+            if (customField != null)
                 return customField.Id;
+            else return null;
+
+        }
+
+        protected static string GetCustomFieldName(string fieldId, IJiraProvider jira)
+        {
+            var customField = jira.GetCustomField(fieldId);
+            if (customField != null)
+                return customField.Name;
             else return null;
 
         }
@@ -378,7 +465,9 @@ namespace JiraExport
                         { "reporter", extractAccountIdOrUsername},
                         { jira.GetSettings().SprintField, t => string.Join(", ", ParseCustomField(jira.GetSettings().SprintField, t, jira)) },
                         { "status", extractName },
-                        { "parent", t => t.ExValue<string>("$.key") }
+                        { "parent", t => t.ExValue<string>("$.key") },
+                        { "issuetype", extractName },
+                        { "resolution", extractName }
                     };
             }
 
@@ -396,6 +485,20 @@ namespace JiraExport
                 {
                     value = prop.Value.Value<string>();
                 }
+                // User picker, server ('name' check) + cloud ('accountId' check)
+                else if (type == JTokenType.Object && (prop.Value["accountId"] != null || prop.Value["name"] != null)
+                    && prop.Value["emailAddress"] != null && prop.Value["avatarUrls"] != null
+                    && prop.Value["displayName"] != null)
+                {
+                    value = extractAccountIdOrUsername(prop.Value);
+                }
+                // User picker, on-prem
+                else if (type == JTokenType.Object && prop.Value["key"] != null
+                    && prop.Value["emailAddress"] != null && prop.Value["avatarUrls"] != null
+                    && prop.Value["displayName"] != null)
+                {
+                    value = prop.Value["key"].ToString();
+                }
                 else if (prop.Value.Type == JTokenType.Date)
                 {
                     value = prop.Value.Value<DateTime>();
@@ -403,7 +506,7 @@ namespace JiraExport
                 else if (type == JTokenType.Array && prop.Value.Any())
                 {
                     value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
-                    if ((string)value == ";" || (string)value == "")
+                    if (Regex.Match((string)value, "^[;]+$", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Success || (string)value == "")
                         value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
                 }
                 else if (type == Newtonsoft.Json.Linq.JTokenType.Object && prop.Value["value"] != null)
@@ -459,9 +562,8 @@ namespace JiraExport
         private static string[] ParseCustomField(string fieldName, JToken value, IJiraProvider provider)
         {
             var serializedValue = new string[] { };
-
-            if (provider.GetCustomField(fieldName, out var customField) &&
-                customField != null &&
+            var customField = provider.GetCustomField(fieldName);
+            if (customField != null &&
                 provider.GetCustomFieldSerializer(customField.CustomType, out var serializer))
             {
                 serializedValue = serializer.FromJson(value);
@@ -476,6 +578,7 @@ namespace JiraExport
 
         public string Key { get { return RemoteIssue.ExValue<string>("$.key"); } }
         public string Type { get { return RemoteIssue.ExValue<string>("$.fields.issuetype.name")?.Trim(); } }
+        public string Id { get { return RemoteIssue.ExValue<string>("$.id"); } }
         public string EpicParent
         {
             get

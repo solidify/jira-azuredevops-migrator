@@ -2,14 +2,14 @@
 
 The migration configuration is the core of the migration, where all details about what to migrate and how data is mapped is defined.
 
-Check out the Azure DevOps documention below for inspiration on which fields to map, their meaning and data translation.
+Check out the Azure DevOps documentation below for inspiration on which fields to map, their meaning and data translation.
 
 * [Work item field index](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field)
 * [Agile process](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/agile-process)
 * [Scrum process](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/scrum-process)
 * [CMMI process](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/cmmi-process)
 
-## Structure 
+## Structure
 
 The migration configuration file is defined in a json file with the properties documented below.
 
@@ -32,12 +32,19 @@ The migration configuration file is defined in a json file with the properties d
 |**base-area-path**|False|string|Area path. Default is empty.|
 |**base-iteration-path**|False|string|Iteration path. Default is empty.|
 |**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|
+|**include-link-comments**|False|boolean|Set to True to get a verbose comment on the work item for every work item link created. Default = True.|
+|**include-jira-css-styles**|True|boolean|Set to True to generate and include confluence CSS Stylesheets for description, repro steps and comments. Default = True.|
+|**ignore-empty-revisions**|False|boolean|Set to True to ignore importing empty revisions. Empty revisions will be created if you have historical revisions where none of the changed fields or links have been mapped. This may indicate that you have unmapped data, which will not be migrated. Default = False.|
+|**suppress-notifications**|False|boolean|Set to True to suppress all notifications in Azure DevOps about created and updated Work Items. Default = False.|
+|**sleep-time-between-revision-import-milliseconds**|False|integer|How many milliseconds to sleep between each revision import. Use this if throttling is an issue for ADO Services. Default = 0 (no sleep).|
 |**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
 |**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
+|**repository-map**|True|json|List of **repositories** you want to map from a bitbucket Azure DevOps/TFS.|
 
 ## Download options
+
 This option allows the tool to download related issues to cover cases where these are not included in the section query (like a parent issue).
 
 Default value: 7 (=all)
@@ -50,6 +57,7 @@ Default value: 7 (=all)
 |IncludeSubItems|4|
 
 ## Link properties
+
 Name-value pairs of work item link types to map in the migration.
 
 |Name|Required|Type|Description|
@@ -58,6 +66,7 @@ Name-value pairs of work item link types to map in the migration.
 |target|True|string|Target Azure DevOps/TFS link type.|
 
 ## Type properties
+
 Name-value pairs of work item types to map in the migration.
 
 |Name|Required|Type|Description|
@@ -66,6 +75,7 @@ Name-value pairs of work item types to map in the migration.
 |target|True|string|Target Azure DevOps/TFS work item type.|
 
 ## Field properties
+
 |Name|Required|Type|Description|
 |---|---|---|---|
 |**source**|True|string|Name of Jira source field.|
@@ -74,10 +84,11 @@ Name-value pairs of work item types to map in the migration.
 |**for**|False|string|Types of work items this field should be migrated to, i.e. Bug, Task, Product backlog item in a comma-delimiter list. Default = "All".  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**not-for**|False|string|Negation of above, i.e this field is for a Bug only and nothing else.  When adding for ensure that a TypeMap.target is specified, specifying a TypeMap.source will cause fields to not be merged.|
 |**type**|False|string|Data type, i.e string, int, double. Default = string|
-|**mapper**|False|string|Mapper function used for value translation. See section below for a quick summary of the available mappers.|
-|**mapping**|False|json|List of **values** to map to and from in the migration.|
+|**mapper**|False|string|Mapper function used for value translation. See the **Mappers** section below for a quick summary of the available mappers.|
+|**mapping**|False|json|List of **key value pairs** to map to and from in the migration. Use this instead of the **mapper** property if you need a simple key-value mapping.|
 
 ## Value properties
+
 Name-value pairs of field values to map in the migration.
 
 |Name|Required|Type|Description|
@@ -85,10 +96,20 @@ Name-value pairs of field values to map in the migration.
 |source|False|string|Source value.|
 |target|False|string|Target value.|
 
-## Mappers
-Currently the tool has a rather naive implementation for mapping certain constructs, this is something we would like to improve in the future. But for now it is what it is and the table below is intended as a summary/explaination.
+## Repository properties
 
-**Note**: the source code for the mapping logic is here: https://github.com/solidify/jira-azuredevops-migrator/blob/master/src/WorkItemMigrator/JiraExport/JiraMapper.cs
+Name-value pairs of repositories to map in the migration.
+
+|Name|Required|Type|Description|
+|---|---|---|---|
+|source|False|string|Repository name in BitBucket.|
+|target|False|string|Repository name in Azure DevOps/TFS.|
+
+## Mappers
+
+Mappers are functions used byt he **Jira Exporter** for transforming the data in the Jira issue fields. The table below is as a summary and explanation of the different mappers available.
+
+**Note**: the source code for the mapping logic is here: <https://github.com/solidify/jira-azuredevops-migrator/blob/master/src/WorkItemMigrator/JiraExport/JiraMapper.cs>
 
 |Name|Description|
 |---|---|
@@ -101,7 +122,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
 |MapRemainingWork|Maps and converts a Jira time to hours|
 |MapRendered|Maps field to rendered html format value|
 |MapLexoRank|Maps and converts a Jira LexoRank to decimal. When mapping this type of field, ensure the correct Jira custom field is used and mapped to the relevant Azure DevOps prioritization field (see: https://learn.microsoft.com/en-us/azure/devops/boards/queries/planning-ranking-priorities?view=azure-devops#fields-used-to-plan-and-prioritize-work)|
-|(default)|Simply copies soure to target|
+|(default)|Simply copies source to target|
 
 ## Example configuration
 
@@ -186,7 +207,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
       {
         "source": "description",
         "target": "System.Description",
-		"mapper":"MapRendered"
+        "mapper":"MapRendered"
       },
       {
         "source": "priority",
@@ -250,7 +271,7 @@ Currently the tool has a rather naive implementation for mapping certain constru
       {
         "source": "comment",
         "target": "System.History",
-		"mapper":"MapRendered"
+        "mapper":"MapRendered"
       },
       {
         "source": "status",

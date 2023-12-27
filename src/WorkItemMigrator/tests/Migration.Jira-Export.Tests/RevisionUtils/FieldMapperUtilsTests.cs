@@ -1,15 +1,13 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System;
+using Common.Config;
+using JiraExport;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
-using JiraExport;
-using Common.Config;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
 {
@@ -34,7 +32,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
-            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
             settings.SprintField = "SprintField";
             provider.GetSettings().ReturnsForAnyArgs(settings);
 
@@ -68,9 +66,14 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
-        public void When_calling_map_remaining_work_with_null_arguments_Then_and_exception_is_thrown()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("Invalid")]
+        public void When_calling_map_remaining_work_with_invalid_arguments_Then_null_is_returned(string value)
         {
-            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapRemainingWork(null); });
+            object output = FieldMapperUtils.MapRemainingWork(value);
+
+            Assert.AreEqual(null, output);
         }
 
         [Test]
@@ -162,7 +165,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         public void When_calling_map_array_with_empty_string_arg_Then_null_is_returned()
         {
             object actualResult = FieldMapperUtils.MapArray("");
-            
+
             Assert.That(actualResult, Is.Null);
 
         }
@@ -185,7 +188,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         public void When_calling_map_sprint_with_empty_string_arg_Then_null_is_returned()
         {
             object actualResult = FieldMapperUtils.MapSprint("");
-            
+
             Assert.That(actualResult, Is.Null);
 
         }
@@ -196,6 +199,15 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             string[] sprintPath = { "Base", "Segment", "Sprint" };
             object output = FieldMapperUtils.MapSprint(string.Join(",", sprintPath));
             Assert.AreEqual(sprintPath[sprintPath.Length - 1], output);
+        }
+
+        [Test]
+        public void When_calling_map_sprint_with_invalid_azdo_chars_Then_expected_output_is_returned()
+        {
+            string[] sprintPath = { "*#/Base", "Seg*#/ment", "Sprint*#/" };
+            string expected = "Sprint";
+            object output = FieldMapperUtils.MapSprint(string.Join(",", sprintPath));
+            Assert.AreEqual(expected, output);
         }
 
         [Test]
@@ -232,6 +244,44 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             {
                 Assert.That(actualOutput.Item1, Is.True);
                 Assert.That(actualOutput.Item2, Is.EqualTo("High"));
+            });
+        }
+
+        [Test]
+        public void When_calling_map_value_with_valid_args_and_null_sourcevalue_Then_expected_output_is_returned()
+        {
+
+            var configJson = _fixture.Create<ConfigJson>();
+
+            configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
+            configJson.FieldMap.Fields = new List<Common.Config.Field>()
+            {
+                new Common.Config.Field()
+                    {
+                        Source = "resolution", Target = "System.Reason",
+                        Mapping = new Common.Config.Mapping
+                        {
+                            Values = new List<Common.Config.Value>
+                            {
+                                new Common.Config.Value
+                            {
+                                Source = "Fixed", Target = "Resolved"
+                                }
+                            }
+                            }
+                        }
+                    };
+
+            var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
+            // Ensure a null value is added to the revision
+            jiraRevision.Fields.Add("resolution", null);
+
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "resolution", "System.Reason", configJson);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualOutput.Item1, Is.True);
+                Assert.That(actualOutput.Item2, Is.Null);
             });
         }
 
@@ -288,8 +338,8 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             string description = string.Empty;
 
             //Act
-            string output = FieldMapperUtils.CorrectRenderedHtmlvalue(description, revision);
-            
+            string output = FieldMapperUtils.CorrectRenderedHtmlvalue(description, revision, true);
+
             //Assert
             Assert.Multiple(() =>
                 Assert.AreEqual(description, output)
@@ -316,7 +366,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
                 "<h>https://example.com</h>" +
                 "<span class=\"image-wrap\">span_text<img https://abc.com />image_alt</span>" +
                 "<a href=https://123.com class=\"user-hover\" link_meta>link_text</a>",
-                revision);
+                revision, true);
             string expected = "<h>https://example.com</h>" +
                 "<img https://abc.com />" +
                 "link_text";
@@ -326,7 +376,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         [Test]
         public void When_calling_map_correct_rendered_html_value_with_null_arguments_Then_and_exception_is_thrown()
         {
-            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.CorrectRenderedHtmlvalue(null, null); });
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.CorrectRenderedHtmlvalue(null, null, true); });
         }
 
         [Test]
@@ -338,7 +388,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             var configJson = _fixture.Create<ConfigJson>();
 
             var expectedOutput = "<h>https://example.com</h><img https://abc.com />link_text";
-            
+
             configJson.TypeMap.Types = new List<Common.Config.Type>() { new Common.Config.Type() { Source = "Story", Target = "Story" } };
             configJson.FieldMap.Fields = new List<Common.Config.Field>()
             {
@@ -357,8 +407,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             attachment.Url = "https://example.com";
             revisionAction.Value = attachment;
 
-            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
-            jiraRevision.AttachmentActions.Add(revisionAction);
+            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>
+            {
+                revisionAction
+            };
 
 
             var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName, configJson);
@@ -389,8 +441,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             attachment.Url = "https://example.com";
             revisionAction.Value = attachment;
 
-            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
-            jiraRevision.AttachmentActions.Add(revisionAction);
+            jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>
+            {
+                revisionAction
+            };
 
 
             var actualOutput = FieldMapperUtils.MapRenderedValue(jiraRevision, sourceField, false, customFieldName, configJson);

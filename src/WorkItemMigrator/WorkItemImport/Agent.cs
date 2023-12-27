@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.Core.WebApi;
+﻿using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
-
 using Migration.Common;
 using Migration.Common.Log;
 using Migration.WIContract;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
 using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using System.IO;
 
 namespace WorkItemImport
 {
@@ -27,12 +21,6 @@ namespace WorkItemImport
     {
         private readonly MigrationContext _context;
         public Settings Settings { get; private set; }
-
-        public TfsTeamProjectCollection Collection
-        {
-            get; private set;
-        }
-
         public VsWebApi.VssConnection RestConnection { get; private set; }
         public Dictionary<string, int> IterationCache { get; private set; } = new Dictionary<string, int>();
         public int RootIteration { get; private set; }
@@ -52,12 +40,11 @@ namespace WorkItemImport
             }
         }
 
-        private Agent(MigrationContext context, Settings settings, VsWebApi.VssConnection restConn, TfsTeamProjectCollection soapConnection)
+        private Agent(MigrationContext context, Settings settings, VsWebApi.VssConnection restConn)
         {
             _context = context;
             Settings = settings;
             RestConnection = restConn;
-            Collection = soapConnection;
         }
 
         public WorkItem GetWorkItem(int wiId)
@@ -65,12 +52,12 @@ namespace WorkItemImport
             return _witClientUtils.GetWorkItem(wiId);
         }
 
-        public WorkItem CreateWorkItem(string type)
+        public WorkItem CreateWorkItem(string type, bool suppressNotifications, DateTime createdDate, string createdBy)
         {
-            return _witClientUtils.CreateWorkItem(type);
+            return _witClientUtils.CreateWorkItem(type, suppressNotifications, createdDate, createdBy);
         }
 
-        public bool ImportRevision(WiRevision rev, WorkItem wi)
+        public bool ImportRevision(WiRevision rev, WorkItem wi, Settings settings)
         {
             var incomplete = false;
             try
@@ -95,19 +82,33 @@ namespace WorkItemImport
                 if (rev.Fields.Any() && !UpdateWIHistoryField(rev.Fields, wi))
                     incomplete = true;
 
-                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi))
+                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi, settings))
                     incomplete = true;
 
                 if (incomplete)
-                    Logger.Log(LogLevel.Warning, $"'{rev.ToString()}' - not all changes were saved.");
+                    Logger.Log(LogLevel.Warning, $"'{rev}' - not all changes were saved.");
 
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev}'.");
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                _witClientUtils.SaveWorkItemAttachments(rev, wi);
+                if (wi.Fields.ContainsKey(WiFieldReference.AcceptanceCriteria) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.AcceptanceCriteria].ToString()))
+                {
+                    Logger.Log(LogLevel.Debug, $"Correcting acceptance criteria on separate revision on '{rev}'.");
+
+                    try
+                    {
+                        _witClientUtils.CorrectAcceptanceCriteria(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex, $"Failed to correct acceptance criteria for '{wi.Id}', rev '{rev}'.");
+                    }
+                }
+
+                _witClientUtils.SaveWorkItemAttachments(rev, wi, settings);
 
                 foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
                 {
@@ -117,7 +118,7 @@ namespace WorkItemImport
 
                 if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev}'.");
 
                     try
                     {
@@ -125,16 +126,56 @@ namespace WorkItemImport
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev.ToString()}'.");
+                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                    }
+
+                    // Correct other HTMl fields than description
+                    foreach (var field in settings.FieldMap.Fields)
+                    {
+                        if (
+                            field.Mapper == "MapRendered"
+                            && (field.For == "All" || field.For.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && (field.NotFor == null || !field.NotFor.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && wi.Fields.ContainsKey(field.Target)
+                            && field.Target != WiFieldReference.Description
+                        )
+                        {
+                            try
+                            {
+                                _witClientUtils.CorrectRenderedField(
+                                    wi,
+                                    _context.GetItem(rev.ParentOriginId),
+                                    rev,
+                                    field.Target,
+                                    _context.Journal.IsAttachmentMigrated
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                            }
+                        }
                     }
                 }
 
-                _witClientUtils.SaveWorkItemFields(wi);
+                // rev with a commit won't have meaningful information, skip saving fields
+                if (rev.Commit != null)
+                {
+                    if (settings.IncludeCommits)
+                    {
+                        _witClientUtils.SaveWorkItemArtifacts(rev, wi, settings);
+                    }
+                }
+                else
+                {
+                    _witClientUtils.SaveWorkItemFields(wi, settings);
+                }
 
                 if (wi.Id.HasValue)
                 {
                     _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
-                } else
+                }
+                else
                 {
                     throw new MissingFieldException($"Work Item had no ID: {wi.Url}");
                 }
@@ -167,11 +208,7 @@ namespace WorkItemImport
             if (restConnection == null)
                 return null;
 
-            var soapConnection = EstablishSoapConnection(settings);
-            if (soapConnection == null)
-                return null;
-
-            var agent = new Agent(context, settings, restConnection, soapConnection);
+            var agent = new Agent(context, settings, restConnection);
 
             var witClientWrapper = new WitClientWrapper(settings.Account, settings.Project, settings.Pat);
             agent._witClientUtils = new WitClientUtils(witClientWrapper);
@@ -221,16 +258,6 @@ namespace WorkItemImport
                 Logger.Log(ex, $"Cannot establish connection to Azure DevOps/TFS.", LogLevel.Critical);
                 return null;
             }
-        }
-
-        private static TfsTeamProjectCollection EstablishSoapConnection(Settings settings)
-        {
-            NetworkCredential netCred = new NetworkCredential(string.Empty, settings.Pat);
-            VssBasicCredential basicCred = new VssBasicCredential(netCred);
-            VssCredentials tfsCred = new VssCredentials(basicCred);
-            var collection = new TfsTeamProjectCollection(new Uri(settings.Account), tfsCred);
-            collection.Authenticate();
-            return collection;
         }
 
         #endregion
@@ -454,7 +481,7 @@ namespace WorkItemImport
 
         private bool UpdateWIHistoryField(IEnumerable<WiField> fields, WorkItem wi)
         {
-            if(fields.FirstOrDefault( i => i.ReferenceName == WiFieldReference.History ) == null )
+            if (fields.FirstOrDefault(i => i.ReferenceName == WiFieldReference.History) == null)
             {
                 wi.Fields.Remove(WiFieldReference.History);
             }
@@ -521,7 +548,7 @@ namespace WorkItemImport
                                 wi.Fields[WiFieldReference.AreaPath] = Settings.Project;
                             }
 
-                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{ wi.Fields[WiFieldReference.AreaPath] }'.");
+                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.Fields[WiFieldReference.AreaPath]}'.");
 
                             break;
 
@@ -553,7 +580,7 @@ namespace WorkItemImport
             return success;
         }
 
-        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi)
+        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi, Settings settings)
         {
             bool success = true;
 
@@ -570,16 +597,18 @@ namespace WorkItemImport
                     if (link.TargetWiId == -1)
                     {
                         var errorLevel = Settings.IgnoreFailedLinks ? LogLevel.Warning : LogLevel.Error;
-                        Logger.Log(errorLevel, $"'{link.ToString()}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
+                        Logger.Log(errorLevel, $"'{link}' - target work item for Jira '{link.TargetOriginId}'" +
+                            $" is not yet created in Azure DevOps/TFS. You can safely ignore this warning if" +
+                            $" this work item is scheduled for import later in your migration.");
                         success = false;
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi))
+                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi, settings))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi, settings))
                     {
                         success = false;
                     }
@@ -591,14 +620,16 @@ namespace WorkItemImport
                 }
             }
 
-            if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
-                wi.Fields[WiFieldReference.History] = $"Removed link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
-            else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
-                wi.Fields[WiFieldReference.History] = $"Added link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
+            if (settings.IncludeLinkComments)
+            {
+                if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
+                    wi.Fields[WiFieldReference.History] = $"Removed link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
+                else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
+                    wi.Fields[WiFieldReference.History] = $"Added link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
+            }
 
             return success;
         }
-
         #endregion
     }
 }

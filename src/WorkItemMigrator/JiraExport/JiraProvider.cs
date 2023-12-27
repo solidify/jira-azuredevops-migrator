@@ -1,17 +1,15 @@
-﻿using System;
+﻿using Atlassian.Jira;
+using Atlassian.Jira.Remote;
+using Migration.Common;
+using Migration.Common.Log;
+using Newtonsoft.Json.Linq;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using Atlassian.Jira;
-using Atlassian.Jira.Remote;
-using Migration.Common;
-using Migration.Common.Log;
-
-using Newtonsoft.Json.Linq;
-
-using RestSharp;
 
 namespace JiraExport
 {
@@ -54,6 +52,10 @@ namespace JiraExport
             {
                 _jiraServiceWrapper.Fields.GetCustomFieldsAsync().Wait();
             }
+            catch (AggregateException e)
+            {
+                Logger.Log(e, "Failed to retrieve fields from Jira (Response was not recognized as JSON). This usually indicates a problem with authentication or authorization. Check your Jira credentials and permissions.");
+            }
             catch (Exception e)
             {
                 Logger.Log(e, "Failed to retrieve fields from Jira");
@@ -86,11 +88,10 @@ namespace JiraExport
             return _jiraServiceWrapper.Issues.GetCommentsAsync(itemKey).Result;
         }
 
-        public bool GetCustomField(string fieldName, out CustomField customField)
+        public CustomField GetCustomField(string fieldName)
         {
             bool found = _jiraServiceWrapper.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out CustomField cF);
-            customField = cF;
-            return found;
+            return found ? cF : null;
         }
 
         public bool GetCustomFieldSerializer(string customType, out ICustomFieldValueSerializer serializer)
@@ -372,8 +373,15 @@ namespace JiraExport
                 {
                     Logger.Log(LogLevel.Warning,
                         Settings.UsingJiraCloud
-                            ? $"Email is not public for user '{usernameOrAccountId}' in Jira, using usernameOrAccountId '{usernameOrAccountId}' for mapping."
-                            : $"Email for user '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");
+                            ? $"Email is not public for user '{usernameOrAccountId}' in Jira," +
+                            $" using usernameOrAccountId '{usernameOrAccountId}' for mapping." +
+                            $" You may safely ignore this warning, unless there is a subsequent warning about" +
+                            $" the username/accountId being missing in the usermapping file."
+                            : $"Email for user '{usernameOrAccountId}' not found in Jira," +
+                            $" using username '{usernameOrAccountId}' for mapping." +
+                            $" You may safely ignore this warning, unless there is a subsequent warning about" +
+                            $" the username/accountId being missing in the usermapping file."
+                    );
                 }
                 email = isUserEmailMissing ? usernameOrAccountId : user.Email;
                 _userEmailCache.Add(usernameOrAccountId, email);
@@ -391,7 +399,7 @@ namespace JiraExport
         }
 
         public string GetCustomId(string propertyName)
-        {   
+        {
             var customId = string.Empty;
             JArray response = null;
 
@@ -424,7 +432,7 @@ namespace JiraExport
                 .ToLookup(l => l.key, l => l.value);
         }
 
-        private string GetItemFromFieldCache(string propertyName, ILookup<string,string> cache)
+        private string GetItemFromFieldCache(string propertyName, ILookup<string, string> cache)
         {
             string customId = null;
             var query = cache.FirstOrDefault(x => x.Key.Equals(propertyName.ToLower()));
@@ -437,6 +445,12 @@ namespace JiraExport
                 }
             }
             return customId;
+        }
+
+        public IEnumerable<JObject> GetCommitRepositories(string issueId)
+        {
+            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"/rest/dev-status/latest/issue/detail?issueId={issueId}&applicationType=stash&dataType=repository").Result;
+            return response.SelectTokens("$.detail[*].repositories[*]").Cast<JObject>();
         }
     }
 }

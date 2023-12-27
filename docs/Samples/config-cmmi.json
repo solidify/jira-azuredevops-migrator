@@ -14,6 +14,11 @@
     "base-area-path": "SourceProject_Migrated",
     "base-iteration-path": "SourceProject_Migrated",
     "ignore-failed-links": true,
+    "include-link-comments": false,
+    "include-jira-css-styles": false,
+    "ignore-empty-revisions": false,
+    "suppress-notifications": false,
+    "sleep-time-between-revision-import-milliseconds": 0,
     "process-template": "CMMI",
     "link-map": {
         "link": [
@@ -100,10 +105,17 @@
                 "mapper": "MapUser"
             },
             {
+                "source": "Sprint",
+                "source-type": "name",
+                "target": "System.IterationPath",
+                "mapper": "MapSprint"
+            },
+            {
                 "source": "description",
                 "target": "System.Description",
+                "not-for": "Bug",
                 "mapper": "MapRendered"
-            },
+              },
             {
                 "source": "priority",
                 "target": "Microsoft.VSTS.Common.Priority",
@@ -279,7 +291,8 @@
             {
                 "source": "description",
                 "target": "Microsoft.VSTS.TCM.ReproSteps",
-                "for": "Bug"
+                "for": "Bug",
+                "mapper": "MapRendered"
             },
             {
                 "source": "environment",
