@@ -60,7 +60,11 @@
         {
             "source": "Sub-task",
             "target": "Task"
-          }
+        },
+        {
+            "source": "Test",
+            "target": "Task"
+        }
       ]
     },
     "field-map": {
