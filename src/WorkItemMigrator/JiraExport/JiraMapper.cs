@@ -75,6 +75,9 @@ namespace JiraExport
                 if (item.Source != null)
                 {
                     var isCustomField = item.SourceType == "name";
+                    if (isCustomField && _jiraProvider.GetCustomId(item.Source) == null)
+                        Logger.Log(LogLevel.Warning, $"Could not find the field id for '{item.Source}', please check the field mapping!");
+
                     Func<JiraRevision, (bool, object)> value;
 
                     if (item.Mapping?.Values != null)
@@ -248,7 +251,7 @@ namespace JiraExport
             }
 
             // map epic link
-            LinkMapperUtils.AddRemoveSingleLink(r, links, _config.EpicLinkField, "Epic", _config);
+            LinkMapperUtils.AddRemoveSingleLink(r, links, _jiraProvider.GetSettings().EpicLinkField, "Epic", _config);
 
             // map parent
             LinkMapperUtils.AddRemoveSingleLink(r, links, "parent", "Parent", _config);
@@ -375,29 +378,14 @@ namespace JiraExport
 
         private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
-            // Store both the customFieldName and the sourceField as the changelog seems to only use the customFieldName, which is then passed into this function as the sourceField.
-            string customFieldName = "";
             if (isCustomField)
             {
-                customFieldName = _jiraProvider.GetCustomId(sourceField);
+                sourceField = _jiraProvider.GetCustomId(sourceField) ?? sourceField;
             }
 
             return (r) =>
             {
-                object value;
-                // This sourceField is often actually the customFieldName.
-                if (r.Fields.TryGetValue(sourceField.ToLower(), out value))
-                {
-                    if (mapperFunc != null)
-                    {
-                        return (true, mapperFunc((T)value));
-                    }
-                    else
-                    {
-                        return (true, (T)value);
-                    }
-                }
-                else if (r.Fields.TryGetValue(customFieldName.ToLower(), out value))
+                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
                 {
                     if (mapperFunc != null)
                     {
