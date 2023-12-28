@@ -112,6 +112,9 @@ namespace JiraExport
                             case "MapRendered":
                                 value = r => FieldMapperUtils.MapRenderedValue(r, item.Source, isCustomField, _jiraProvider.GetCustomId(item.Source), _config);
                                 break;
+                            case "MapLexoRank":
+                                value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapLexoRank);
+                                break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
                                 break;
@@ -311,7 +314,10 @@ namespace JiraExport
                             if (include)
                             {
                                 value = TruncateField(value, fieldreference);
-
+                                if(value == null)
+                                {
+                                    value = "";
+                                }
                                 Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {

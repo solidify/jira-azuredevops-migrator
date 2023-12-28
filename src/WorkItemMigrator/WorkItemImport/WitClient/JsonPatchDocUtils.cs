@@ -33,21 +33,21 @@ namespace WorkItemImport.WitClient
             };
         }
 
-        public static JsonPatchOperation CreateJsonArtifactLinkPatchOp(Operation op, string project, string repository, string commitId)
+        public static JsonPatchOperation CreateJsonArtifactLinkPatchOp(Operation op, string projectId, string repositoryId, string commitId)
         {
             if (string.IsNullOrEmpty(commitId))
             {
                 throw new ArgumentException(nameof(commitId));
             }
 
-            if (string.IsNullOrEmpty(project))
+            if (string.IsNullOrEmpty(projectId))
             {
-                throw new ArgumentException(nameof(project));
+                throw new ArgumentException(nameof(projectId));
             }
 
-            if (string.IsNullOrEmpty(repository))
+            if (string.IsNullOrEmpty(repositoryId))
             {
-                throw new ArgumentException(nameof(repository));
+                throw new ArgumentException(nameof(repositoryId));
             }
 
             return new JsonPatchOperation()
@@ -57,7 +57,7 @@ namespace WorkItemImport.WitClient
                 Value = new PatchOperationValue
                 {
                     Rel = "ArtifactLink",
-                    Url = $"vstfs:///Git/Commit/{project}/{repository}/{commitId}",
+                    Url = $"vstfs:///Git/Commit/{projectId}%2F{repositoryId}%2F{commitId}",
                     Attributes = new Attributes
                     {
                         Name = "Fixed in Commit"

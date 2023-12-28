@@ -1,4 +1,5 @@
 ﻿using Common.Config;
+using JiraExport.RevisionUtils;
 using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
@@ -6,6 +7,7 @@ using Migration.WIContract;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -70,11 +72,13 @@ namespace JiraExport
             if (!hasFieldValue)
                 return (false, null);
 
-            foreach (var item in config.FieldMap.Fields)
+            foreach (var item in config.FieldMap.Fields.Where(i => i.Mapping?.Values != null))
             {
-                if ((((item.Source == itemSource && item.Target == itemTarget) && (item.For.Contains(targetWit) || item.For == "All")) ||
-                      item.Source == itemSource && (!string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit))) &&
-                      item.Mapping?.Values != null)
+                var sourceAndTargetMatch = item.Source == itemSource && item.Target == itemTarget;
+                var forOrAllMatch = item.For.Contains(targetWit) || item.For == "All";  // matches "For": "All", or when this Wit is specifically named.
+                var notForMatch = !string.IsNullOrWhiteSpace(item.NotFor) && !item.NotFor.Contains(targetWit);  // matches if not-for is specified and doesn't contain this Wit.
+
+                if (sourceAndTargetMatch && (forOrAllMatch || notForMatch))
                 {
                     if (value == null)
                     {
@@ -89,7 +93,6 @@ namespace JiraExport
                 }
             }
             return (true, value);
-
         }
 
         public static (bool, object) MapRenderedValue(JiraRevision r, string sourceField, bool isCustomField, string customFieldName, ConfigJson config)
@@ -173,6 +176,51 @@ namespace JiraExport
             iterationPath = ReplaceAzdoInvalidCharacters(iterationPath);
 
             return iterationPath;
+        }
+
+        private static readonly Dictionary<string, decimal> CalculatedLexoRanks = new Dictionary<string, decimal>();
+        private static readonly Dictionary<decimal, string> CalculatedRanks = new Dictionary<decimal, string>();
+
+        private static readonly Regex LexoRankRegex = new Regex(@"^[0-2]\|[0-9a-zA-Z]*(\:[0-9a-zA-Z]*)?$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
+
+        public static object MapLexoRank(string lexoRank)
+        {
+            if (string.IsNullOrEmpty(lexoRank) || !LexoRankRegex.IsMatch(lexoRank))
+                return decimal.MaxValue;
+
+            if (CalculatedLexoRanks.ContainsKey(lexoRank))
+            {
+                Logger.Log(LogLevel.Warning, "Duplicate rank detected. You may need to re-balance the JIRA LexoRank. see: https://confluence.atlassian.com/adminjiraserver/managing-lexorank-938847803.html");
+                return CalculatedLexoRanks[lexoRank];
+            }
+
+            // split by bucket and sub-rank delimiters
+            var lexoSplit = lexoRank.Split(new[] {'|', ':'}, StringSplitOptions.RemoveEmptyEntries);
+
+            // calculate the numeric value of the rank and sub-rank (if available)
+            var b36Rank = Base36.Decode(lexoSplit[1]);
+            var b36SubRank = lexoSplit.Length == 3 && !string.IsNullOrEmpty(lexoSplit[2])
+                ? Base36.Decode(lexoSplit[2])
+                : 0L;
+
+            // calculate final rank value
+            var rank = Math.Round(
+                Convert.ToDecimal($"{b36Rank}.{b36SubRank}", CultureInfo.InvariantCulture.NumberFormat),
+                7 // DevOps seems to ignore anything over 7 decimal places long
+            );
+
+            if (CalculatedRanks.ContainsKey(rank) && CalculatedRanks[rank] != lexoRank)
+            {
+                Logger.Log(LogLevel.Warning, "Duplicate rank detected for different LexoRank values. You may need to re-balance the JIRA LexoRank. see: https://confluence.atlassian.com/adminjiraserver/managing-lexorank-938847803.html");
+            }
+            else
+            {
+                CalculatedRanks.Add(rank, lexoRank);
+            }
+
+            CalculatedLexoRanks.Add(lexoRank, rank);
+            return rank;
         }
 
         public static string CorrectRenderedHtmlvalue(object value, JiraRevision revision, bool includeJiraStyle)

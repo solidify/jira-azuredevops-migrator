@@ -1,4 +1,6 @@
-﻿namespace WorkItemImport
+﻿using Migration.Common.Config;
+
+namespace WorkItemImport
 {
     public class Settings
     {
@@ -18,5 +20,7 @@
         public string ProcessTemplate { get; internal set; }
         public bool IncludeLinkComments { get; internal set; }
         public bool IncludeCommits { get; internal set; }
+        public FieldMap FieldMap { get; internal set; }
+        public bool SuppressNotifications { get; internal set; }
     }
 }

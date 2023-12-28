@@ -17,6 +17,7 @@
   "include-link-comments": false,
   "include-jira-css-styles": false,
   "ignore-empty-revisions": false,
+  "suppress-notifications": false,
   "sleep-time-between-revision-import-milliseconds": 0,
   "process-template": "Agile",
   "link-map": {
@@ -28,6 +29,10 @@
       {
         "source": "Parent",
         "target": "System.LinkTypes.Hierarchy-Reverse"
+      },
+      {
+        "source": "Child",
+        "target": "System.LinkTypes.Hierarchy-Forward"
       },
       {
         "source": "Relates",
@@ -74,6 +79,12 @@
         "source": "assignee",
         "target": "System.AssignedTo",
         "mapper": "MapUser"
+      },
+      {
+        "source": "Sprint",
+        "source-type": "name",
+        "target": "System.IterationPath",
+        "mapper": "MapSprint"
       },
       {
         "source": "description",
