@@ -86,7 +86,7 @@ Please refer to [Contribution guidelines](docs/CONTRIBUTING.md) and the [Code of
 
 ## Supported versions of ADO/Jira
 
-The Jira to Azure DevOps work item migration tool is offically supported on the following platforms:
+The Jira to Azure DevOps work item migration tool is officially supported on the following platforms:
 
 - Atlassian Jira Cloud
 - Atlassian Jira Server

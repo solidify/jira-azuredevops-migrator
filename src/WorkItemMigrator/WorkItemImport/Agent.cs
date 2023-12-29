@@ -52,9 +52,9 @@ namespace WorkItemImport
             return _witClientUtils.GetWorkItem(wiId);
         }
 
-        public WorkItem CreateWorkItem(string type, DateTime createdDate, string createdBy)
+        public WorkItem CreateWorkItem(string type, bool suppressNotifications, DateTime createdDate, string createdBy)
         {
-            return _witClientUtils.CreateWorkItem(type, createdDate, createdBy);
+            return _witClientUtils.CreateWorkItem(type, suppressNotifications, createdDate, createdBy);
         }
 
         public bool ImportRevision(WiRevision rev, WorkItem wi, Settings settings)
@@ -82,7 +82,7 @@ namespace WorkItemImport
                 if (rev.Fields.Any() && !UpdateWIHistoryField(rev.Fields, wi))
                     incomplete = true;
 
-                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi, settings.IncludeLinkComments))
+                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi, settings))
                     incomplete = true;
 
                 if (incomplete)
@@ -94,7 +94,21 @@ namespace WorkItemImport
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                _witClientUtils.SaveWorkItemAttachments(rev, wi);
+                if (wi.Fields.ContainsKey(WiFieldReference.AcceptanceCriteria) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.AcceptanceCriteria].ToString()))
+                {
+                    Logger.Log(LogLevel.Debug, $"Correcting acceptance criteria on separate revision on '{rev}'.");
+
+                    try
+                    {
+                        _witClientUtils.CorrectAcceptanceCriteria(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex, $"Failed to correct acceptance criteria for '{wi.Id}', rev '{rev}'.");
+                    }
+                }
+
+                _witClientUtils.SaveWorkItemAttachments(rev, wi, settings);
 
                 foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
                 {
@@ -114,6 +128,34 @@ namespace WorkItemImport
                     {
                         Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
                     }
+
+                    // Correct other HTMl fields than description
+                    foreach (var field in settings.FieldMap.Fields)
+                    {
+                        if (
+                            field.Mapper == "MapRendered"
+                            && (field.For == "All" || field.For.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && (field.NotFor == null || !field.NotFor.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && wi.Fields.ContainsKey(field.Target)
+                            && field.Target != WiFieldReference.Description
+                        )
+                        {
+                            try
+                            {
+                                _witClientUtils.CorrectRenderedField(
+                                    wi,
+                                    _context.GetItem(rev.ParentOriginId),
+                                    rev,
+                                    field.Target,
+                                    _context.Journal.IsAttachmentMigrated
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                            }
+                        }
+                    }
                 }
 
                 // rev with a commit won't have meaningful information, skip saving fields
@@ -126,7 +168,7 @@ namespace WorkItemImport
                 }
                 else
                 {
-                    _witClientUtils.SaveWorkItemFields(wi);
+                    _witClientUtils.SaveWorkItemFields(wi, settings);
                 }
 
                 if (wi.Id.HasValue)
@@ -538,7 +580,7 @@ namespace WorkItemImport
             return success;
         }
 
-        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi, bool addLinkComments)
+        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi, Settings settings)
         {
             bool success = true;
 
@@ -562,11 +604,11 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi))
+                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi, settings))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi, settings))
                     {
                         success = false;
                     }
@@ -578,7 +620,7 @@ namespace WorkItemImport
                 }
             }
 
-            if (addLinkComments)
+            if (settings.IncludeLinkComments)
             {
                 if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
                     wi.Fields[WiFieldReference.History] = $"Removed link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";

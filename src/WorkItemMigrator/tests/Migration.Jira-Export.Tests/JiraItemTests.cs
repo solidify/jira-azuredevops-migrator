@@ -577,53 +577,6 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
-        public void When_a_custom_field_is_added_Then_a_customfield_is_added_to_the_revision_with_name_as_key()
-        {
-            //Arrange
-            var provider = _fixture.Freeze<IJiraProvider>();
-            long issueId = _fixture.Create<long>();
-            string issueKey = _fixture.Create<string>();
-            string customFieldId = _fixture.Create<string>();
-            string customFieldName = _fixture.Create<string>();
-
-            var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'" + customFieldId + @"': {'name':'SomeValue'}}");
-            var renderedFields = new JObject();
-
-            var changelog = new List<JObject>();
-
-            JObject remoteIssue = new JObject
-            {
-                { "id", issueId },
-                { "key", issueKey },
-                { "fields", fields },
-                { "renderedFields", renderedFields }
-            };
-
-            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
-            provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
-            provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
-
-            RemoteField remoteField = new RemoteField();
-            remoteField.id = customFieldId;
-            remoteField.name = customFieldName;
-            CustomField customField = new CustomField(remoteField);
-
-            provider.GetCustomField(default).ReturnsForAnyArgs(customField);
-
-            //Act
-            var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
-
-            //Assert
-            Assert.Multiple(() =>
-            {
-                Assert.AreEqual(1, jiraItem.Revisions.Count);
-                Assert.IsFalse(jiraItem.Revisions[0].Fields.Any(f => f.Key == customFieldId));
-                Assert.IsTrue(jiraItem.Revisions[0].Fields.Any(f => f.Key == customFieldName));
-            });
-        }
-
-        [Test]
         public void When_a_custom_field_is_added_Then_no_customfield_is_added_to_the_revision_with_name_as_key()
         {
             //Arrange
@@ -666,9 +619,121 @@ namespace Migration.Jira_Export.Tests
             });
         }
 
+        [Test]
+        public void When_an_custom_field_is_changed_Then_it_should_have_the_previous_value_in_the_initial_revision()
+        {
+            //Arrange
+            var provider = _fixture.Freeze<IJiraProvider>();
+            long issueId = _fixture.Create<long>();
+            string issueKey = _fixture.Create<string>();
+            string customFieldId = _fixture.Create<string>();
+            string customFieldName = _fixture.Create<string>();
+            string customFieldPreviousValue = _fixture.Create<string>();
+            string customFieldNewValue = _fixture.Create<string>();
+
+            var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'" + customFieldId + @"': '" + customFieldNewValue + @"', 'key':'" + issueKey + "'}");
+            var renderedFields = new JObject();
+
+            var changelog = new List<JObject>()
+            {
+                new HistoryItem()
+                {
+                    Field = customFieldName,
+                    FieldType = "custom",
+                    From = customFieldPreviousValue,
+                    FromString = customFieldPreviousValue,
+                    To = customFieldNewValue,
+                    ToString = customFieldNewValue
+                }.ToJObject()
+            };
+
+            JObject remoteIssue = new JObject
+            {
+                { "id", issueId },
+                { "key", issueKey },
+                { "fields", fields },
+                { "renderedFields", renderedFields }
+            };
+
+            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
+            provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
+            var jiraSettings = createJiraSettings();
+            provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
+
+            provider.GetCustomId(customFieldName).Returns(customFieldId);
+
+            //Act
+            var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
+
+            //Assert
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(2, jiraItem.Revisions.Count);
+                Assert.IsTrue(jiraItem.Revisions[0].Fields.ContainsKey(customFieldId));
+                Assert.AreEqual(customFieldPreviousValue, jiraItem.Revisions[0].Fields[customFieldId]);
+                Assert.IsTrue(jiraItem.Revisions[1].Fields.ContainsKey(customFieldId));
+                Assert.AreEqual(customFieldNewValue, jiraItem.Revisions[1].Fields[customFieldId]);
+            });
+        }
+
+        [Test]
+        public void When_an_custom_field_is_added_and_changed_later_Then_it_should_not_be_in_the_initial_revision()
+        {
+            //Arrange
+            var provider = _fixture.Freeze<IJiraProvider>();
+            long issueId = _fixture.Create<long>();
+            string issueKey = _fixture.Create<string>();
+            string customFieldId = _fixture.Create<string>();
+            string customFieldName = _fixture.Create<string>();
+            string customFieldNewValue = _fixture.Create<string>();
+
+            var fields = JObject.Parse(@"{'issuetype': {'name': 'Story'},'" + customFieldId + @"': '" + customFieldNewValue + @"', 'key':'" + issueKey + "'}");
+            var renderedFields = new JObject();
+
+            var changelog = new List<JObject>()
+            {
+                new HistoryItem()
+                {
+                    Field = customFieldName,
+                    FieldType = "custom",
+                    To = customFieldNewValue,
+                    ToString = customFieldNewValue
+                }.ToJObject()
+            };
+
+            JObject remoteIssue = new JObject
+            {
+                { "id", issueId },
+                { "key", issueKey },
+                { "fields", fields },
+                { "renderedFields", renderedFields }
+            };
+
+            provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
+            provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
+            var jiraSettings = createJiraSettings();
+            provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
+
+            provider.GetCustomId(customFieldName).Returns(customFieldId);
+
+            //Act
+            var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
+
+            //Assert
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(2, jiraItem.Revisions.Count);
+                Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey(customFieldId));
+                Assert.IsFalse(jiraItem.Revisions[0].Fields.ContainsKey(customFieldName));
+                Assert.IsTrue(jiraItem.Revisions[1].Fields.ContainsKey(customFieldId));
+                Assert.IsFalse(jiraItem.Revisions[1].Fields.ContainsKey(customFieldName));
+                Assert.AreEqual(customFieldNewValue, jiraItem.Revisions[1].Fields[customFieldId]);
+            });
+        }
+
         private JiraSettings createJiraSettings()
         {
-            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
             settings.EpicLinkField = "EpicLinkField";
             settings.SprintField = "SprintField";
 

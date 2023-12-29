@@ -37,6 +37,7 @@ namespace JiraExport
 
             CommandOption userOption = commandLineApplication.Option("-u <username>", "Username for authentication", CommandOptionType.SingleValue);
             CommandOption passwordOption = commandLineApplication.Option("-p <password>", "Password for authentication", CommandOptionType.SingleValue);
+            CommandOption tokenOption = commandLineApplication.Option("-t <token>", "Bearer token for OAuth2 authentication", CommandOptionType.SingleValue);
             CommandOption urlOption = commandLineApplication.Option("--url <accounturl>", "Url for the account", CommandOptionType.SingleValue);
             CommandOption configOption = commandLineApplication.Option("--config <configurationfilename>", "Export the work items based on this configuration file", CommandOptionType.SingleValue);
             CommandOption forceOption = commandLineApplication.Option("--force", "Forces execution from start (instead of continuing from previous run)", CommandOptionType.NoValue);
@@ -49,7 +50,7 @@ namespace JiraExport
 
                 if (configOption.HasValue())
                 {
-                    succeeded = ExecuteMigration(userOption, passwordOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
+                    succeeded = ExecuteMigration(userOption, passwordOption, tokenOption, urlOption, configOption, forceFresh, continueOnCriticalOption);
                 }
                 else
                 {
@@ -60,7 +61,7 @@ namespace JiraExport
             });
         }
 
-        private bool ExecuteMigration(CommandOption user, CommandOption password, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
+        private bool ExecuteMigration(CommandOption user, CommandOption password, CommandOption token, CommandOption url, CommandOption configFile, bool forceFresh, CommandOption continueOnCritical)
         {
             var itemsCount = 0;
             var exportedItemsCount = 0;
@@ -82,7 +83,7 @@ namespace JiraExport
 
                 var downloadOptions = (DownloadOptions)config.DownloadOptions;
 
-                var jiraSettings = new JiraSettings(user.Value(), password.Value(), url.Value(), config.SourceProject)
+                var jiraSettings = new JiraSettings(user.Value(), password.Value(), token.Value(), url.Value(), config.SourceProject)
                 {
                     BatchSize = config.BatchSize,
                     UserMappingFile = config.UserMappingFile != null ? Path.Combine(migrationWorkspace, config.UserMappingFile) : string.Empty,
@@ -154,7 +155,7 @@ namespace JiraExport
             }
             finally
             {
-                EndSession(itemsCount, sw);
+                EndSession(exportedItemsCount, sw);
             }
             return succeeded;
         }
@@ -224,7 +225,7 @@ namespace JiraExport
             var user = $"{System.Environment.UserDomainName}\\{System.Environment.UserName}";
             var jiraVersion = jiraProvider.GetJiraVersion();
 
-            Logger.Log(LogLevel.Info, $"Export started. Exporting {itemsCount} items.");
+            Logger.Log(LogLevel.Info, $"Export started. Selecting {itemsCount} items.");
 
             Logger.StartSession("Jira Export",
                 "jira-export-started",
@@ -250,15 +251,15 @@ namespace JiraExport
                     { "hosting-type", jiraVersion.DeploymentType } });
         }
 
-        private static void EndSession(int itemsCount, Stopwatch sw)
+        private static void EndSession(int exportedItemsCount, Stopwatch sw)
         {
             sw.Stop();
 
-            Logger.Log(LogLevel.Info, $"Export complete. Exported {itemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+            Logger.Log(LogLevel.Info, $"Export complete. Exported {exportedItemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
             Logger.EndSession("jira-export-completed",
                 new Dictionary<string, string>() {
-                    { "item-count", itemsCount.ToString() },
+                    { "item-count", exportedItemsCount.ToString() },
                     { "error-count", Logger.Errors.ToString() },
                     { "warning-count", Logger.Warnings.ToString() },
                     { "elapsed-time", string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed) }});

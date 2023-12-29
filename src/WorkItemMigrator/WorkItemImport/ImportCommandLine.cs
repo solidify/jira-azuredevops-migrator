@@ -90,7 +90,9 @@ namespace WorkItemImport
                     IgnoreFailedLinks = config.IgnoreFailedLinks,
                     ProcessTemplate = config.ProcessTemplate,
                     IncludeLinkComments = config.IncludeLinkComments,
-                    IncludeCommits = config.IncludeCommits
+                    IncludeCommits = config.IncludeCommits,
+                    FieldMap = config.FieldMap,
+                    SuppressNotifications = config.SuppressNotifications
                 };
 
                 // initialize Azure DevOps/TFS connection. Creates/fetches project, fills area and iteration caches.
@@ -119,6 +121,17 @@ namespace WorkItemImport
                             continue;
                         }
 
+                        WorkItem wi = null;
+
+                        if (executionItem.WiId > 0)
+                            wi = agent.GetWorkItem(executionItem.WiId);
+                        else
+                            wi = agent.CreateWorkItem(executionItem.WiType, settings.SuppressNotifications, executionItem.Revision.Time, executionItem.Revision.Author);
+
+                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
+
+                        importedItems++;
+
                         if (config.IgnoreEmptyRevisions &&
                             executionItem.Revision.Fields.Count == 0 &&
                             executionItem.Revision.Links.Count == 0 &&
@@ -128,17 +141,7 @@ namespace WorkItemImport
                             continue;
                         }
 
-                        WorkItem wi = null;
-
-                        if (executionItem.WiId > 0)
-                            wi = agent.GetWorkItem(executionItem.WiId);
-                        else
-                            wi = agent.CreateWorkItem(executionItem.WiType, executionItem.Revision.Time, executionItem.Revision.Author);
-
-                        Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
-
                         agent.ImportRevision(executionItem.Revision, wi, settings);
-                        importedItems++;
 
                         // Artifical wait (optional) to avoid throttling for ADO Services
                         if (config.SleepTimeBetweenRevisionImportMilliseconds > 0)

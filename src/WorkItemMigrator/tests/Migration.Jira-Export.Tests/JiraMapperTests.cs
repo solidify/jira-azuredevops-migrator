@@ -232,8 +232,8 @@ namespace Migration.Jira_Export.Tests
 
         private JiraSettings createJiraSettings()
         {
-            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
-            settings.EpicLinkField = "EpicLinkField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
+            settings.EpicLinkField = "Epic Link";
             settings.SprintField = "SprintField";
 
             return settings;
