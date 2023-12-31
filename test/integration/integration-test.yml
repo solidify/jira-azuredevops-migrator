@@ -37,6 +37,53 @@ steps:
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
 
+- task: CopyFiles@2
+  displayName: 'Copy JiraExport files'
+  inputs:
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)'
+    Contents: |
+        ApplicationInsights.config
+        Atlassian.Jira.dll
+        jira-export.exe
+        jira-export.exe.config
+        Microsoft.AI.Agent.Intercept.dll
+        Microsoft.AI.DependencyCollector.dll
+        Microsoft.ApplicationInsights.dll
+        Microsoft.Extensions.CommandLineUtils.dll
+        Migration.Common.dll
+        Migration.Common.Log.dll
+        Migration.WIContract.dll
+        Newtonsoft.Json.dll
+        RestSharp.dll
+        Semver.dll
+        System.Diagnostics.DiagnosticSource.dll
+    TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
+    flattenFolders: true
+
+- task: CopyFiles@2
+  displayName: 'Copy WorkItemImport files'
+  inputs:
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)'
+    Contents: |
+        Microsoft.TeamFoundation.Client.dll
+        Microsoft.TeamFoundation.Common.dll
+        Microsoft.TeamFoundation.Core.WebApi.dll
+        Microsoft.TeamFoundation.SourceControl.WebApi.dll
+        Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader.dll
+        Microsoft.TeamFoundation.WorkItemTracking.Client.dll
+        Microsoft.TeamFoundation.WorkItemTracking.Common.dll
+        Microsoft.TeamFoundation.WorkItemTracking.Proxy.dll
+        Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll
+        Microsoft.VisualStudio.Services.Common.dll
+        Microsoft.VisualStudio.Services.WebApi.dll
+        Microsoft.WITDataStore32.dll
+        System.Net.Http.dll
+        System.Net.Http.Formatting.dll
+        wi-import.exe
+        wi-import.exe.config
+    TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
+    flattenFolders: true
+
 - script: pip install requests python-dateutil
   displayName: pip install
 
@@ -55,10 +102,10 @@ steps:
       New-Item -Path "$(System.DefaultWorkingDirectory)" -Name "workspace" -ItemType Directory
       Copy-Item "$(System.DefaultWorkingDirectory)\test\integration\users.txt" -Destination "$(System.DefaultWorkingDirectory)\workspace"
 
-- script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
+- script: $(build.artifactstagingdirectory)\WorkItemMigrator\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
   displayName: jira-export.exe
 
-- script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
+- script: $(build.artifactstagingdirectory)\WorkItemMigrator\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
   displayName: wi-import.exe
 
 - task: PythonScript@0

@@ -89,7 +89,7 @@ steps:
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)'
     Contents: |
-        ApplicationInsights.config     
+        ApplicationInsights.config
         Atlassian.Jira.dll
         jira-export.exe
         jira-export.exe.config
@@ -116,6 +116,7 @@ steps:
         Microsoft.TeamFoundation.Client.dll
         Microsoft.TeamFoundation.Common.dll
         Microsoft.TeamFoundation.Core.WebApi.dll
+        Microsoft.TeamFoundation.SourceControl.WebApi.dll
         Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader.dll
         Microsoft.TeamFoundation.WorkItemTracking.Client.dll
         Microsoft.TeamFoundation.WorkItemTracking.Common.dll
