@@ -70,6 +70,7 @@ steps:
         Microsoft.TeamFoundation.Client.dll
         Microsoft.TeamFoundation.Common.dll
         Microsoft.TeamFoundation.Core.WebApi.dll
+        Microsoft.TeamFoundation.SourceControl.WebApi.dll
         Microsoft.TeamFoundation.WorkItemTracking.Client.DataStoreLoader.dll
         Microsoft.TeamFoundation.WorkItemTracking.Client.dll
         Microsoft.TeamFoundation.WorkItemTracking.Common.dll
