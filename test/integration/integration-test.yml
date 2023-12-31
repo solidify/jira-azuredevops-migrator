@@ -38,7 +38,6 @@ steps:
     configuration: '$(BuildConfiguration)'
 
 - task: CopyFiles@2
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy JiraExport files'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)'
@@ -62,7 +61,6 @@ steps:
     flattenFolders: true
 
 - task: CopyFiles@2
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy WorkItemImport files'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)'
