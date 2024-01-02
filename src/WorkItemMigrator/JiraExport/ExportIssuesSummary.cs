@@ -22,7 +22,10 @@ namespace JiraExport
 
         public void AddUnmappedIssueType(string issueType)
         {
-            _unmappedIssueTypes.Add(issueType);
+            if (!_unmappedIssueTypes.Contains(issueType))
+            {
+                _unmappedIssueTypes.Add(issueType);
+            }
         }
 
         public void AddUnmappedIssueState(string issueType, string issueState)
@@ -31,12 +34,18 @@ namespace JiraExport
             {
                 _unmappedIssueStates.Add(issueType, new List<string>());
             }
-            _unmappedIssueStates[issueType].Add(issueState);
+            if (!_unmappedIssueStates[issueType].Contains(issueState))
+            {
+                _unmappedIssueStates[issueType].Add(issueState);
+            }
         }
 
         public void AddUnmappedUser(string user)
         {
-            _unmappedUsers.Add(user);
+            if (!_unmappedUsers.Contains(user))
+            {
+                _unmappedUsers.Add(user);
+            }
         }
 
         public string GetReportString()
@@ -51,9 +60,9 @@ namespace JiraExport
             outSB.AppendLine("################################");
             outSB.AppendLine("### Migration Issues Summary ###");
             outSB.AppendLine("################################");
-            outSB.AppendLine("");
             if (_unmappedIssueTypes.Count > 0)
             {
+                outSB.AppendLine("");
                 outSB.AppendLine("### Missing issue type mappings ###");
                 outSB.AppendLine("");
                 foreach (var issueType in _unmappedIssueTypes)
@@ -63,6 +72,7 @@ namespace JiraExport
             }
             if (_unmappedIssueStates.Count > 0)
             {
+                outSB.AppendLine("");
                 outSB.AppendLine("### Missing status mappings ###");
                 outSB.AppendLine("");
                 foreach (var issueType in _unmappedIssueStates.Keys)
@@ -76,6 +86,7 @@ namespace JiraExport
             }
             if (_unmappedUsers.Count > 0)
             {
+                outSB.AppendLine("");
                 outSB.AppendLine("### Missing user mappings ###");
                 outSB.AppendLine("");
                 foreach (var user in _unmappedUsers)
