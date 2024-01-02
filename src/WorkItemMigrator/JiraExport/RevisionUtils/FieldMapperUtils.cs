@@ -1,4 +1,5 @@
-﻿using Common.Config;
+﻿using Atlassian.Jira;
+using Common.Config;
 using JiraExport.RevisionUtils;
 using Migration.Common;
 using Migration.Common.Config;
@@ -57,7 +58,7 @@ namespace JiraExport
                 return (false, null);
         }
 
-        public static (bool, object) MapValue(JiraRevision r, string itemSource, string itemTarget, ConfigJson config)
+        public static (bool, object) MapValue(JiraRevision r, string itemSource, string itemTarget, ConfigJson config, ExportIssuesSummary exportIssuesSummary)
         {
             if (r == null)
                 throw new ArgumentNullException(nameof(r));
@@ -88,6 +89,10 @@ namespace JiraExport
                     if (string.IsNullOrEmpty(mappedValue))
                     {
                         Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}' for item type '{r.Type}'.");
+                        if(itemSource == "status")
+                        {
+                            exportIssuesSummary.AddUnmappedIssueState(r.Type, value.ToString());
+                        }
                     }
                     return (true, mappedValue);
                 }

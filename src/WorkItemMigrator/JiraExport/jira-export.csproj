@@ -113,6 +113,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExportIssuesSummary.cs" />
     <Compile Include="IJiraProvider.cs" />
     <Compile Include="IJiraServiceWrapper.cs" />
     <Compile Include="JiraCommandLine.cs" />

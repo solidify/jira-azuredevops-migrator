@@ -68,6 +68,7 @@ namespace JiraExport
             var sw = new Stopwatch();
             bool succeeded = true;
             sw.Start();
+            var exportIssuesSummary = new ExportIssuesSummary();
 
             try
             {
@@ -113,7 +114,7 @@ namespace JiraExport
                     Logger.Log(LogLevel.Warning, $"Sprint link field missing for config field '{config.SprintField}'.");
                 }
 
-                var mapper = new JiraMapper(jiraProvider, config);
+                var mapper = new JiraMapper(jiraProvider, config, exportIssuesSummary);
                 var localProvider = new WiItemProvider(migrationWorkspace);
                 var exportedKeys = new HashSet<string>(Directory.EnumerateFiles(migrationWorkspace, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)));
                 var skips = forceFresh ? new HashSet<string>(Enumerable.Empty<string>()) : exportedKeys;
@@ -155,7 +156,7 @@ namespace JiraExport
             }
             finally
             {
-                EndSession(exportedItemsCount, sw);
+                EndSession(exportedItemsCount, sw, exportIssuesSummary);
             }
             return succeeded;
         }
@@ -251,11 +252,13 @@ namespace JiraExport
                     { "hosting-type", jiraVersion.DeploymentType } });
         }
 
-        private static void EndSession(int exportedItemsCount, Stopwatch sw)
+        private static void EndSession(int exportedItemsCount, Stopwatch sw, ExportIssuesSummary exportIssuesSummary)
         {
             sw.Stop();
 
             Logger.Log(LogLevel.Info, $"Export complete. Exported {exportedItemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
+
+            Logger.Log(LogLevel.Warning, exportIssuesSummary.GetReportString());
 
             Logger.EndSession("jira-export-completed",
                 new Dictionary<string, string>() {

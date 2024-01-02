@@ -17,14 +17,15 @@ namespace JiraExport
         private readonly Dictionary<string, FieldMapping<JiraRevision>> _fieldMappingsPerType;
         private readonly HashSet<string> _targetTypes;
         private readonly ConfigJson _config;
+        private readonly ExportIssuesSummary exportIssuesSummary;
 
-        public JiraMapper(IJiraProvider jiraProvider, ConfigJson config) : base(jiraProvider?.GetSettings()?.UserMappingFile)
+        public JiraMapper(IJiraProvider jiraProvider, ConfigJson config, ExportIssuesSummary exportIssuesSummary)
+            : base(jiraProvider?.GetSettings()?.UserMappingFile)
         {
             _jiraProvider = jiraProvider;
             _config = config;
             _targetTypes = InitializeTypeMappings();
-            _fieldMappingsPerType = InitializeFieldMappings();
-
+            _fieldMappingsPerType = InitializeFieldMappings(exportIssuesSummary);
         }
 
         #region Mapping definitions
@@ -50,6 +51,7 @@ namespace JiraExport
                 else
                 {
                     Logger.Log(LogLevel.Error, $"Type mapping missing for '{issue.Key}' with Jira type '{issue.Type}'. Item was not exported which may cause missing links in issues referencing this item.");
+                    exportIssuesSummary.AddUnmappedIssueType(issue.Type);
                     return null;
                 }
             }
@@ -57,7 +59,7 @@ namespace JiraExport
             return wiItem;
         }
 
-        internal Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings()
+        internal Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings(ExportIssuesSummary exportIssuesSummary)
         {
             Logger.Log(LogLevel.Info, "Initializing Jira field mapping...");
 
@@ -82,7 +84,7 @@ namespace JiraExport
 
                     if (item.Mapping?.Values != null)
                     {
-                        value = r => FieldMapperUtils.MapValue(r, item.Source, item.Target, _config);
+                        value = r => FieldMapperUtils.MapValue(r, item.Source, item.Target, _config, exportIssuesSummary);
                     }
                     else if (!string.IsNullOrWhiteSpace(item.Mapper))
                     {

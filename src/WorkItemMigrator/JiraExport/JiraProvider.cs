@@ -359,7 +359,7 @@ namespace JiraExport
             return _jiraServiceWrapper.Issues.GetCommentsAsync(key).Result.Count();
         }
 
-        public string GetUserEmail(string usernameOrAccountId)
+        public string GetUserEmail(string usernameOrAccountId, ExportIssuesSummary exportIssuesSummary)
         {
             if (_userEmailCache.TryGetValue(usernameOrAccountId, out string email))
             {
@@ -382,6 +382,7 @@ namespace JiraExport
                             $" You may safely ignore this warning, unless there is a subsequent warning about" +
                             $" the username/accountId being missing in the usermapping file."
                     );
+                    exportIssuesSummary.AddUnmappedUser(usernameOrAccountId);
                 }
                 email = isUserEmailMissing ? usernameOrAccountId : user.Email;
                 _userEmailCache.Add(usernameOrAccountId, email);
