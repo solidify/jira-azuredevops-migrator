@@ -97,7 +97,7 @@ namespace JiraExport
 
                 var jiraServiceWrapper = new JiraServiceWrapper(jiraSettings);
                 JiraProvider jiraProvider = new JiraProvider(jiraServiceWrapper);
-                jiraProvider.Initialize(jiraSettings);
+                jiraProvider.Initialize(jiraSettings, exportIssuesSummary);
 
                 itemsCount = jiraProvider.GetItemCount(jiraSettings.JQL);
 
@@ -258,7 +258,11 @@ namespace JiraExport
 
             Logger.Log(LogLevel.Info, $"Export complete. Exported {exportedItemsCount} items ({Logger.Errors} errors, {Logger.Warnings} warnings) in {string.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)}.");
 
-            Logger.Log(LogLevel.Warning, exportIssuesSummary.GetReportString());
+            string issuesReportString = exportIssuesSummary.GetReportString();
+            if (issuesReportString != "")
+            {
+                Logger.Log(LogLevel.Warning, issuesReportString);
+            }
 
             Logger.EndSession("jira-export-completed",
                 new Dictionary<string, string>() {

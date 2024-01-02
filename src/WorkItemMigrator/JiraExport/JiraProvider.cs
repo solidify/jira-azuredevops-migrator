@@ -36,6 +36,8 @@ namespace JiraExport
 
         public JiraSettings Settings { get; private set; }
 
+        public ExportIssuesSummary exportIssuesSummary { get; private set; }
+
         public IEnumerable<IssueLinkType> LinkTypes { get; private set; }
 
         public JiraProvider(IJiraServiceWrapper jiraServiceWrapper)
@@ -43,7 +45,7 @@ namespace JiraExport
             _jiraServiceWrapper = jiraServiceWrapper;
         }
 
-        public void Initialize(JiraSettings settings)
+        public void Initialize(JiraSettings settings, ExportIssuesSummary exportIssuesSummary)
         {
             Settings = settings;
 
@@ -359,7 +361,7 @@ namespace JiraExport
             return _jiraServiceWrapper.Issues.GetCommentsAsync(key).Result.Count();
         }
 
-        public string GetUserEmail(string usernameOrAccountId, ExportIssuesSummary exportIssuesSummary)
+        public string GetUserEmail(string usernameOrAccountId)
         {
             if (_userEmailCache.TryGetValue(usernameOrAccountId, out string email))
             {

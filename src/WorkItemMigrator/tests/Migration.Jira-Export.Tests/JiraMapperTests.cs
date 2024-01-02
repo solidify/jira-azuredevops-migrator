@@ -224,8 +224,10 @@ namespace Migration.Jira_Export.Tests
 
             JiraMapper sut = createJiraMapper();
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             var expected = expectedDictionary;
-            var actual = sut.InitializeFieldMappings();
+            var actual = sut.InitializeFieldMappings(exportIssuesSummary);
 
             Assert.AreEqual(expected, actual);
         }
@@ -273,7 +275,9 @@ namespace Migration.Jira_Export.Tests
             repositoryMap.Repositories.Add(repository);
             cjson.RepositoryMap = repositoryMap;
 
-            JiraMapper sut = new JiraMapper(provider, cjson);
+            var exportIssuesSummary = new ExportIssuesSummary();
+
+            JiraMapper sut = new JiraMapper(provider, cjson, exportIssuesSummary);
 
             return sut;
         }

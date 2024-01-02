@@ -26,6 +26,7 @@ namespace JiraExport
             _config = config;
             _targetTypes = InitializeTypeMappings();
             _fieldMappingsPerType = InitializeFieldMappings(exportIssuesSummary);
+            this.exportIssuesSummary = exportIssuesSummary;
         }
 
         #region Mapping definitions

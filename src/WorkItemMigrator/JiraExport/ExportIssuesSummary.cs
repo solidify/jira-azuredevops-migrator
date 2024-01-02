@@ -41,15 +41,19 @@ namespace JiraExport
 
         public string GetReportString()
         {
-            bool anyIssuesFound = false;
+            if(!AnyIssuesFound())
+            {
+                return "";
+            }
+
             var outSB = new StringBuilder();
+            outSB.AppendLine("");
             outSB.AppendLine("################################");
             outSB.AppendLine("### Migration Issues Summary ###");
             outSB.AppendLine("################################");
             outSB.AppendLine("");
             if (_unmappedIssueTypes.Count > 0)
             {
-                anyIssuesFound = true;
                 outSB.AppendLine("### Missing issue type mappings ###");
                 outSB.AppendLine("");
                 foreach (var issueType in _unmappedIssueTypes)
@@ -59,7 +63,6 @@ namespace JiraExport
             }
             if (_unmappedIssueStates.Count > 0)
             {
-                anyIssuesFound = true;
                 outSB.AppendLine("### Missing status mappings ###");
                 outSB.AppendLine("");
                 foreach (var issueType in _unmappedIssueStates.Keys)
@@ -73,7 +76,6 @@ namespace JiraExport
             }
             if (_unmappedUsers.Count > 0)
             {
-                anyIssuesFound = true;
                 outSB.AppendLine("### Missing user mappings ###");
                 outSB.AppendLine("");
                 foreach (var user in _unmappedUsers)
@@ -82,13 +84,18 @@ namespace JiraExport
                 }
             }
 
-            if(anyIssuesFound)
-            {
-                outSB.AppendLine("");
-                outSB.AppendLine("Please fix the above issues and rerun the migration.");
-            }
+            outSB.AppendLine("");
+            outSB.AppendLine("Please fix the above issues and rerun the migration.");
 
             return outSB.ToString();
+        }
+
+        private bool AnyIssuesFound()
+        {
+            return
+                _unmappedIssueTypes.Any()
+                || _unmappedIssueStates.Count() > 0
+                || _unmappedUsers.Any();
         }
     }
 }

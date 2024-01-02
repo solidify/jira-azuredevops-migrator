@@ -97,8 +97,10 @@ namespace Migration.Jira_Export.Tests
             string itemSource = "Priority";
             string itemTarget = "Severity";
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config));
+            Assert.Throws<ArgumentNullException>(() => FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config, exportIssuesSummary));
         }
 
         [Test]
@@ -117,8 +119,10 @@ namespace Migration.Jira_Export.Tests
                 }
             };
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => FieldMapperUtils.MapValue(revision, itemSource, itemTarget, config));
+            Assert.Throws<ArgumentNullException>(() => FieldMapperUtils.MapValue(revision, itemSource, itemTarget, config, exportIssuesSummary));
         }
 
         [Test]
@@ -136,8 +140,10 @@ namespace Migration.Jira_Export.Tests
                 }
             };
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             // Act
-            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config);
+            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config, exportIssuesSummary);
 
             // Assert
             Assert.IsFalse(result.Item1);
@@ -159,8 +165,10 @@ namespace Migration.Jira_Export.Tests
                 }
             };
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             // Act
-            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config);
+            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config, exportIssuesSummary);
 
             // Assert
             Assert.IsTrue(result.Item1);
@@ -211,8 +219,10 @@ namespace Migration.Jira_Export.Tests
             config.FieldMap.Fields = new List<Field> { fieldConfig };
             config.TypeMap = typeMap;
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             // Act
-            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, config);
+            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, config, exportIssuesSummary);
 
             // Assert
             Assert.IsTrue(result.Item1);
@@ -237,8 +247,10 @@ namespace Migration.Jira_Export.Tests
                 }
             };
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             // Act
-            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config);
+            var result = FieldMapperUtils.MapValue(revision, itemSource, itemTarget, _config, exportIssuesSummary);
 
             // Assert
             Assert.IsTrue(result.Item1);
