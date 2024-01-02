@@ -15,6 +15,7 @@
     <PackageReference Include="System.IO.Abstractions" Version="19.2.69" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Migration.Common.Log\Migration.Common.Log.csproj" />
     <ProjectReference Include="..\..\Migration.Common\Migration.Common.csproj" />
     <ProjectReference Include="..\..\Migration.WIContract\Migration.WIContract.csproj" />
   </ItemGroup>

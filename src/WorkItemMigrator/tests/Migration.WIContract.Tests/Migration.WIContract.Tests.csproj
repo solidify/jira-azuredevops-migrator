@@ -19,6 +19,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Migration.Common.Log\Migration.Common.Log.csproj" />
     <ProjectReference Include="..\..\Migration.WIContract\Migration.WIContract.csproj" />
   </ItemGroup>
 </Project>
