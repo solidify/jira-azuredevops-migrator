@@ -56,7 +56,7 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 - Correct any **Embedded Links to Jira Issues** in text fields such as Description, Repro Steps and comments, so that they point to the correct Work Item in Azure DevOps.
 - Select any property for **object**- and **array**-type fields for mapping. This allows for:
   - More possibilities when mapping the **fixes version** and **components** fields.
-  - Support for mapping **custom user picker** fields.
+  - More possibilities when mapping **custom user picker** fields.
 - Utilities for automating user mapping between Jira and Azure DevOps
 - Utilities for automatically generating the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
 - Utilities for viewing the Jira workflow and assisting with field and state mapping
