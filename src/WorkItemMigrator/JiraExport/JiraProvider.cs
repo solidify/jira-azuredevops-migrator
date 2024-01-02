@@ -36,6 +36,8 @@ namespace JiraExport
 
         public JiraSettings Settings { get; private set; }
 
+        public ExportIssuesSummary exportIssuesSummary { get; private set; }
+
         public IEnumerable<IssueLinkType> LinkTypes { get; private set; }
 
         public JiraProvider(IJiraServiceWrapper jiraServiceWrapper)
@@ -43,7 +45,7 @@ namespace JiraExport
             _jiraServiceWrapper = jiraServiceWrapper;
         }
 
-        public void Initialize(JiraSettings settings)
+        public void Initialize(JiraSettings settings, ExportIssuesSummary exportIssuesSummary)
         {
             Settings = settings;
 
@@ -382,6 +384,7 @@ namespace JiraExport
                             $" You may safely ignore this warning, unless there is a subsequent warning about" +
                             $" the username/accountId being missing in the usermapping file."
                     );
+                    exportIssuesSummary.AddUnmappedUser(usernameOrAccountId);
                 }
                 email = isUserEmailMissing ? usernameOrAccountId : user.Email;
                 _userEmailCache.Add(usernameOrAccountId, email);

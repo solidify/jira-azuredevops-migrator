@@ -237,8 +237,9 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
 
+            var exportIssuesSummary = new ExportIssuesSummary();
 
-            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "priority", "priority", configJson);
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "priority", "priority", configJson, exportIssuesSummary);
 
             Assert.Multiple(() =>
             {
@@ -276,7 +277,9 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             // Ensure a null value is added to the revision
             jiraRevision.Fields.Add("resolution", null);
 
-            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "resolution", "System.Reason", configJson);
+            var exportIssuesSummary = new ExportIssuesSummary();
+
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "resolution", "System.Reason", configJson, exportIssuesSummary);
 
             Assert.Multiple(() =>
             {
@@ -312,8 +315,9 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
 
+            var exportIssuesSummary = new ExportIssuesSummary();
 
-            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "emtpy", "empty", configJson);
+            var actualOutput = FieldMapperUtils.MapValue(jiraRevision, "emtpy", "empty", configJson, exportIssuesSummary);
 
             Assert.Multiple(() =>
             {
@@ -325,7 +329,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         [Test]
         public void When_calling_map_value_with_null_arguments_Then_and_exception_is_thrown()
         {
-            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapValue(null, null, null, null); });
+            Assert.Throws<ArgumentNullException>(() => { FieldMapperUtils.MapValue(null, null, null, null, null); });
         }
 
         [Test]
