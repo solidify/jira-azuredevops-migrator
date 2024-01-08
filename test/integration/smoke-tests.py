@@ -9,7 +9,6 @@ from dateutil import parser as dateparser
 ###### ADO REST API ######
 ##########################
 
-
 ### Wiql - Query By Wiql
 # https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/wiql/query-by-wiql
 # Params:
@@ -20,7 +19,7 @@ def list_workitems_by_wiql(
     PAT: str, organization_url: str, project_name: str, query: str = ""
 ):
     headers = {
-        "Authorization": create_auth_header(PAT),
+        "Authorization": create_auth_header_ado(PAT),
         "Content-Type": "application/json",
     }
     body = '{"query": "' + query + '"}'
@@ -46,7 +45,7 @@ def list_workitems_by_wiql(
 # - id: ID of the work item
 def get_workitem(PAT: str, organization_url: str, project_name: str, id: str):
     headers = {
-        "Authorization": create_auth_header(PAT),
+        "Authorization": create_auth_header_ado(PAT),
         "Content-Type": "application/json",
     }
     uri_api = "{0}/{1}/_apis/wit/workitems/{2}?$expand=All&api-version=6.0".format(
@@ -63,7 +62,7 @@ def get_workitem(PAT: str, organization_url: str, project_name: str, id: str):
 # - id: ID of the work item
 def delete_workitem(PAT: str, organization_url: str, project_name: str, id: str):
     headers = {
-        "Authorization": create_auth_header(PAT),
+        "Authorization": create_auth_header_ado(PAT),
         "Content-Type": "application/json",
     }
     uri_api = "{0}/{1}/_apis/wit/workitems/{2}?$expand=All&api-version=6.0".format(
@@ -80,7 +79,7 @@ def delete_workitem(PAT: str, organization_url: str, project_name: str, id: str)
 # - id: ID of the work item
 def get_comments(PAT: str, organization_url: str, project_name: str, id: str):
     headers = {
-        "Authorization": create_auth_header(PAT),
+        "Authorization": create_auth_header_ado(PAT),
         "Content-Type": "application/json",
     }
     uri_api = "{0}/{1}/_apis/wit/workitems/{2}/comments?$expand=All&api-version=6.0-preview.3".format(
@@ -90,41 +89,53 @@ def get_comments(PAT: str, organization_url: str, project_name: str, id: str):
     return response.json()["comments"]
 
 
-def create_auth_header(PAT):
+def create_auth_header_ado(PAT):
     return "Basic " + str(base64.b64encode(bytes(":" + PAT, "ascii")), "ascii")
-
 
 ###########################
 ###### JIRA REST API ######
 ###########################
 
-
 def list_issues(API_token: str, email: str, jira_url: str, JQL_query: str):
     api = "{0}/rest/api/2/search?jql={1}&fields=attachment,summary,description,comment,assignee,parent,issuelinks,subtasks,fixVersions,created,updated,priority,status,customfield_10066".format(
         jira_url, JQL_query
     )
-    auth = HTTPBasicAuth(email, API_token)
-    headers = {"Accept": "application/json"}
-    response = requests.get(url=api, headers=headers, auth=auth)
+    headers = {
+        "Accept": "application/json",
+        "Authorization": create_auth_header_jira(email, API_token)
+    }
+    response = requests.get(url=api, headers=headers)
     return response.json()
 
 def list_releases(API_token: str, email: str, jira_url: str, jira_project: str):
     api = "{0}/rest/api/2/project/{1}/version?expand=*".format(
         jira_url, jira_project
     )
-    auth = HTTPBasicAuth(email, API_token)
-    headers = {"Accept": "application/json"}
-    response = requests.get(url=api, headers=headers, auth=auth)
+    headers = {
+        "Accept": "application/json",
+        "Authorization": create_auth_header_jira(email, API_token)
+    }
+    response = requests.get(url=api, headers=headers)
     return response.json()
 
 def get_remote_links(API_token: str, email: str, jira_url: str, issue_key: str):
     api = "{0}/rest/api/2/issue/{1}/remotelink".format(
         jira_url, issue_key
     )
-    auth = HTTPBasicAuth(email, API_token)
-    headers = {"Accept": "application/json"}
-    response = requests.get(url=api, headers=headers, auth=auth)
+    headers = {
+        "Accept": "application/json",
+        "Authorization": create_auth_header_jira(email, API_token)
+    }
+    response = requests.get(url=api, headers=headers)
     return response.json()
+
+def create_auth_header_jira(username: str, token: str):
+    if auth_method.lower() == "basic":
+        return "Basic " + str(base64.b64encode(bytes(username + ":" + token, "ascii")), "ascii")
+    elif auth_method.lower() == "token":
+        return "Bearer " + token
+    else:
+        print(f"ERROR: auth method '{auth_method}' not implemented")
 
 ##########################
 ###### TEST HELPERS ######
@@ -234,6 +245,8 @@ jira_api_token: str = sys.argv[6]
 jira_project: str = sys.argv[7]
 
 user_mapping_file_path = sys.argv[8]
+
+auth_method = sys.argv[9]
 
 #####################
 ###### PROGRAM ######

@@ -110,9 +110,10 @@ steps:
 - script: $(build.artifactstagingdirectory)\WorkItemMigrator\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config-server.json --force
   displayName: wi-import.exe
 
+# TODO: Refactor final parameter (token/basic) to parameter
 - task: PythonScript@0
   displayName: Smoke tests, PythonScript
   inputs:
     scriptSource: 'filePath'
     scriptPath: '$(System.DefaultWorkingDirectory)\test\integration\smoke-tests.py'
-    arguments: '$(AdoOrganizationUrl) $(AdoProjectName) $(AdoApiToken) $(JiraUrl) $(JiraUser) $(JiraApiToken) $(JiraProject) $(System.DefaultWorkingDirectory)\test\integration\users.txt'
+    arguments: '$(AdoOrganizationUrl) $(AdoProjectName) $(AdoApiToken) $(JiraUrl) $(JiraUser) $(JiraApiToken) $(JiraProject) $(System.DefaultWorkingDirectory)\test\integration\users.txt token'
