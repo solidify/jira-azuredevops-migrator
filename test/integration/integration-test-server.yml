@@ -13,6 +13,7 @@ variables:
 - name: JiraAuthFlag
   value: '-t'
 
+jobs:
 - job: Job
   pool:
     vmImage: 'windows-2019'
