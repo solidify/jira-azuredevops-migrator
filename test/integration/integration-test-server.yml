@@ -102,7 +102,8 @@ steps:
       New-Item -Path "$(System.DefaultWorkingDirectory)" -Name "workspace" -ItemType Directory
       Copy-Item "$(System.DefaultWorkingDirectory)\test\integration\users.txt" -Destination "$(System.DefaultWorkingDirectory)\workspace"
 
-- script: $(build.artifactstagingdirectory)\WorkItemMigrator\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
+# Refactor the auth string ("-p <pwd> or -t <token>") to template
+- script: $(build.artifactstagingdirectory)\WorkItemMigrator\jira-export.exe -u $(JiraUser) -t $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
   displayName: jira-export.exe
 
 - script: $(build.artifactstagingdirectory)\WorkItemMigrator\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
