@@ -1,6 +1,6 @@
 {
     "source-project": "Zephyr_Squad_Demo",
-    "target-project": "Jira Migrator Pro - Demo",
+    "target-project": "AzureDevOps-Jira-Migrator-Smoke-Tests",
     "query": "project = \"ZEP\"",
     "using-jira-cloud": false,
     "workspace": "__workspace__",
