@@ -13,12 +13,13 @@ variables:
 steps:
 - checkout: self
 
+# Extract config filepath to template parameter
 - task: PowerShell@2
   displayName: 'Replace Migration workspace token in config'
   inputs:
     targetType: 'inline'
     script: |
-      $file = "$(System.DefaultWorkingDirectory)\test\integration\config.json"
+      $file = "$(System.DefaultWorkingDirectory)\test\integration\config-server.json"
       $str_find = "__workspace__"
       $str_replace = "$(System.DefaultWorkingDirectory)\workspace"
       $str_replace = $str_replace -replace "\\", "\\"
