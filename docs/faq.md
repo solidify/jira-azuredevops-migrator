@@ -284,3 +284,15 @@ curl -D-
 
  "http://johnie:8081/rest/api/2/search"
 ```
+
+## 14. Azure DevOps Rate and usage limits (ADO Cloud only)
+
+In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always reccomend the following procedure:
+
+### Check usage statistics
+
+In order to rule out wether you are actually dealing with a rate limiting issue or not, navigate to your **DevOps Organization** and go to **Organization Settings** > **Usage**. Here, filter out the queries for the user who is running the migration, and ensure that there have been no queries that have been **Delayed** or **Blocked**. If all queries have Status=**Normal**, then you are not hitting the rate limit.
+
+### Basic + Test Plans, additional usage limits
+
+You can get additional rate and usage limits by assigning the Basic + Test Plans access level to the desired identities used by your application. Once the need for higher rate limits are fulfilled, you can go back to the access level that the identity used to have. You're charged for the cost of Basic + Test Plans access level only for the time it's assigned to the identity (Source: <https://learn.microsoft.com/en-us/azure/devops/integrate/concepts/rate-limits?view=azure-devops>).
