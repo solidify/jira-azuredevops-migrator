@@ -149,7 +149,7 @@ def test_user(jira_field_key: str, ado_field_key: str):
     if (
         jira_field_key in jira_issue["fields"]
         and jira_issue["fields"][jira_field_key] != None
-        and jira_issue["fields"][jira_field_key]["accountId"] in user_map
+        and jira_issue["fields"][jira_field_key][account_id_field] in user_map
     ):
         if ado_field_key not in ado_work_item["fields"]:
             ec = do_error(
@@ -176,14 +176,14 @@ def test_user(jira_field_key: str, ado_field_key: str):
 
             elif (
                 ado_work_item["fields"][ado_field_key]["uniqueName"]
-                != user_map[jira_issue["fields"][jira_field_key]["accountId"]].rstrip()
+                != user_map[jira_issue["fields"][jira_field_key][account_id_field]].rstrip()
             ):
                 ec = do_error(
                     "Problem for Jira issue '{0}': field '{1}' did not match the target work item. ('{2}' vs '{3}')".format(
                         jira_issue_mapped_title,
                         ado_field_key,
                         user_map[
-                            jira_issue["fields"][jira_field_key]["accountId"]
+                            jira_issue["fields"][jira_field_key][account_id_field]
                         ].rstrip(),
                         ado_work_item["fields"][ado_field_key]["uniqueName"],
                     )
@@ -251,6 +251,13 @@ auth_method = sys.argv[9]
 #####################
 ###### PROGRAM ######
 #####################
+
+if ".atlassian.net" in jira_url:
+    account_id_field = "accountId"
+    do_verify_reporter = True
+else:
+    account_id_field = "emailAddress"
+    do_verify_reporter = False
 
 # Set queries
 ado_wiql_query: str = (
@@ -664,8 +671,9 @@ for jira_issue in jira_issues_json["issues"]:
             exit_code = 1
 
         # Compare Reporter
-        if test_user("reporter", "Custom.Reporter") != None:
-            exit_code = 1
+        if do_verify_reporter:
+            if test_user("reporter", "Custom.Reporter") != None:
+                exit_code = 1
 
         # Compare Custom UserPicker
         if test_user("alexander-testar-custom-userpicker", "Custom.CustomUserPicker") != None:

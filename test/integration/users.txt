@@ -2,3 +2,4 @@
 alexander.hjelm@solidify.dev=alexander.hjelm@solidify.dev
 madis.koosaar=alexander.hjelm@solidify.dev
 mathias.olausson@solidify.se=alexander.hjelm@solidify.dev
+JIRAUSER10001=alexander.hjelm@solidify.dev
