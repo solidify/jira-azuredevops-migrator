@@ -1,15 +1,3 @@
-trigger: none
-
-pool:
-  vmimage: windows-2019
-
-variables:
-- group: jira-azuredevops-migrator-smoke-tests
-- name: BuildPlatform
-  value: 'any cpu'
-- name: BuildConfiguration
-  value: 'release'
-
 steps:
 - checkout: self
 
@@ -18,7 +6,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $file = "$(System.DefaultWorkingDirectory)\test\integration\config.json"
+      $file = "$(System.DefaultWorkingDirectory)\test\integration\$(ConfigFileName)"
       $str_find = "__workspace__"
       $str_replace = "$(System.DefaultWorkingDirectory)\workspace"
       $str_replace = $str_replace -replace "\\", "\\"
@@ -102,10 +90,10 @@ steps:
       New-Item -Path "$(System.DefaultWorkingDirectory)" -Name "workspace" -ItemType Directory
       Copy-Item "$(System.DefaultWorkingDirectory)\test\integration\users.txt" -Destination "$(System.DefaultWorkingDirectory)\workspace"
 
-- script: $(build.artifactstagingdirectory)\WorkItemMigrator\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
+- script: $(build.artifactstagingdirectory)\WorkItemMigrator\jira-export.exe -u $(JiraUser) $(JiraAuthFlag) $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\$(ConfigFileName) --force
   displayName: jira-export.exe
 
-- script: $(build.artifactstagingdirectory)\WorkItemMigrator\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
+- script: $(build.artifactstagingdirectory)\WorkItemMigrator\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\$(ConfigFileName) --force
   displayName: wi-import.exe
 
 - task: PythonScript@0
@@ -113,4 +101,4 @@ steps:
   inputs:
     scriptSource: 'filePath'
     scriptPath: '$(System.DefaultWorkingDirectory)\test\integration\smoke-tests.py'
-    arguments: '$(AdoOrganizationUrl) $(AdoProjectName) $(AdoApiToken) $(JiraUrl) $(JiraUser) $(JiraApiToken) $(JiraProject) $(System.DefaultWorkingDirectory)\test\integration\users.txt basic'
+    arguments: '$(AdoOrganizationUrl) $(AdoProjectName) $(AdoApiToken) $(JiraUrl) $(JiraUser) $(JiraApiToken) $(JiraProject) $(System.DefaultWorkingDirectory)\test\integration\users.txt $(AuthMethod)'
