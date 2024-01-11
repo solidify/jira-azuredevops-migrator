@@ -79,7 +79,7 @@ namespace Common.Config
         public bool IncludeCommits { get; set; } = false;
 
         [JsonProperty(PropertyName = "include-jira-css-styles")]
-        public bool IncludeJiraCssStyles { get; set; } = true;
+        public bool IncludeJiraCssStyles { get; set; } = false;
 
         [JsonProperty(PropertyName = "ignore-empty-revisions")]
         public bool IgnoreEmptyRevisions { get; set; } = false;
