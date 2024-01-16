@@ -401,9 +401,30 @@ namespace JiraExport
             }
         }
 
+        /// <summary>
+        /// Return the custom field id corresponding to the given field/property name.
+        /// </summary>
+        /// <remarks>Blindly chooses the first matching value.  This is often right, but doesn't handle the scenario where a
+        /// Jira instance has multiple custom fields with the same name.  To handle that scenario, use <see cref="GetCustomIdList"/> instead.</remarks>
         public string GetCustomId(string propertyName)
         {
-            var customId = string.Empty;
+            var allIds = GetCustomIdList(propertyName);
+            var customId = allIds.FirstOrDefault();
+            if (allIds?.Count() > 1)
+            {
+                Logger.Log(LogLevel.Warning, $"Multiple fields found for {propertyName}. Selecting {customId}.");
+            }
+
+            return customId;
+        }
+
+        /// <summary>
+        /// Returns a list of custom field ids corresponding to the given field/property name. 
+        /// </summary>
+        /// <param name="propertyName">The property/field name of the custom field.</param>
+        /// <returns>One or more custom field ids that match the name provided.</returns>
+        public List<string> GetCustomIdList(string propertyName)
+        {
             JArray response = null;
 
             if (JiraNameFieldCache == null)
@@ -412,19 +433,24 @@ namespace JiraExport
                 JiraNameFieldCache = CreateFieldCacheLookup(response, "name", "id");
             }
 
-            customId = GetItemFromFieldCache(propertyName, JiraNameFieldCache);
+            var customIds = GetItemListFromFieldCache(propertyName, JiraNameFieldCache);
 
-            if (string.IsNullOrEmpty(customId))
+            if (!customIds.Any())
             {
                 if (JiraKeyFieldCache == null)
                 {
                     response = response ?? (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
                     JiraKeyFieldCache = CreateFieldCacheLookup(response, "key", "id");
                 }
-                customId = GetItemFromFieldCache(propertyName, JiraKeyFieldCache);
+                customIds = GetItemListFromFieldCache(propertyName, JiraKeyFieldCache);
+            }
+            
+            if (customIds.Count == 0)
+            {
+                Logger.Log(LogLevel.Warning, $"Custom field {propertyName} could not be found.");
             }
 
-            return customId;
+            return customIds;
         }
 
         private ILookup<string, string> CreateFieldCacheLookup(JArray response, string key, string value)
@@ -435,19 +461,18 @@ namespace JiraExport
                 .ToLookup(l => l.key, l => l.value);
         }
 
-        private string GetItemFromFieldCache(string propertyName, ILookup<string, string> cache)
+        /// <summary>
+        /// Returns a list of cache values corresponding to the given name. 
+        /// </summary>
+        /// <param name="propertyName">The name to lookup in the cache.</param>
+        /// <param name="cache">The cache to be interrogated.</param>
+        /// <returns></returns>
+        private List<string> GetItemListFromFieldCache(string propertyName, ILookup<string, string> cache)
         {
-            string customId = null;
-            var query = cache.FirstOrDefault(x => x.Key.Equals(propertyName.ToLower()));
-            if (query != null)
-            {
-                customId = query.Any() ? query.First() : null;
-                if (query.Count() > 1)
-                {
-                    Logger.Log(LogLevel.Warning, $"Multiple fields found for {propertyName}. Selecting {customId}.");
-                }
-            }
-            return customId;
+            var fieldList = cache.FirstOrDefault(x => x.Key.Equals(propertyName.ToLower()))?.ToList() 
+                            ?? new List<string>(0);
+
+            return fieldList;
         }
 
         public IEnumerable<JObject> GetCommitRepositories(string issueId)
