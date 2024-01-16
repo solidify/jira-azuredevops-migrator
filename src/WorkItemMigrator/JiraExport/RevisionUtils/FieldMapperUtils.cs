@@ -183,6 +183,27 @@ namespace JiraExport
             return iterationPath;
         }
 
+        /// <summary>
+        /// Find the first custom field with the right name that has a value.
+        /// </summary>
+        /// <param name="fields"><see cref="JiraRevision.Fields">JiraRevision.Fields</see> dictionary.</param>
+        /// <param name="customFieldIds">The IDs of the Custom Fields to search - more than one custom field can have the same name.</param>
+        /// <param name="fieldValueObject">The value of the first field in the list that has a value.  Null if no values are found.</param>
+        /// <returns>True if one of the identified custom fields contains a value.</returns>
+        internal static bool TryGetFirstValue(this Dictionary<string,object> fields, List<string> customFieldIds, out object fieldValueObject)
+        {
+            foreach(var name in customFieldIds)
+            {
+                if (fields.TryGetValue(name, out fieldValueObject) && fieldValueObject != null)
+                {
+                    return true;
+                }
+            }
+
+            fieldValueObject = null;
+            return false;
+        }
+
         private static readonly Dictionary<string, decimal> CalculatedLexoRanks = new Dictionary<string, decimal>();
         private static readonly Dictionary<decimal, string> CalculatedRanks = new Dictionary<decimal, string>();
 
