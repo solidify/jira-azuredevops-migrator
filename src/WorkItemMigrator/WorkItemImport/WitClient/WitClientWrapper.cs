@@ -104,7 +104,13 @@ namespace WorkItemImport
 
         public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId, bool suppressNotifications)
         {
-            return WitClient.UpdateWorkItemAsync(document: patchDocument, id: workItemId, suppressNotifications, bypassRules: true, expand: WorkItemExpand.All).Result;
+            return WitClient.UpdateWorkItemAsync(
+                document: patchDocument,
+                id: workItemId,
+                suppressNotifications: suppressNotifications,
+                bypassRules: true,
+                expand: WorkItemExpand.All
+            ).Result;
         }
 
         public TeamProject GetProject(string projectId)
