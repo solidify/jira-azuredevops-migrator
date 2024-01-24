@@ -146,6 +146,8 @@ Example:
     JiraAccountId2=AzureDevOps.User2@some.domain
     JiraAccountId3=AzureDevOps.User3@some.domain
     ```
+    
+    In order to make sure that your user's email is publicly visible to everyone in Jira, go to <https://id.atlassian.com/manage-profile/profile-and-visibility> -> Contact -> Email Address -> Who can see this? -> "Anyone"
 
 - When using Jira Server then firstly make sure in the config the ' "using-jira-cloud": false' is set. The mapping should look like the example below:
 
