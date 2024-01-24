@@ -48,7 +48,7 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 
 **Jira Azure DevOps Migrator PRO** contains all the features in the **Community Edition**, plus the following additional functionality:
 
-- Priority support
+- Priority support for bug reports
 - Composite field mapper (consolidate multiple Jira fields into a single ADO field)
 - Migrate **Releases** and the **fixes version** field
   - Release date, start date, release status and release description
