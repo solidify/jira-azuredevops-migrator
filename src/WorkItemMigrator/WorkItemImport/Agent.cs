@@ -57,7 +57,7 @@ namespace WorkItemImport
             return _witClientUtils.CreateWorkItem(type, suppressNotifications, createdDate, createdBy);
         }
 
-        public bool ImportRevision(WiRevision rev, WorkItem wi, Settings settings, bool isFinalRevision)
+        public bool ImportRevision(WiRevision rev, WorkItem wi, Settings settings)
         {
             var incomplete = false;
             try
