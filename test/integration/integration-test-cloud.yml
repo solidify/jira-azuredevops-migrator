@@ -1,0 +1,24 @@
+trigger: none
+
+pool:
+  vmimage: windows-2019
+
+variables:
+- group: jira-azuredevops-migrator-smoke-tests
+- name: BuildPlatform
+  value: 'any cpu'
+- name: BuildConfiguration
+  value: 'release'
+- name: ConfigFileName
+  value: 'config-cloud.json'
+- name: AuthMethod
+  value: 'basic'
+- name: JiraAuthFlag
+  value: '-p'
+
+jobs:
+- job: Job
+  pool:
+    vmImage: 'windows-2019'
+  steps:
+  - template: integration-test-template.yml
