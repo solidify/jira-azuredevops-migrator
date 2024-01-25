@@ -12,7 +12,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+
+[assembly: InternalsVisibleTo("Migration.Jira-Export.Tests")]
+
 
 namespace JiraExport
 {

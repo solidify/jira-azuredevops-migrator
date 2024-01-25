@@ -489,5 +489,132 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             Assert.That(FieldMapperUtils.MapLexoRank("0|hzyxfj:hzyxfj"), Is.EqualTo(1088341183.1088341M));
         }
+
+
+        /**
+         ****************      TryGetFirstValue Tests     ****************
+         */
+
+        [Test]
+        public void TryGetFirstValue_ShouldReturnTrue_WhenMatchingFieldExists()
+        {
+            // Arrange
+            var fields = new Dictionary<string, object>
+        {
+            { "field1", "value1" },
+            { "field2", "value2" },
+            { "field3", "value3" }
+        };
+            var customFieldIds = new List<string> { "field2", "field3" };
+            object fieldValueObject;
+
+            // Act
+            var result = fields.TryGetFirstValue(customFieldIds, out fieldValueObject);
+
+            // Assert
+            Assert.IsTrue(result);
+            Assert.AreEqual("value2", fieldValueObject);
+        }
+
+        [Test]
+        public void TryGetFirstValue_ShouldReturnFalse_WhenNoMatchingFieldExists()
+        {
+            // Arrange
+            var fields = new Dictionary<string, object>
+        {
+            { "field1", "value1" },
+            { "field2", "value2" },
+            { "field3", "value3" }
+        };
+            var customFieldIds = new List<string> { "field4", "field5" };
+            object fieldValueObject;
+
+            // Act
+            var result = fields.TryGetFirstValue(customFieldIds, out fieldValueObject);
+
+            // Assert
+            Assert.IsFalse(result);
+            Assert.IsNull(fieldValueObject);
+        }
+
+        [Test]
+        public void TryGetFirstValue_ShouldReturnFalse_WhenFieldsDictionaryIsEmpty()
+        {
+            // Arrange
+            var fields = new Dictionary<string, object>();
+            var customFieldIds = new List<string> { "field1", "field2" };
+            object fieldValueObject;
+
+            // Act
+            var result = fields.TryGetFirstValue(customFieldIds, out fieldValueObject);
+
+            // Assert
+            Assert.IsFalse(result);
+            Assert.IsNull(fieldValueObject);
+        }
+
+        [Test]
+        public void TryGetFirstValue_ShouldReturnFalse_WhenCustomFieldIdsListIsEmpty()
+        {
+            // Arrange
+            var fields = new Dictionary<string, object>
+        {
+            { "field1", "value1" },
+            { "field2", "value2" },
+            { "field3", "value3" }
+        };
+            var customFieldIds = new List<string>();
+            object fieldValueObject;
+
+            // Act
+            var result = fields.TryGetFirstValue(customFieldIds, out fieldValueObject);
+
+            // Assert
+            Assert.IsFalse(result);
+            Assert.IsNull(fieldValueObject);
+        }
+
+        [Test]
+        public void TryGetFirstValue_ShouldReturnTrue_WhenMultipleMatchingFieldsExistButOnlyOneHasNonNullValue()
+        {
+            // Arrange
+            var fields = new Dictionary<string, object>
+            {
+                { "field1", null },
+                { "field2", "value2" },
+                { "field3", null }
+            };
+            var customFieldIds = new List<string> { "field1", "field3", "field2" };
+            object fieldValueObject;
+
+            // Act
+            var result = fields.TryGetFirstValue(customFieldIds, out fieldValueObject);
+
+            // Assert
+            Assert.IsTrue(result);
+            Assert.AreEqual("value2", fieldValueObject);
+        }
+
+
+        [Test]
+        public void TryGetFirstValue_ShouldReturnFalse_WhenMultipleMatchingFieldsExistButOnlyAllAreNullValue()
+        {
+            // Arrange
+            var fields = new Dictionary<string, object>
+            {
+                { "field1", null },
+                { "field2", null },
+                { "field3", null }
+            };
+            var customFieldIds = new List<string> { "field1", "field3", "field2" };
+            object fieldValueObject;
+
+            // Act
+            var result = fields.TryGetFirstValue(customFieldIds, out fieldValueObject);
+
+            // Assert
+            Assert.IsFalse(result);
+            Assert.IsNull(fieldValueObject);
+        }
     }
 }
