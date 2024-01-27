@@ -379,16 +379,19 @@ namespace JiraExport
             return types;
         }
 
-        private Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
+        internal Func<JiraRevision, (bool, object)> IfChanged<T>(string sourceField, bool isCustomField, Func<T, object> mapperFunc = null)
         {
+            List<string> sourceFields = null;
             if (isCustomField)
             {
-                sourceField = _jiraProvider.GetCustomId(sourceField) ?? sourceField;
+                sourceFields = _jiraProvider.GetCustomIdList(sourceField);
             }
+
+            sourceFields = sourceFields ?? new List<string> { sourceField };
 
             return (r) =>
             {
-                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
+                if (r.Fields.TryGetFirstValue(sourceFields, out object value))
                 {
                     if (mapperFunc != null)
                     {
