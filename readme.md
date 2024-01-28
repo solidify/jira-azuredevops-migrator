@@ -52,6 +52,7 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 - Composite field mapper (consolidate multiple Jira fields into a single ADO field)
 - Migrate **Releases** and the **fixes version** field
   - Release date, start date, release status and release description
+- Migrate **Sprint Dates**.
 - Migrate **Remote Links** (Web links) to Work Item hyperlinks.
 - Correct any **Embedded Links to Jira Issues** in text fields such as Description, Repro Steps and comments, so that they point to the correct Work Item in Azure DevOps.
 - Select any property for **object**- and **array**-type fields for mapping. This allows for:
