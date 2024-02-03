@@ -64,6 +64,8 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 | **Training Resources**        | Documentation            | Interactive training material | Interactive training material |
 | **Support Level**             | Standard | Premium | Premium |
 | **Additional Services**       | None | Consultation Services & Instructor-led Training | Consultation Services & Instructor-led Training |
+| **Link** |  |  **[Buy Now](https://marketplace.visualstudio.com/items?itemName=solidify.jira-devops-workitem-migrator-pro)** | **[Buy Now](https://marketplace.visualstudio.com/items?itemName=solidify.atlassian-migration-suite)** |
+
 
 **Jira Azure DevOps Migrator PRO** contains all the features in the **Community Edition**, plus the following additional functionality:
 
