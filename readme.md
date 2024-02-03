@@ -48,7 +48,9 @@ Below, you can find a feature comparison table, as well as a comprehensive overv
 
 ### Products
 
-The following list contains all of the products on offer.
+The **Jira Azure DevOps Migrator** comes in 3 different plans: **Free**, **PRO** and the **Solidify Atlassian Migration Suite**.
+
+The following list contains all of the products on offer:
 
 - Jira Azure DevOps Migrator
   - Community Edition
@@ -56,6 +58,8 @@ The following list contains all of the products on offer.
 - Jira Azure DevOps Migrator Bootstrapper
 - Jira Test Management Migrator (XRay, Zephyr, QMetry + more)
 - Confluence to Azure DevOps Wikis Migrator
+
+Contact us at [support.jira-migrator@solidify.dev](mailto:support.jira-migrator@solidify.dev) to make a product inquiry, or click the **Buy Now** links below.
 
 ### Feature comparison
 
@@ -77,9 +81,8 @@ The following list contains all of the products on offer.
 
 ### Jira Azure DevOps Migrator PRO
 
-**Jira Azure DevOps Migrator PRO** contains all the features in the **Community Edition**, plus the following additional functionality:
+**Jira Azure DevOps Migrator PRO** contains all the features in the Community Edition, plus the following additional functionality:
 
-- Priority support for bug reports
 - Composite field mapper (consolidate multiple Jira fields into a single ADO field)
 - Migrate **Releases** and the **fixes version** field
   - Release date, start date, release status and release description
@@ -88,21 +91,39 @@ The following list contains all of the products on offer.
 - Correct any **Embedded Links to Jira Issues** in text fields such as Description, Repro Steps and comments, so that they point to the correct Work Item in Azure DevOps.
 - Select any property for **object**- and **array**-type fields for mapping. This allows for:
   - More possibilities when mapping the **fixes version** and **components** fields.
-  - More possibilities when mapping **custom user picker** fields.
+  - More possibilities when **mapping Azure DevOps **custom**
 
-#### Jira Azure DevOps Migrator Bootstrapper
+### Jira Azure DevOps Migrator Bootstrapper
 
-- Utilities for automating user mapping between Jira and Azure DevOps
-- Utilities for automatically generating the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
-- Utilities for viewing the Jira workflow and assisting with field and state mapping
+The **Jira Azure DevOps Migrator Bootstrapper** is a companion utility for Jira Azure DevOps migrator PRO, which is designed to help you with getting started migrating issues from Jira to Azure DevOps as smoothly as possible and with as little friction as possible.
 
-#### Jira Test Management Migrator
+The bootstrapper can do the following:
 
-- Migrate Jira test data to Azure DevOps Test Plans, including the **QMetry**, **Zephyr** and **Xray** frameworks
+- Automate user mapping between Jira and Azure DevOps
+- Automatically generate the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
+- Viewing the Jira workflow and assisting with field and state mapping
 
-#### Confluence to Azure DevOps Wikis Migrator
+### Jira Test Management Migrator
 
-- Migrate **Confluence** pages to Azure DevOps Wikis
+**The Jira Test Management migrator (JTMM)** from Solidify is a powerful tool designed to help you easily migrate your Jira test management data to Azure DevOps Test Plans. With this tool, you can migrate all your test data from Jira to **Azure DevOps Test Plans** without losing any data or compromising the integrity of your test management system, including:
+
+- Test cases
+- Test plans
+- Test executions
+- Pest runs
+- Pass/fail status
+- Test hierarchy and links.
+
+Our tool supports the following Jira test frameworks:
+
+- QMetry
+- Zephyr
+- Xray
+- (More to come soon!)
+
+### Confluence to Azure DevOps Wikis Migrator
+
+The **Confluence to Azure DevOps Wikis Migrator** enables you to transfer you existing **Confluence** spaces to Azure DevOps Wikis, preserving all of your Confluence content and formatting.
 
 ## FAQ - Frequently Asked Questions
 
