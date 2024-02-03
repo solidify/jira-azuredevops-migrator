@@ -335,7 +335,7 @@ namespace JiraExport
         {
             var attChanges = rev.AttachmentActions;
 
-            if (attChanges != null && attChanges.Any(a => a.ChangeType == RevisionChangeType.Added))
+            if (attChanges != null && attChanges.Exists(a => a.ChangeType == RevisionChangeType.Added))
             {
                 var downloadedAtts = new List<JiraAttachment>();
 

@@ -47,7 +47,7 @@ namespace Migration.Wi_Import.Tests
 
             var sut = new ImportCommandLine(args);
 
-            Assert.AreEqual(sut.Run(), -1);
+            Assert.AreEqual(-1, sut.Run());
         }
     }
 }

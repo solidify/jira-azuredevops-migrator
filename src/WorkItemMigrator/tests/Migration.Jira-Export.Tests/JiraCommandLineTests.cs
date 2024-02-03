@@ -48,7 +48,7 @@ namespace Migration.Jira_Export.Tests
 
             var sut = new JiraCommandLine(args);
 
-            Assert.AreEqual(sut.Run(), -1);
+            Assert.AreEqual(-1, sut.Run());
         }
     }
 }
