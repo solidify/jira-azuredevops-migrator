@@ -44,7 +44,26 @@ Note: We do not answer Discussions, as these have less traceability than Issues.
 
 The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more features and utilities to further increase your migration capabilities and streamline the migration workflow. [Contact us for more information](mailto:support.jira-migrator@solidify.dev)
 
+
+
 ### Features
+
+#### Comparison
+
+| | Free |  PRO | Solidify Atlassian Migration Suite |
+|-------------------------------|--------------------------|--------------------------|--------------------------|
+| Price | Free | $1000/Month | $3000/Month |
+| **Jira Azure DevOps Migrator, Community Edition** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **Jira Azure DevOps Migrator, PRO features** | :x: | :heavy_check_mark: | :heavy_check_mark: |
+| **Jira Azure DevOps Migrator Boostrapper**    | :x: | :heavy_check_mark: | :heavy_check_mark: |
+| **Jira Test Management Migrator**    | :x: | :x: |  :heavy_check_mark: |
+| **Confluence to Azure DevOps Wikis Migrator**    | :x: | :x: |  :heavy_check_mark: |
+| |  |  |  |
+| **Updates and Upgrades**      | Regular                  | Continuous                | Continuous               |
+| **Free Trial Available**      | N/A                      | 30 Days                      | 30 Days            |
+| **Training Resources**        | Documentation            | Interactive training material | Interactive training material |
+| **Support Level**             | Standard | Premium | Premium |
+| **Additional Services**       | None | Consultation Services & Instructor-led Training | Consultation Services & Instructor-led Training |
 
 **Jira Azure DevOps Migrator PRO** contains all the features in the **Community Edition**, plus the following additional functionality:
 
@@ -58,13 +77,19 @@ The **Jira Azure DevOps Migrator PRO offering** from Solidify offers more featur
 - Select any property for **object**- and **array**-type fields for mapping. This allows for:
   - More possibilities when mapping the **fixes version** and **components** fields.
   - More possibilities when mapping **custom user picker** fields.
+
+#### Bootstrapper
+
 - Utilities for automating user mapping between Jira and Azure DevOps
 - Utilities for automatically generating the Jira Azure DevOps Migrator configuration file, thus enabling you to get started migrating faster
 - Utilities for viewing the Jira workflow and assisting with field and state mapping
 
-#### Additional tools in the Jira Azure DevOps Migrator PRO package:
+#### Jira Test Management Migrator
 
 - Migrate Jira test data to Azure DevOps Test Plans, including the **QMetry**, **Zephyr** and **Xray** frameworks
+
+#### Confluence to Azure DevOps Wikis Migrator
+
 - Migrate **Confluence** pages to Azure DevOps Wikis
 
 ## FAQ - Frequently Asked Questions
