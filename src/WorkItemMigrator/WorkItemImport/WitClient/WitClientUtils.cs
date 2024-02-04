@@ -383,7 +383,7 @@ namespace WorkItemImport
                 }
             }
 
-            if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Removed))
+            if (rev.Attachments.Exists(a => a.Change == ReferenceChangeType.Removed))
                 wi.Fields[WiFieldReference.History] = $"Removed attachments(s): {string.Join(";", rev.Attachments.Where(a => a.Change == ReferenceChangeType.Removed).Select(a => a.ToString()))}";
 
             return success;
