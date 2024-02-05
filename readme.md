@@ -108,9 +108,6 @@ The bootstrapper can do the following:
 
 - Test cases
 - Test plans
-- Test executions
-- Pest runs
-- Pass/fail status
 - Test hierarchy and links.
 
 Our tool supports the following Jira test frameworks:
