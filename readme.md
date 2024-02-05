@@ -119,7 +119,7 @@ Our tool supports the following Jira test frameworks:
 
 ### Confluence to Azure DevOps Wikis Migrator
 
-The **Confluence to Azure DevOps Wikis Migrator** enables you to transfer you existing **Confluence** spaces to Azure DevOps Wikis, preserving all of your Confluence content and formatting.
+The **Confluence to Azure DevOps Wikis Migrator** enables you to transfer you existing **Confluence** spaces to Azure DevOps Wikis, preserving all of your wiki content and formatting in confluence
 
 ## FAQ - Frequently Asked Questions
 
