@@ -73,7 +73,6 @@ Contact us at [support.jira-migrator@solidify.dev](mailto:support.jira-migrator@
 | **Confluence to Azure DevOps Wikis Migrator**    | :x: | :x: |  :heavy_check_mark: |
 | |  |  |  |
 | **Updates and Upgrades**      | Regular                  | Continuous                | Continuous               |
-| **Free Trial Available**      | N/A                      | 30 Days                      | 30 Days            |
 | **Training Resources**        | Documentation            | Interactive training material | Interactive training material |
 | **Support Level**             | Standard | Premium | Premium |
 | **Additional Services**       | None | Consultation Services & Instructor-led Training | Consultation Services & Instructor-led Training |
