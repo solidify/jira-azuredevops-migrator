@@ -373,7 +373,7 @@ namespace JiraExport
                 var isUserEmailMissing = string.IsNullOrEmpty(user.Email);
                 if (isUserEmailMissing)
                 {
-                    Logger.Log(LogLevel.Warning,
+                    Logger.Log(LogLevel.Info,
                         Settings.UsingJiraCloud
                             ? $"Email is not public for user '{usernameOrAccountId}' in Jira," +
                             $" using usernameOrAccountId '{usernameOrAccountId}' for mapping." +
@@ -392,7 +392,7 @@ namespace JiraExport
             }
             catch (Exception)
             {
-                Logger.Log(LogLevel.Warning,
+                Logger.Log(LogLevel.Info,
                     Settings.UsingJiraCloud
                         ? $"Specified user '{usernameOrAccountId}' does not exist or you do not have required permissions, using accountId '{usernameOrAccountId}'"
                         : $"User '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");
