@@ -121,7 +121,7 @@ Mappers are functions used byt he **Jira Exporter** for transforming the data in
 |MapArray|Maps an array by replacing comma with semi-colon|
 |MapRemainingWork|Maps and converts a Jira time to hours|
 |MapRendered|Maps field to rendered html format value|
-|MapLexoRank|Maps and converts a Jira LexoRank to decimal. When mapping this type of field, ensure the correct Jira custom field is used and mapped to the relevant Azure DevOps prioritization field (see: https://learn.microsoft.com/en-us/azure/devops/boards/queries/planning-ranking-priorities?view=azure-devops#fields-used-to-plan-and-prioritize-work)|
+|MapLexoRank|Maps and converts a Jira LexoRank to decimal. When mapping this type of field, ensure the correct Jira custom field is used and mapped to the relevant Azure DevOps prioritization field (see: <https://learn.microsoft.com/en-us/azure/devops/boards/queries/planning-ranking-priorities?view=azure-devops#fields-used-to-plan-and-prioritize-work>)|
 |(default)|Simply copies source to target|
 
 ## Example configuration

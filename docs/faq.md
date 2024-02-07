@@ -52,7 +52,7 @@ Example:
 }
 ```
 
-### (Troubleshooting) My custom field is not migrated correctly/not migrated at all.
+### (Troubleshooting) My custom field is not migrated correctly/not migrated at all
 
 If your custom field is not imported correctly into Azure DevOps, please go through the following checklist and ensure that every step has been followed:
 
@@ -61,7 +61,7 @@ If your custom field is not imported correctly into Azure DevOps, please go thro
 
     For example, if the **field name** is `MyField`, the **field reference name** is usually something like `Custom.MyField` (for ADO Services) or `MyCompany.MyField` (for ADO Server). Spaces are not allowed in the **field reference name**.
 
-    Here is a reference sheet with all of the default fields: https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops (click each field to open up the documentation page and view the field reference name).
+    Here is a reference sheet with all of the default fields: <https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops> (click each field to open up the documentation page and view the field reference name).
 
 ### (Troubleshooting) I receive errors like: **VS403691: Update to work item 165 had two or more updates for field with reference name 'Custom.XXX'. A field cannot be updated more than once in the same update."**
 
@@ -127,15 +127,15 @@ Example:
 
 - When using Jira Cloud then firstly make sure in the config the '"using-jira-cloud": true' is set. The user mapping file should have accountId/email value pairs. To use email value pairs the users email should be set to public in the user profile in Jira Cloud, otherwise the tool cant get the email and will use accountId instead for mapping.
 
-- It can happen that the **JiraExporter** cannot find you users' email addresses. This will happen if e.g. your user has chosen not to make their email address public. You will then receive the following warning when running the **jira-expoprt.exe**:
+- It can happen that the **JiraExporter** cannot find you users' email addresses. This will happen if e.g. your user has chosen not to make their email address public. You will then receive the following warning when running the **jira-export.exe**:
 
-    ```
+    ```txt
     [W][01:57:30] Email is not public for user '630ddc7d316bbc88c1234e3b' in Jira, using usernameOrAccountId '630ddc7d316bbc88c1234e3b' for mapping.
     ```
 
     If you receive such a warning, you will need to map the users' IDs instead, just like you would with the emails. You will need to include the following line in your `users.txt`:
 
-    ```
+    ```txt
     630ddc7d316bbc88c1234e3b=AzureDevOps.User@some.domain
     ```
 
@@ -146,7 +146,7 @@ Example:
     JiraAccountId2=AzureDevOps.User2@some.domain
     JiraAccountId3=AzureDevOps.User3@some.domain
     ```
-    
+
     In order to make sure that your user's email is publicly visible to everyone in Jira, go to <https://id.atlassian.com/manage-profile/profile-and-visibility> -> Contact -> Email Address -> Who can see this? -> "Anyone"
 
 - When using Jira Server then firstly make sure in the config the ' "using-jira-cloud": false' is set. The mapping should look like the example below:
@@ -182,13 +182,13 @@ The history of the **logged time** and **remaining time** will be preserved on e
 }
 ```
 
-## 8. How to map custom userpicker fields
+## 8. How to map custom user picker fields
 
-Here is how we have successfully mapped userpicker fields in the past. `source` should be the field name:
+Here is how we have successfully mapped user picker fields in the past. `source` should be the field name:
 
 ```json
 {
-    "source": "Userpicker Field Name Jira",
+    "source": "User picker Field Name Jira",
     "target": "Custom.CustomUserPicker",
     "source-type": "name",
     "mapper": "MapUser"
@@ -212,16 +212,18 @@ Here is how we can map datetime fields like ResolvedDate:
 Through some manual intervention, we can migrate every historical value of an **issue field** to a **Work Item Comments**. Simply do the following:
 
 1. Map each of the desired fields to a unique token, e.g.:
-  ```json
-  {
-    "source": "customfield_10112",
-    "target": "5397700c-5bc3-4efe-b1e9-d626929b89ca"
-  },
-  {
-    "source": "customfield_10111",
-    "target": "e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667"
-  },
-  ```
+
+    ```json
+    {
+      "source": "customfield_10112",
+      "target": "5397700c-5bc3-4efe-b1e9-d626929b89ca"
+    },
+    {
+      "source": "customfield_10111",
+      "target": "e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667"
+    },
+    ```
+
 1. Run `JiraExport` as usual.
 1. Open up the `workspace` folder in an IDE like Visual Studio Code and do a search-replace across all contents in the whole `workspace` folder:
 1. Replace each unique token with `System.History`:
@@ -254,7 +256,7 @@ Instead of the default:
 
 If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
 
-```
+```txt
 project = "PROJECTKEY" AND id >= 10000 AND id < 11000
 project = "PROJECTKEY" AND id >= 11000 AND id < 12000
 project = "PROJECTKEY" AND id >= 12000 AND id < 13000
@@ -264,16 +266,16 @@ And so on.
 
 You can always use the **issues** view in your Jira project to experiment with different JQL queries.
 
-## 13. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported.
+## 13. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
 
 The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 
 - Ensure that the `query` property in your `config.json` file follows correct [JQL syntax](https://www.atlassian.com/software/jira/guides/jql/overview)
   - You can set up the corresponding JQL query in the issues view in your Jira project to debug the query.
 - Ensure that you don't have any issues with [authorization](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/faq.md#2-why-i-am-getting-unauthorized-exception-when-running-the-export).
-- In the `project` clause of your query, try both the prject name, project key and project ID
+- In the `project` clause of your query, try both the project name, project key and project ID
 
-If all of the aboce suggestions fail, verifu that you are able to reach the issue search rest API endpoint outside of the Exporter. Try to see if you can set up a Rest query in [postman](https://www.postman.com/) or similar, with the same JQL query as you are trying in your config.json-file, with the same user + API token/password and let me know the result of that.
+If all of the above suggestions fail, verify that you are able to reach the issue search rest API endpoint outside of the Exporter. Try to see if you can set up a Rest query in [postman](https://www.postman.com/) or similar, with the same JQL query as you are trying in your config.json-file, with the same user + API token/password and let me know the result of that.
 
 Here is an example in curl:
 
@@ -289,7 +291,7 @@ curl -D-
 
 ## 14. Azure DevOps Rate and usage limits (ADO Cloud only)
 
-In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always reccomend the following procedure:
+In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always recommend the following procedure:
 
 ### Check usage statistics
 
