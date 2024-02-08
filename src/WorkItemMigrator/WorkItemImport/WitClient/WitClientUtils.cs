@@ -1059,7 +1059,7 @@ namespace WorkItemImport
             {
                 var nextWi = GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
                 nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().
-                    Where(rl => rl.Rel != "AttachedFile").
+                    Where(rl => rl.Rel != "AttachedFile" && rl.Rel != "Hyperlink").
                     FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
 
                 if (nextWiLink != null && GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
