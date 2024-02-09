@@ -252,7 +252,68 @@ Instead of the default:
   }
 ```
 
-## 12. How to limit the number of issues to be exported during JIRA export (pagination)
+## 12. How to map sprints, iteration paths and area paths
+
+It is possible to do custom mappings of the **Jira Sprints** as **Iteration Paths**, and vice versa for **Area Paths**.
+
+### Default method: using the MapSprint mapper
+
+The mapSprint mapper is included with all of our sample config files, and does a pretty good job mapping the sprints one-to-one:
+
+```json
+      {
+        "source": "customfield_10010",
+        "target": "System.IterationPath",
+        "mapper": "MapSprint"
+      }
+```
+
+### Using a key-value mapper
+
+If you want more granular control over how your sprints and area paths are mapped, you can use a **key-value** mapper.
+
+Here is an example of how to map sprints in this way:
+
+```json
+{
+  "source": "customfield_10010",
+  "target": "System.IterationPath",
+  "mapping": {
+    "values": [
+      {
+        "source": "sprint1",
+        "target": "Area1"
+      },
+      {
+        "source": "sprint2",
+        "target": "MyFolder1/Area2"
+      },
+      {
+        "source": "sprint3",
+        "target": "MyFolder1/MyFolder2/Area3"
+      }
+    ]
+  }
+}
+```
+
+In addition, you will need to set the **base-iteration-path** and **base-area-path** properties in your configuration:
+
+```json
+{
+  "base-iteration-path": "Migrated",
+  "base-area-path": "Migrated",
+}
+```
+
+This will set the Iteration path correctly. The final path will be like the following pattern:
+
+- `<project name>\<base-iteration-path>\<mapped value>`
+- `<project name>\<base-area-path>\<mapped value>`
+
+
+
+## 13. How to limit the number of issues to be exported during JIRA export (pagination)
 
 If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
 
@@ -266,7 +327,7 @@ And so on.
 
 You can always use the **issues** view in your Jira project to experiment with different JQL queries.
 
-## 13. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
+## 14. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
 
 The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 
@@ -289,7 +350,7 @@ curl -D-
  "http://johnie:8081/rest/api/2/search"
 ```
 
-## 14. Azure DevOps Rate and usage limits (ADO Cloud only)
+## 15. Azure DevOps Rate and usage limits (ADO Cloud only)
 
 In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always recommend the following procedure:
 
