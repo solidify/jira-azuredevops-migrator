@@ -173,7 +173,15 @@ namespace JiraExport
             {
                 using (var file = File.Create(fileFullPath))
                 {
-                    await stream.CopyToAsync(file);
+                    try
+                    {
+                        await stream.CopyToAsync(file);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e, $"Error while writing attachment to file: {fileFullPath}. Releasing file lock anyway.");
+                    }
+                    file.Close();
                 }
             }
         }
