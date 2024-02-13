@@ -1,15 +1,14 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System;
+using Common.Config;
+using JiraExport;
+using Migration.Common.Config;
+using Migration.WIContract;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
-using JiraExport;
-using Migration.WIContract;
-using Common.Config;
-using Migration.Common.Config;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Jira_Export.Tests.RevisionUtils
@@ -33,7 +32,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
-            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
             settings.SprintField = "SprintField";
             provider.GetSettings().ReturnsForAnyArgs(settings);
 

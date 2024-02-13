@@ -1,20 +1,19 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System;
-using WorkItemImport;
-using Migration.WIContract;
-using System.Collections.Generic;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.TeamFoundation.Core.WebApi;
-using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-using Microsoft.VisualStudio.Services.WebApi.Patch;
-using System.Linq;
-
-using Migration.Common;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.VisualStudio.Services.WebApi.Patch;
+using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
+using Migration.Common;
+using Migration.WIContract;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using WorkItemImport;
 
 namespace Migration.Wi_Import.Tests
 {
@@ -25,6 +24,8 @@ namespace Migration.Wi_Import.Tests
         private class MockedWitClientWrapper : IWitClientWrapper
         {
             private int _wiIdCounter = 1;
+            public Guid projectId = Guid.NewGuid();
+            public Guid repositoryId = Guid.NewGuid();
             public Dictionary<int, WorkItem> _wiCache = new Dictionary<int, WorkItem>();
 
             public MockedWitClientWrapper()
@@ -32,13 +33,13 @@ namespace Migration.Wi_Import.Tests
 
             }
 
-            public WorkItem CreateWorkItem(string wiType, DateTime? createdDate = null, string createdBy = "")
+            public WorkItem CreateWorkItem(string wiType, bool suppressNotifications, DateTime? createdDate = null, string createdBy = "")
             {
                 WorkItem workItem = new WorkItem();
                 workItem.Id = _wiIdCounter;
                 workItem.Url = $"https://example/workItems/{_wiIdCounter}";
                 workItem.Fields[WiFieldReference.WorkItemType] = wiType;
-                if(createdDate != default)
+                if (createdDate != default)
                     workItem.Fields[WiFieldReference.CreatedDate] = createdDate;
                 if (createdBy != default)
                     workItem.Fields[WiFieldReference.CreatedBy] = createdBy;
@@ -53,12 +54,12 @@ namespace Migration.Wi_Import.Tests
                 return _wiCache[wiId];
             }
 
-            public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId)
+            public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId, bool suppressNotifications)
             {
                 WorkItem wi = _wiCache[workItemId];
-                foreach(JsonPatchOperation op in patchDocument)
+                foreach (JsonPatchOperation op in patchDocument)
                 {
-                    if(op.Operation == Operation.Add)
+                    if (op.Operation == Operation.Add)
                     {
                         if (op.Path.StartsWith("/fields/"))
                         {
@@ -68,20 +69,33 @@ namespace Migration.Wi_Import.Tests
                         else if (op.Path.StartsWith("/relations/"))
                         {
                             string rel = op.Value.GetType().GetProperty("rel")?.GetValue(op.Value, null).ToString();
+                            if (rel == null)
+                            {
+                                rel = op.Value.GetType().GetProperty("Rel")?.GetValue(op.Value, null).ToString();
+                            }
                             string url = op.Value.GetType().GetProperty("url")?.GetValue(op.Value, null).ToString();
+                            if (url == null)
+                            {
+                                url = op.Value.GetType().GetProperty("Url")?.GetValue(op.Value, null).ToString();
+                            }
                             object attributes = op.Value.GetType().GetProperty("attributes")?.GetValue(op.Value, null);
-                            string comment = attributes.GetType().GetProperty("comment")?.GetValue(attributes, null).ToString();
+                            if (attributes == null)
+                            {
+                                attributes = op.Value.GetType().GetProperty("Attributes")?.GetValue(op.Value, null);
+                            }
+                            string comment = attributes?.GetType().GetProperty("comment")?.GetValue(attributes, null).ToString();
 
                             WorkItemRelation wiRelation = new WorkItemRelation();
                             wiRelation.Rel = rel;
                             wiRelation.Url = url;
-                            wiRelation.Attributes = new Dictionary<string, object>{ { "comment", comment } };
+                            wiRelation.Attributes = new Dictionary<string, object> { { "comment", comment } };
 
-                            if(wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
+                            if (wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
                                 wi.Relations.Add(wiRelation);
                         }
                     }
-                    else if (op.Operation == Operation.Remove) {
+                    else if (op.Operation == Operation.Remove)
+                    {
                         if (op.Path.StartsWith("/fields/"))
                         {
                             string field = op.Path.Replace("/fields/", "");
@@ -101,16 +115,25 @@ namespace Migration.Wi_Import.Tests
             {
                 TeamProject tp = new TeamProject();
                 Guid projGuid;
-                if(Guid.TryParse(projectId, out projGuid))
+                if (Guid.TryParse(projectId, out projGuid))
                 {
                     tp.Id = projGuid;
                 }
                 else
                 {
-                    tp.Id = Guid.NewGuid();
+                    tp.Id = this.projectId;
                     tp.Name = projectId;
                 }
                 return tp;
+            }
+
+            public GitRepository GetRepository(string project, string repository)
+            {
+                GitRepository gr = new GitRepository();
+                gr.Id = repositoryId;
+                gr.Name = repository;
+
+                return gr;
             }
 
             public List<WorkItemRelationType> GetRelationTypes()
@@ -229,7 +252,7 @@ namespace Migration.Wi_Import.Tests
             rev.Fields = new List<WiField>();
             rev.Index = 0;
 
-            WorkItem createdWI = sut.CreateWorkItem("User Story");
+            WorkItem createdWI = sut.CreateWorkItem("User Story", false);
 
             IdentityRef assignedTo = new IdentityRef();
             assignedTo.UniqueName = "Mr. Test";
@@ -261,7 +284,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
             DateTime now = DateTime.Now;
 
@@ -313,7 +336,7 @@ namespace Migration.Wi_Import.Tests
             revState.Value = "New";
             rev.Fields.Add(revState);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.State] = "Done";
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
 
@@ -322,10 +345,38 @@ namespace Migration.Wi_Import.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State), Is.EqualTo("New"));
-                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedDate), Is.EqualTo(null));
-                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedBy), Is.EqualTo(null));
-                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedDate), Is.EqualTo(null));
-                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedBy), Is.EqualTo(null));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedDate), Is.EqualTo(""));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedBy), Is.EqualTo(""));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedDate), Is.EqualTo(""));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ActivatedBy), Is.EqualTo(""));
+            });
+        }
+
+        [Test]
+        public void When_calling_ensure_fields_on_a_closed_user_Story_with_Then_closed_date_is_added_to_fields()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WiRevision rev = new WiRevision();
+            rev.Fields = new List<WiField>();
+            rev.Index = 1;
+
+            WiField revState = new WiField();
+            revState.ReferenceName = WiFieldReference.State;
+            revState.Value = "New";
+            rev.Fields.Add(revState);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            createdWI.Fields[WiFieldReference.State] = "Closed";
+
+            wiUtils.EnsureFieldsOnStateChange(rev, createdWI);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State), Is.EqualTo("New"));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedDate), Is.EqualTo(""));
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.ClosedBy), Is.EqualTo(""));
             });
         }
 
@@ -375,7 +426,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
@@ -403,7 +454,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Bug");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Bug", false);
 
             WiRevision rev = new WiRevision();
             rev.Fields = new List<WiField>();
@@ -454,7 +505,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Task", false);
             WorkItem retrievedWI = null;
             if (createdWI.Id.HasValue)
             {
@@ -478,7 +529,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.AddAndSaveLink(null, null),
+                () => wiUtils.AddAndSaveLink(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -488,8 +539,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
+
+            Settings settings = _fixture.Create<Settings>();
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
@@ -499,7 +552,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -516,7 +569,9 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            Settings settings = _fixture.Create<Settings>();
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             var attachment = new WorkItemRelation();
             attachment.Title = "LinkTitle";
             attachment.Rel = "AttachedFile";
@@ -527,7 +582,7 @@ namespace Migration.Wi_Import.Tests
                     { "name", "filename.png" }
             };
             createdWI.Relations.Add(attachment);
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
@@ -537,7 +592,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
             WorkItemRelation rel = createdWI.Relations.Where(rl => rl.Rel != "AttachedFile").Single();
 
@@ -554,8 +609,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            Settings settings = _fixture.Create<Settings>();
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
             var attachment = new WorkItemRelation();
             attachment.Title = "LinkTitle";
             attachment.Rel = "AttachedFile";
@@ -575,7 +632,7 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -593,7 +650,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.RemoveAndSaveLink(null, null),
+                () => wiUtils.RemoveAndSaveLink(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -603,12 +660,14 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+
+            Settings settings = _fixture.Create<Settings>();
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
 
-            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings);
 
             Assert.That(result, Is.EqualTo(false));
         }
@@ -619,8 +678,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
-            WorkItem linkedWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
+
+            Settings settings = _fixture.Create<Settings>();
 
             WiLink link = new WiLink();
             link.WiType = "System.LinkTypes.Hierarchy-Forward";
@@ -630,9 +691,9 @@ namespace Migration.Wi_Import.Tests
             link.TargetWiId = 2;
             link.Change = ReferenceChangeType.Added;
 
-            wiUtils.AddAndSaveLink(link, createdWI);
+            wiUtils.AddAndSaveLink(link, createdWI, settings);
 
-            bool result = wiUtils.RemoveAndSaveLink(link, createdWI);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings);
 
             Assert.Multiple(() =>
             {
@@ -661,11 +722,12 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Task");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Task", false);
             createdWI.Fields[WiFieldReference.History] = commentBeforeTransformation;
-            createdWI.Relations.Add(new WorkItemRelation() {
-                Rel= "AttachedFile",
-                Url= "https://example.com/my_image.png",
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
                 Attributes = new Dictionary<string, object>() {
                     { "comment", "Imported from Jira, original ID: 100" }
                 }
@@ -702,6 +764,17 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
+        public void When_calling_correct_acceptance_criteria_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.CorrectAcceptanceCriteria(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
         public void When_calling_correct_description_for_user_story_Then_description_is_updated_with_correct_image_urls()
         {
             string descriptionBeforeTransformation = "My description, including file: <img src=\"C:\\Temp\\workspace\\Attachments\\100\\my_image.png\">";
@@ -710,13 +783,13 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.Description] = descriptionBeforeTransformation;
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
                 Url = "https://example.com/my_image.png",
-                Attributes = new Dictionary<string, object>() { 
+                Attributes = new Dictionary<string, object>() {
                     { "comment", "Imported from Jira, original ID: 100" }
                 }
             });
@@ -749,7 +822,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("Bug");
+            WorkItem createdWI = wiUtils.CreateWorkItem("Bug", false);
             createdWI.Fields[WiFieldReference.ReproSteps] = reproStepsBeforeTransformation;
             createdWI.Relations.Add(new WorkItemRelation()
             {
@@ -780,6 +853,46 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
+        public void When_calling_correct_acceptance_criteria_for_user_story_Then_acceptance_criteria_is_updated_with_correct_image_urls()
+        {
+            string acceptanceCriteriaBeforeTransformation = "My description, including file: <img src=\"C:\\Temp\\workspace\\Attachments\\100\\my_image.png\">";
+            string acceptanceCriteriaAfterTransformation = "My description, including file: <img src=\"https://example.com/my_image.png\">";
+
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            createdWI.Fields[WiFieldReference.AcceptanceCriteria] = acceptanceCriteriaBeforeTransformation;
+            createdWI.Relations.Add(new WorkItemRelation()
+            {
+                Rel = "AttachedFile",
+                Url = "https://example.com/my_image.png",
+                Attributes = new Dictionary<string, object>() {
+                    { "comment", "Imported from Jira, original ID: 100" }
+                }
+            });
+
+            WiAttachment att = new WiAttachment();
+            att.Change = ReferenceChangeType.Added;
+            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
+            att.AttOriginId = "100";
+
+            WiRevision revision = new WiRevision();
+            revision.Attachments.Add(att);
+
+            WiItem wiItem = new WiItem();
+            wiItem.Revisions = new List<WiRevision>
+            {
+                revision
+            };
+
+            wiUtils.CorrectAcceptanceCriteria(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+
+            Assert.That(createdWI.Fields[WiFieldReference.AcceptanceCriteria], Is.EqualTo(acceptanceCriteriaAfterTransformation));
+        }
+
+
+        [Test]
         public void When_calling_apply_attachments_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
@@ -796,7 +909,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
             WiAttachment att = new WiAttachment();
             att.Change = ReferenceChangeType.Added;
@@ -826,7 +939,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
@@ -858,7 +971,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Relations.Add(new WorkItemRelation()
             {
                 Rel = "AttachedFile",
@@ -889,7 +1002,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.SaveWorkItemAttachments(null, null),
+                () => wiUtils.SaveWorkItemAttachments(null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -900,7 +1013,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.SaveWorkItemFields(null),
+                () => wiUtils.SaveWorkItemFields(null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -910,8 +1023,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            Settings settings = _fixture.Create<Settings>();
 
             // Add attachment
             WiAttachment att = new WiAttachment();
@@ -924,8 +1039,8 @@ namespace Migration.Wi_Import.Tests
             revision.Attachments.Add(att);
 
             // Perform save
-            wiUtils.SaveWorkItemAttachments(revision, createdWI);
-            wiUtils.SaveWorkItemFields(createdWI);
+            wiUtils.SaveWorkItemAttachments(revision, createdWI, settings);
+            wiUtils.SaveWorkItemFields(createdWI, settings);
 
             // Assertions
             Assert.Multiple(() =>
@@ -943,8 +1058,10 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WorkItem createdWI = wiUtils.CreateWorkItem("User Story");
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            Settings settings = _fixture.Create<Settings>();
 
             // Add fields
             createdWI.Fields[WiFieldReference.Title] = "My work item";
@@ -954,8 +1071,8 @@ namespace Migration.Wi_Import.Tests
             WiRevision revision = new WiRevision();
 
             // Perform save
-            wiUtils.SaveWorkItemAttachments(revision, createdWI);
-            wiUtils.SaveWorkItemFields(createdWI);
+            wiUtils.SaveWorkItemAttachments(revision, createdWI, settings);
+            wiUtils.SaveWorkItemFields(createdWI, settings);
 
             WorkItem updatedWI = null;
 
@@ -971,6 +1088,84 @@ namespace Migration.Wi_Import.Tests
                 Assert.That(updatedWI.Fields[WiFieldReference.Description], Is.EqualTo(createdWI.Fields[WiFieldReference.Description]));
                 Assert.That(updatedWI.Fields[WiFieldReference.Priority], Is.EqualTo(createdWI.Fields[WiFieldReference.Priority]));
             });
+        }
+
+        [Test]
+        public void When_calling_save_workitem_artifacts_with_empty_args_Then_an_exception_is_thrown()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            Assert.That(
+                () => wiUtils.SaveWorkItemArtifacts(null, null, null),
+                Throws.InstanceOf<ArgumentException>());
+        }
+
+        [Test]
+        public void When_calling_save_workitem_artifacts_with_populated_workitem_Then_workitem_is_updated_in_store()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+            createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
+
+            WiRevision revision = new WiRevision();
+            revision.Commit = new WiCommit();
+            revision.Commit.Repository = "repository";
+            revision.Commit.Id = "1234567890";
+
+            Settings settings = new Settings("account", "project", "pat");
+
+            // Perform save
+            wiUtils.SaveWorkItemArtifacts(revision, createdWI, settings);
+
+            WorkItem updatedWI = null;
+
+            if (createdWI.Id.HasValue)
+            {
+                updatedWI = wiUtils.GetWorkItem(createdWI.Id.Value);
+            }
+
+            // Assertions
+            Assert.Multiple(() =>
+            {
+                Assert.That(updatedWI.Relations.First().Rel, Is.EqualTo("ArtifactLink"));
+                Assert.That(updatedWI.Relations.First().Url, Is.EqualTo($"vstfs:///Git/Commit/" +
+                    $"{witClientWrapper.projectId}%2F{witClientWrapper.repositoryId}%2F{revision.Commit.Id}"));
+            });
+        }
+
+        [Test]
+        public void EncodeFileNameUsingJiraStandard_encodes_file_name_with_special_characters()
+        {
+            // Arrange
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            string fileName = "My File (Special).txt";
+            string expectedEncodedFileName = "My+File+%28Special%29.txt";
+
+            // Act
+            string encodedFileName = wiUtils.EncodeFileNameUsingJiraStandard(fileName);
+
+            // Assert
+            Assert.AreEqual(expectedEncodedFileName, encodedFileName);
+        }
+
+        [Test]
+        public void EncodeFileNameUsingJiraStandard_encodes_file_name_with_no_special_characters()
+        {
+            // Arrange
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+            string fileName = "MyFile.txt";
+            string expectedEncodedFileName = "MyFile.txt";
+
+            // Act
+            string encodedFileName = wiUtils.EncodeFileNameUsingJiraStandard(fileName);
+
+            // Assert
+            Assert.AreEqual(expectedEncodedFileName, encodedFileName);
         }
     }
 }

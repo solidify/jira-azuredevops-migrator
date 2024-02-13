@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Migration.WIContract;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Migration.WIContract;
 
 namespace Migration.Common
 {
@@ -40,7 +40,7 @@ namespace Migration.Common
             if (fields.Count == 0)
                 return default(T);
 
-            var value = fields.FirstOrDefault(x => x.ReferenceName.Equals(refName));
+            var value = fields.Find(x => x.ReferenceName.Equals(refName));
 
             if (value == null)
                 return default(T);
@@ -59,7 +59,7 @@ namespace Migration.Common
             if (fields.Count == 0)
                 return false;
 
-            if (fields.Any(f => f.ReferenceName.Equals(refName, StringComparison.InvariantCultureIgnoreCase)))
+            if (fields.Exists(f => f.ReferenceName.Equals(refName, StringComparison.InvariantCultureIgnoreCase)))
                 return true;
 
             return false;

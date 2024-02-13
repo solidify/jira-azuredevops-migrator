@@ -1,18 +1,17 @@
-﻿using NUnit.Framework;
-
-using JiraExport;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using Migration.WIContract;
 using Common.Config;
-using System.Collections.Generic;
+using JiraExport;
 using Migration.Common;
 using Migration.Common.Config;
+using Migration.WIContract;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using NUnit.Framework;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Type = Migration.Common.Config.Type;
 using System.Linq;
+using Type = Migration.Common.Config.Type;
 
 namespace Migration.Jira_Export.Tests
 {
@@ -78,15 +77,15 @@ namespace Migration.Jira_Export.Tests
             }");
             var renderedFields = JObject.Parse("{ 'custom_field_name': 'SomeValue', 'description': 'RenderedDescription' }");
 
-            var changelog = new List<JObject>() { 
-                new HistoryItem() 
+            var changelog = new List<JObject>() {
+                new HistoryItem()
                 {
                     Field = "Epic Link",
                     FieldType = "custom",
                     To = epicId,
                     ToString = epicKey
                 }.ToJObject(),
-                new HistoryItem() 
+                new HistoryItem()
                 {
                     Id = 1,
                     Field = "Parent",
@@ -169,7 +168,16 @@ namespace Migration.Jira_Export.Tests
             JiraItem jiraItem = createJiraItem();
             JiraMapper sut = createJiraMapper();
 
-            Assert.Throws<System.ArgumentNullException>(() => { sut.MapAttachments (null); });
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapAttachments(null); });
+        }
+
+        [Test]
+        public void When_calling_mapfields_with_null_arguments_Then_and_exception_is_thrown()
+        {
+            JiraItem jiraItem = createJiraItem();
+            JiraMapper sut = createJiraMapper();
+
+            Assert.Throws<System.ArgumentNullException>(() => { sut.MapFields(null); });
         }
 
         [Test]
@@ -188,12 +196,23 @@ namespace Migration.Jira_Export.Tests
         }
 
         [Test]
-        public void When_calling_mapfields_with_null_arguments_Then_and_exception_is_thrown()
+        public void When_calling_truncatefields_with_too_long_title_Then_a_truncated_title_returned()
         {
-            JiraItem jiraItem = createJiraItem();
-            JiraMapper sut = createJiraMapper();
+            string sourceTitle =
+                "test task with max name length - 0123456789012345678901234567890123456789012345"
+                + "678901234567890123456789012345678901234567890123456789012345678901234567890123"
+                + "456789012345678901234567890123456789012345678901234567890123456789012345678901"
+                + "23456789012345678901234567890";
+            string expected =
+                "test task with max name length - 0123456789012345678901234567890123456789012345"
+                + "678901234567890123456789012345678901234567890123456789012345678901234567890123"
+                + "456789012345678901234567890123456789012345678901234567890123456789012345678901"
+                + "23456789012345678...";
 
-            Assert.Throws<System.ArgumentNullException>(() => { sut.MapFields(null); });
+            JiraMapper sut = createJiraMapper();
+            string actual = (string)sut.TruncateField(sourceTitle, WiFieldReference.Title);
+
+            Assert.AreEqual(expected, actual);
         }
 
         [Test]
@@ -205,16 +224,18 @@ namespace Migration.Jira_Export.Tests
 
             JiraMapper sut = createJiraMapper();
 
+            var exportIssuesSummary = new ExportIssuesSummary();
+
             var expected = expectedDictionary;
-            var actual = sut.InitializeFieldMappings();
+            var actual = sut.InitializeFieldMappings(exportIssuesSummary);
 
             Assert.AreEqual(expected, actual);
         }
 
         private JiraSettings createJiraSettings()
         {
-            JiraSettings settings = new JiraSettings("userID", "pass", "url", "project");
-            settings.EpicLinkField = "EpicLinkField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
+            settings.EpicLinkField = "Epic Link";
             settings.SprintField = "SprintField";
 
             return settings;
@@ -226,7 +247,7 @@ namespace Migration.Jira_Export.Tests
             provider.GetSettings().ReturnsForAnyArgs(createJiraSettings());
 
             ConfigJson cjson = new ConfigJson();
-            
+
             FieldMap f = new FieldMap();
             f.Fields = new List<Field>();
             cjson.FieldMap = f;
@@ -246,7 +267,17 @@ namespace Migration.Jira_Export.Tests
             linkMap.Links.AddRange(new Link[] { epicLinkMap, parentLinkMap });
             cjson.LinkMap = linkMap;
 
-            JiraMapper sut = new JiraMapper(provider, cjson);
+            RepositoryMap repositoryMap = new RepositoryMap();
+            repositoryMap.Repositories = new List<Repository>();
+            Repository repository = new Repository();
+            repository.Source = "Sample Repository";
+            repository.Target = "Destination Repository";
+            repositoryMap.Repositories.Add(repository);
+            cjson.RepositoryMap = repositoryMap;
+
+            var exportIssuesSummary = new ExportIssuesSummary();
+
+            JiraMapper sut = new JiraMapper(provider, cjson, exportIssuesSummary);
 
             return sut;
         }

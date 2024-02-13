@@ -1,8 +1,7 @@
-﻿using NUnit.Framework;
-
-using JiraExport;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
+using JiraExport;
+using NUnit.Framework;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -38,7 +37,7 @@ namespace Migration.Jira_Export.Tests
         {
             string[] args = new string[] {
                 "-u",
-                "alexander.hjelm@solidify.dev",
+                "john.doe@solidify.dev",
                 "-p",
                 "XXXXXXXXXXXXXXXXXXXXXXXX",
                 "--url",
@@ -49,7 +48,7 @@ namespace Migration.Jira_Export.Tests
 
             var sut = new JiraCommandLine(args);
 
-            Assert.That(() => sut.Run(), !Throws.InstanceOf<Exception>());
+            Assert.AreEqual(-1, sut.Run());
         }
     }
 }

@@ -1,11 +1,10 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System.Collections.Generic;
 using NSubstitute;
-using System.IO.Abstractions;
+using NUnit.Framework;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Abstractions;
 
 namespace Migration.Common.Tests
 {

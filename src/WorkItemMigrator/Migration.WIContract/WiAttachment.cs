@@ -24,7 +24,7 @@ namespace Migration.WIContract
         }
         public override string ToString()
         {
-            return $"[{Change.ToString()}] {AttOriginId}/{FileName}";
+            return $"[{Change}] {AttOriginId}/{FileName}";
         }
     }
 }

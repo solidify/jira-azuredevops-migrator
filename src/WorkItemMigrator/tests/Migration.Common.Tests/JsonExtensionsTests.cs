@@ -1,8 +1,7 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 using System;
 using System.Diagnostics.CodeAnalysis;
 

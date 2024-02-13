@@ -1,17 +1,15 @@
-﻿using System;
+﻿using Atlassian.Jira;
+using Atlassian.Jira.Remote;
+using Migration.Common;
+using Migration.Common.Log;
+using Newtonsoft.Json.Linq;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using Atlassian.Jira;
-using Atlassian.Jira.Remote;
-using Migration.Common;
-using Migration.Common.Log;
-
-using Newtonsoft.Json.Linq;
-
-using RestSharp;
 
 namespace JiraExport
 {
@@ -38,6 +36,8 @@ namespace JiraExport
 
         public JiraSettings Settings { get; private set; }
 
+        public ExportIssuesSummary exportIssuesSummary { get; private set; }
+
         public IEnumerable<IssueLinkType> LinkTypes { get; private set; }
 
         public JiraProvider(IJiraServiceWrapper jiraServiceWrapper)
@@ -45,7 +45,7 @@ namespace JiraExport
             _jiraServiceWrapper = jiraServiceWrapper;
         }
 
-        public void Initialize(JiraSettings settings)
+        public void Initialize(JiraSettings settings, ExportIssuesSummary exportIssuesSummary)
         {
             Settings = settings;
 
@@ -53,6 +53,10 @@ namespace JiraExport
             try
             {
                 _jiraServiceWrapper.Fields.GetCustomFieldsAsync().Wait();
+            }
+            catch (AggregateException e)
+            {
+                Logger.Log(e, "Failed to retrieve fields from Jira (Response was not recognized as JSON). This usually indicates a problem with authentication or authorization. Check your Jira credentials and permissions.");
             }
             catch (Exception e)
             {
@@ -86,11 +90,10 @@ namespace JiraExport
             return _jiraServiceWrapper.Issues.GetCommentsAsync(itemKey).Result;
         }
 
-        public bool GetCustomField(string fieldName, out CustomField customField)
+        public CustomField GetCustomField(string fieldName)
         {
             bool found = _jiraServiceWrapper.RestClient.Settings.Cache.CustomFields.TryGetValue(fieldName, out CustomField cF);
-            customField = cF;
-            return found;
+            return found ? cF : null;
         }
 
         public bool GetCustomFieldSerializer(string customType, out ICustomFieldValueSerializer serializer)
@@ -170,7 +173,15 @@ namespace JiraExport
             {
                 using (var file = File.Create(fileFullPath))
                 {
-                    await stream.CopyToAsync(file);
+                    try
+                    {
+                        await stream.CopyToAsync(file);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e, $"Error while writing attachment to file: {fileFullPath}. Releasing file lock anyway.");
+                    }
+                    file.Close();
                 }
             }
         }
@@ -332,7 +343,7 @@ namespace JiraExport
         {
             var attChanges = rev.AttachmentActions;
 
-            if (attChanges != null && attChanges.Any(a => a.ChangeType == RevisionChangeType.Added))
+            if (attChanges != null && attChanges.Exists(a => a.ChangeType == RevisionChangeType.Added))
             {
                 var downloadedAtts = new List<JiraAttachment>();
 
@@ -370,10 +381,18 @@ namespace JiraExport
                 var isUserEmailMissing = string.IsNullOrEmpty(user.Email);
                 if (isUserEmailMissing)
                 {
-                    Logger.Log(LogLevel.Warning,
+                    Logger.Log(LogLevel.Info,
                         Settings.UsingJiraCloud
-                            ? $"Email is not public for user '{usernameOrAccountId}' in Jira, using usernameOrAccountId '{usernameOrAccountId}' for mapping."
-                            : $"Email for user '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");
+                            ? $"Email is not public for user '{usernameOrAccountId}' in Jira," +
+                            $" using usernameOrAccountId '{usernameOrAccountId}' for mapping." +
+                            $" You may safely ignore this warning, unless there is a subsequent warning about" +
+                            $" the username/accountId being missing in the usermapping file."
+                            : $"Email for user '{usernameOrAccountId}' not found in Jira," +
+                            $" using username '{usernameOrAccountId}' for mapping." +
+                            $" You may safely ignore this warning, unless there is a subsequent warning about" +
+                            $" the username/accountId being missing in the usermapping file."
+                    );
+                    exportIssuesSummary.AddUnmappedUser(usernameOrAccountId);
                 }
                 email = isUserEmailMissing ? usernameOrAccountId : user.Email;
                 _userEmailCache.Add(usernameOrAccountId, email);
@@ -381,7 +400,7 @@ namespace JiraExport
             }
             catch (Exception)
             {
-                Logger.Log(LogLevel.Warning,
+                Logger.Log(LogLevel.Info,
                     Settings.UsingJiraCloud
                         ? $"Specified user '{usernameOrAccountId}' does not exist or you do not have required permissions, using accountId '{usernameOrAccountId}'"
                         : $"User '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");
@@ -391,7 +410,7 @@ namespace JiraExport
         }
 
         public string GetCustomId(string propertyName)
-        {   
+        {
             var customId = string.Empty;
             JArray response = null;
 
@@ -424,7 +443,7 @@ namespace JiraExport
                 .ToLookup(l => l.key, l => l.value);
         }
 
-        private string GetItemFromFieldCache(string propertyName, ILookup<string,string> cache)
+        private string GetItemFromFieldCache(string propertyName, ILookup<string, string> cache)
         {
             string customId = null;
             var query = cache.FirstOrDefault(x => x.Key.Equals(propertyName.ToLower()));
@@ -437,6 +456,12 @@ namespace JiraExport
                 }
             }
             return customId;
+        }
+
+        public IEnumerable<JObject> GetCommitRepositories(string issueId)
+        {
+            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"/rest/dev-status/latest/issue/detail?issueId={issueId}&applicationType=stash&dataType=repository").Result;
+            return response.SelectTokens("$.detail[*].repositories[*]").Cast<JObject>();
         }
     }
 }

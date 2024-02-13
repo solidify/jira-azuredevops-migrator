@@ -1,10 +1,9 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
 using Common.Config;
-using System.IO;
+using NUnit.Framework;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 
 namespace Migration.Common.Tests
 {
