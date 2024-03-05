@@ -5,6 +5,7 @@ using Migration.Common.Log;
 using Migration.WIContract;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Migration.Jira-Export.Tests")]
@@ -136,7 +137,7 @@ namespace JiraExport
                         }
                         else if (dataType == "datetime" || dataType == "date")
                         {
-                            value = IfChanged<DateTime>(item.Source, isCustomField);
+                            value = IfChangedDateTime(item.Source, isCustomField);
                         }
                         else
                         {
@@ -397,6 +398,41 @@ namespace JiraExport
                     else
                     {
                         return (true, (T)value);
+                    }
+                }
+                else
+                {
+                    return (false, null);
+                }
+            };
+        }
+
+        private Func<JiraRevision, (bool, object)> IfChangedDateTime(string sourceField, bool isCustomField, Func<DateTime, object> mapperFunc = null)
+        {
+            if (isCustomField)
+            {
+                sourceField = _jiraProvider.GetCustomId(sourceField) ?? sourceField;
+            }
+
+            return (r) =>
+            {
+                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
+                {
+                    if (mapperFunc != null)
+                    {
+                        return (true, mapperFunc((DateTime)value));
+                    }
+                    else
+                    {
+                        if (DateTime.TryParseExact(value.ToString(), "dd/MMM/yy", CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.None, out DateTime result))
+                        {
+                            return (true, result.ToUniversalTime());
+                        }
+                        else
+                        {
+                            return (true, value);
+                        }
                     }
                 }
                 else
