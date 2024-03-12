@@ -54,11 +54,11 @@ Contact us at [support.jira-migrator@solidify.dev](mailto:support.jira-migrator@
 | | Free |  PRO | Solidify Atlassian Migration Suite |
 |-------------------------------|--------------------------|--------------------------|--------------------------|
 | Price | Free | $1000/Month | $3000/Month |
-| **Jira Azure DevOps Migrator, Community Edition** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| **Jira Azure DevOps Migrator, PRO features** | :x: | :heavy_check_mark: | :heavy_check_mark: |
-| **Jira Azure DevOps Migrator Bootstrapper**    | :x: | :heavy_check_mark: | :heavy_check_mark: |
-| **Jira Test Management Migrator**    | :x: | :x: |  :heavy_check_mark: |
-| **Confluence to Azure DevOps Wikis Migrator**    | :x: | :x: |  :heavy_check_mark: |
+| **Jira Azure DevOps Migrator, Community Edition** | ✔️ | ✔️ | ✔️ |
+| **Jira Azure DevOps Migrator, PRO features** | ❌ | ✔️ | ✔️ |
+| **Jira Azure DevOps Migrator Bootstrapper**    | ❌ | ✔️ | ✔️ |
+| **Jira Test Management Migrator**    | ❌ | ❌ |  ✔️ |
+| **Confluence to Azure DevOps Wikis Migrator**    | ❌ | ❌ |  ✔️ |
 | |  |  |  |
 | **Updates and Upgrades**      | Regular                  | Continuous                | Continuous               |
 | **Training Resources**        | Documentation            | Interactive training material | Interactive training material |
