@@ -1,8 +1,10 @@
-﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+﻿using Microsoft.TeamFoundation.Work.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using Migration.Common;
+using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
 using System;
@@ -625,20 +627,44 @@ namespace WorkItemImport
             {
                 throw new ArgumentException(nameof(wi));
             }
+            
+            if (wi.Fields.TryGetValue(WiFieldReference.BoardColumn, out var value))
+            {
+                wi.Fields.Remove(WiFieldReference.BoardColumn);  // the API refuses to update this field directly
+                var itemType = wi.Fields[WiFieldReference.WorkItemType]?.ToString();  // used for logging
+                var kanbanField = wi.Fields.Keys.FirstOrDefault(k => k.EndsWith("_Kanban.Column")); // kanban field is the real board-column field
+
+                if (wi.Rev == 0)
+                {
+                    Logger.Log(LogLevel.Warning, $"Work Item {wi.Id}, rev {wi.Rev} - BoardColumn can not be set to '{value}' because " +
+                                                 $"items with only one revision are not supported by this feature.");
+                }
+                else if (string.IsNullOrWhiteSpace(kanbanField))
+                {
+                    Logger.Log(LogLevel.Warning, $"Work Item {wi.Id}, rev {wi.Rev} - BoardColumn can not be set to '{value}' because " +
+                                                 $"items of type '{itemType}' are not supported by this feature.");
+                }
+                else
+                {
+                    Logger.Log(LogLevel.Debug, $"Work Item {wi.Id}, rev {wi.Rev} - Setting BoardColumn to '{value}'.");
+                    wi.Fields[kanbanField] = value;
+                }
+            }
 
             // Build json patch document from fields
             JsonPatchDocument patchDocument = new JsonPatchDocument();
             foreach (string key in wi.Fields.Keys)
             {
                 if (new string[] {
-                    WiFieldReference.BoardColumn,
                     WiFieldReference.BoardColumnDone,
                     WiFieldReference.BoardLane,
                 }.Contains(key))
+                {
+                    Logger.Log(LogLevel.Debug, $"Work Item {wi.Id} importing field {key} is not supported.");
                     continue;
+                }
 
                 object val = wi.Fields[key];
-
                 if (val == null || val.ToString() == "")
                 {
                     patchDocument.Add(

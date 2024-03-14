@@ -34,10 +34,18 @@ namespace WorkItemImport
             foreach (var wi in _context.EnumerateAllItems())
             {
                 Logger.Log(LogLevel.Debug, $"Analyzing item '{wi.OriginId}'.");
+                RevisionReference lastRevision = null;
                 foreach (var rev in wi.Revisions)
                 {
                     var revRef = new RevisionReference() { OriginId = wi.OriginId, RevIndex = rev.Index, Time = rev.Time };
+                    lastRevision = revRef;
                     actionPlan.Add(revRef);
+                }
+
+                if (lastRevision != null)
+                {
+                    // mark the last revision as final.
+                    lastRevision.IsFinal = true;
                 }
             }
             actionPlan.Sort();

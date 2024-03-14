@@ -106,6 +106,7 @@ namespace WorkItemImport
 
                 var executionBuilder = new ExecutionPlanBuilder(context);
                 var plan = executionBuilder.BuildExecutionPlan();
+                var boardColumnCollector = new BoardColumnCollector();
 
                 itemCount = plan.ReferenceQueue.AsEnumerable().Select(x => x.OriginId).Distinct().Count();
                 revisionCount = plan.ReferenceQueue.Count;
@@ -132,6 +133,8 @@ namespace WorkItemImport
 
                         importedItems++;
 
+                        boardColumnCollector.ProcessFields(executionItem);
+
                         if (config.IgnoreEmptyRevisions &&
                             executionItem.Revision.Fields.Count == 0 &&
                             executionItem.Revision.Links.Count == 0 &&
@@ -141,9 +144,9 @@ namespace WorkItemImport
                             continue;
                         }
 
-                        agent.ImportRevision(executionItem.Revision, wi, settings);
+                        agent.ImportRevision(executionItem.Revision, wi, settings, executionItem.IsFinal);
 
-                        // Artifical wait (optional) to avoid throttling for ADO Services
+                        // Artificial wait (optional) to avoid throttling for ADO Services
                         if (config.SleepTimeBetweenRevisionImportMilliseconds > 0)
                         {
                             Thread.Sleep(config.SleepTimeBetweenRevisionImportMilliseconds);
@@ -183,6 +186,7 @@ namespace WorkItemImport
             }
             return succeeded;
         }
+
 
         private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount, int revisionCount)
         {
