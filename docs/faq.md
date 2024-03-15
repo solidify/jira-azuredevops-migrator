@@ -95,8 +95,21 @@ See <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/conf
 
 When running multiple migrations, one after another, we recommend following the below guidelines:
 
-- Use one separate `workspace` folder per migration.
+- Use one separate **config file** and one separate `workspace` folder per migration.
 - For every completed migration, locate the `itemsJournal.txt` file inside your `workspace` folder. Copy this file to the workspace folder of the next migration. Then proceed with the net migration. This will ensure that you do not get duplicates, and any cross-project or cross-query links will be intact.
+
+#### Example, run schedule for migrating multiple projects
+
+For example, let us say you are migrating the Jira projects A, B and C in sequence, to the target ADO projects A1, B1 and C2. The schedule would then look something like below:
+
+1. Export project A into **workspaceA**
+2. Import project A1
+3. Copy `itemsJournal.txt` from **workspaceA** to **workspaceB**
+4. Export project B into **workspaceB**
+5. Import project B1
+6. Copy `itemsJournal.txt` from **workspaceB** to **workspaceC**
+7. Export project C into **workspaceC**
+8. Import project C1
 
 ## 5. How to migrate custom fields having dropdown lists?
 
