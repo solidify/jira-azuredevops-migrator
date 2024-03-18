@@ -8,6 +8,7 @@ using Migration.WIContract;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -303,6 +304,108 @@ namespace Migration.Jira_Export.Tests
             JiraItem jiraItem = JiraItem.CreateFromRest(issueKey, provider);
 
             return jiraItem;
+        }
+
+
+        /*
+         * ******* IfChanged<T>()  ******
+         */
+
+        [Test]
+        public void IfChanged_SourceFieldExists_ReturnsTrueAndValue()
+        {
+            // Arrange
+            var jiraMapper = createJiraMapper();
+            //var revision = Substitute.For<JiraRevision>();
+            var item = _fixture.Create<JiraItem>();
+            var revision = new JiraRevision(parentItem: null);
+            revision.Fields = new Dictionary<string, object>();
+            revision.Fields.Add("sourceField", "value");
+
+            // Act
+            var (boolResult, valueResult) = jiraMapper.IfChanged<string>("sourceField", false) (revision);
+
+            // Assert
+            Assert.IsTrue(boolResult);
+            Assert.AreEqual("value", valueResult);
+        }
+
+        [Test]
+        public void IfChanged_SourceFieldDoesNotExist_ReturnsFalseAndNull()
+        {
+            // Arrange
+            var jiraMapper = createJiraMapper();
+            var item = _fixture.Create<JiraItem>();
+            var revision = new JiraRevision(parentItem: null);
+            revision.Fields = new Dictionary<string, object>();
+
+            // Act
+            var (boolResult, valueResult) = jiraMapper.IfChanged<string>("sourceField", false) (revision);
+
+            // Assert
+            Assert.IsFalse(boolResult);
+            Assert.IsNull(valueResult);
+        }
+
+        [Test]
+        public void IfChanged_CustomFieldExists_ReturnsTrueAndValue()
+        {
+            // Arrange
+            var jiraMapper = createJiraMapper();
+            var item = _fixture.Create<JiraItem>();
+            var revision = new JiraRevision(parentItem: null);
+            revision.Fields = new Dictionary<string, object>();
+            revision.Fields.Add("customField", "value");
+
+            var jiraProvider = Substitute.For<IJiraProvider>();
+            jiraProvider.GetCustomIdList("customField").Returns(new List<string> { "customField" });
+
+            // Act
+            var (boolResult, valueResult) = jiraMapper.IfChanged<string>("customField", true) (revision);
+
+            // Assert
+            Assert.IsTrue(boolResult);
+            Assert.AreEqual("value", valueResult);
+        }
+
+        [Test]
+        public void IfChanged_CustomFieldDoesNotExist_ReturnsFalseAndNull()
+        {
+            // Arrange
+            var jiraMapper = createJiraMapper();
+            var item = _fixture.Create<JiraItem>();
+            var revision = new JiraRevision(parentItem: null);
+            revision.Fields = new Dictionary<string, object>();
+
+            //_jiraProvider.GetCustomIdList("customField").Returns(new List<string> { "customField" });
+
+            // Act
+            var (boolResult, valueResult) = jiraMapper.IfChanged<string>("customField", true) (revision);
+
+            // Assert
+            Assert.IsFalse(boolResult);
+            Assert.IsNull(valueResult);
+        }
+
+        [Test]
+        public void IfChanged_SourceFieldExistsWithMapperFunc_ReturnsTrueAndMappedValue()
+        {
+            // Arrange
+            var jiraMapper = createJiraMapper();
+            var item = _fixture.Create<JiraItem>();
+            var revision = new JiraRevision(parentItem: null);
+            revision.Fields = new Dictionary<string, object>();
+            revision.Fields.Add("sourceField", 10);
+
+            // mapper takes expected 10 value and concatenates "XX" on the end.
+            Func<int, object> mapperFunc = (value) => value.ToString() + "XX";  
+
+            // Act
+            var (boolResult, valueResult) = jiraMapper.IfChanged<int>("sourceField", false, mapperFunc) (revision);
+
+            // Assert
+            Assert.IsTrue(boolResult);
+            Assert.AreEqual("10XX", valueResult);
         }
     }
 }

@@ -29,7 +29,11 @@ namespace JiraExport
 
         bool GetCustomFieldSerializer(string customType, out ICustomFieldValueSerializer serializer);
 
+        /// <inheritdoc cref="JiraProvider.GetCustomId"/>
         string GetCustomId(string propertyName);
+        /// <inheritdoc cref="JiraProvider.GetCustomIdList"/>
+        List<string> GetCustomIdList(string propertyName);
+        
         Task<List<RevisionAction<JiraAttachment>>> DownloadAttachments(JiraRevision rev);
 
         IEnumerable<JObject> GetCommitRepositories(string issueId);
