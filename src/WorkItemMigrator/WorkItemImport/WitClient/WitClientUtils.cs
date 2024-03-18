@@ -814,6 +814,17 @@ namespace WorkItemImport
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = "" });
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = "" });
             }
+
+            if (wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && !revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ActivatedDate))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = rev.Time });
+
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ActivatedBy))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = rev.Author });
+            }
+
+
         }
 
         private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi, Settings settings, DateTime? changedDate = null, string changedBy = "")
