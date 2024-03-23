@@ -203,7 +203,7 @@
           "source": "fixversions",
           "source-type": "name",
           "target": "Custom.FixVersion",
-          "for": "Bug,Feature"
+          "for": "Bug,Feature,Task,User Story"
         },
         {
           "source": "alexander-custom-html",
