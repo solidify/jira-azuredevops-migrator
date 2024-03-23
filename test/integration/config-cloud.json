@@ -55,7 +55,7 @@
         },
         {
           "source": "Task",
-          "target": "Task"
+          "target": "User Story"
         },
         {
             "source": "Sub-task",
