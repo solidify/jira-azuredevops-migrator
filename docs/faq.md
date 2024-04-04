@@ -97,6 +97,7 @@ When running multiple migrations, one after another, we recommend following the 
 
 - Use one separate **config file** and one separate `workspace` folder per migration.
 - For every completed migration, locate the `itemsJournal.txt` file inside your `workspace` folder. Copy this file to the workspace folder of the next migration. Then proceed with the net migration. This will ensure that you do not get duplicates, and any cross-project or cross-query links will be intact.
+- When running the **wi-import**, do not use the `--force` flag (**Important!**)
 
 #### Example, run schedule for migrating multiple projects
 
