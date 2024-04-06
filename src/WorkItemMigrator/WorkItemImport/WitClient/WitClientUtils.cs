@@ -20,7 +20,7 @@ namespace WorkItemImport
         private const string Forward = "Forward";
         private const string Reverse = "Reverse";
         private const string AttachedFile = "AttachedFile";
-        private const string Comment = "Comment";
+        private const string Comment = "comment";
 
         public WitClientUtils(IWitClientWrapper witClientWrapper)
         {
