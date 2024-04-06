@@ -17,6 +17,8 @@ namespace WorkItemImport
     public class WitClientUtils
     {
         private readonly IWitClientWrapper _witClientWrapper;
+        private const string Forward = "Forward";
+        private const string Reverse = "Reverse";
 
         public WitClientUtils(IWitClientWrapper witClientWrapper)
         {
@@ -87,11 +89,11 @@ namespace WorkItemImport
                     {
                         if (ex2.Message.Contains("TF201036: You cannot add a Child link between work items"))
                         {
-                            ForceSwapLinkAndSave(link, wi, ex2, settings, "Forward", GetWorkItem(link.TargetWiId), "child");
+                            ForceSwapLinkAndSave(link, wi, ex2, settings, Forward, GetWorkItem(link.TargetWiId), "child");
                         }
                         else if (ex2.Message.Contains("TF201036: You cannot add a Parent link between work items"))
                         {
-                            ForceSwapLinkAndSave(link, wi, ex2, settings, "Reverse", GetWorkItem(link.SourceWiId), "parent");
+                            ForceSwapLinkAndSave(link, wi, ex2, settings, Reverse, GetWorkItem(link.SourceWiId), "parent");
                         }
                         else
                         {
@@ -730,7 +732,7 @@ namespace WorkItemImport
 
             foreach (var att in filteredRelations)
             {
-                string fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                string fileName = att.FilePath.Split('\\').Last() ?? string.Empty;
                 string encodedFileName = EncodeFileNameUsingJiraStandard(fileName);
                 string restApiUrlOption = "/rest/api/3/attachment/content/" + att.AttOriginId;
                 if (
@@ -1083,13 +1085,13 @@ namespace WorkItemImport
 
         private string GetReverseLinkTypeReferenceName(string referenceName)
         {
-            if (referenceName.Contains("Forward"))
+            if (referenceName.Contains(Forward))
             {
-                return referenceName.Replace("Forward", "Reverse");
+                return referenceName.Replace(Forward, Reverse);
             }
             else
             {
-                return referenceName.Replace("Reverse", "Forward");
+                return referenceName.Replace(Reverse, Forward);
             }
         }
 
