@@ -61,26 +61,30 @@ namespace JiraExport
                 Dictionary<string, object> fieldChanges = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
-                foreach (var item in items)
+
+                if (items != null)
                 {
-                    switch (item.Field)
+                    foreach (var item in items)
                     {
-                        case "Epic Link" when !string.IsNullOrWhiteSpace(epicLinkField):
-                            HandleCustomFieldChange(item, epicLinkField, fieldChanges, fields);
-                            break;
-                        case "Parent":
-                        case "IssueParentAssociation":
-                            HandleCustomFieldChange(item, "parent", fieldChanges, fields);
-                            break;
-                        case "Link":
-                            HandleLinkChange(item, issueKey, jiraProvider, linkChanges, links);
-                            break;
-                        case "Attachment":
-                            HandleAttachmentChange(item, attachmentChanges, attachments);
-                            break;
-                        default:
-                            HandleFieldChange(item, jiraProvider, fieldChanges, fields);
-                            break;
+                        switch (item.Field)
+                        {
+                            case "Epic Link" when !string.IsNullOrWhiteSpace(epicLinkField):
+                                HandleCustomFieldChange(item, epicLinkField, fieldChanges, fields);
+                                break;
+                            case "Parent":
+                            case "IssueParentAssociation":
+                                HandleCustomFieldChange(item, "parent", fieldChanges, fields);
+                                break;
+                            case "Link":
+                                HandleLinkChange(item, issueKey, jiraProvider, linkChanges, links);
+                                break;
+                            case "Attachment":
+                                HandleAttachmentChange(item, attachmentChanges, attachments);
+                                break;
+                            default:
+                                HandleFieldChange(item, jiraProvider, fieldChanges, fields);
+                                break;
+                        }
                     }
                 }
 

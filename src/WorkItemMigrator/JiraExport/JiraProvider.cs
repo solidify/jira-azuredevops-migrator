@@ -217,10 +217,10 @@ namespace JiraExport
                 }
                 if (response != null)
                 {
-                    remoteIssueBatch = response?.SelectTokens("$.issues[*]").OfType<JObject>()
+                    remoteIssueBatch = response.SelectTokens("$.issues[*]").OfType<JObject>()
                                             .Select(i => i.SelectToken("$.key").Value<string>());
 
-                    if (remoteIssueBatch == null)
+                    if (remoteIssueBatch == null || remoteIssueBatch.Any())
                     {
                         Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
                         break;

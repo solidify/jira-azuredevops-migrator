@@ -116,7 +116,7 @@ namespace WorkItemImport
                         _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
                 }
 
-                if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
+                if (rev.Attachments.Exists(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev}'.");
 
@@ -440,7 +440,7 @@ namespace WorkItemImport
             }
 
             var path = fullName.Split('/');
-            var name = path.Last();
+            var name = path[path.Length - 1];
             var parent = string.Join("/", path.Take(path.Length - 1));
 
             if (!string.IsNullOrEmpty(parent))
@@ -622,9 +622,9 @@ namespace WorkItemImport
 
             if (settings.IncludeLinkComments)
             {
-                if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
+                if (rev.Links.Exists(l => l.Change == ReferenceChangeType.Removed))
                     wi.Fields[WiFieldReference.History] = $"Removed link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
-                else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
+                else if (rev.Links.Exists(l => l.Change == ReferenceChangeType.Added))
                     wi.Fields[WiFieldReference.History] = $"Added link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
             }
 
