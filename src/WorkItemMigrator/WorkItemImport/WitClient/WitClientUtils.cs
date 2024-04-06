@@ -19,6 +19,8 @@ namespace WorkItemImport
         private readonly IWitClientWrapper _witClientWrapper;
         private const string Forward = "Forward";
         private const string Reverse = "Reverse";
+        private const string AttachedFile = "AttachedFile";
+        private const string Comment = "Comment";
 
         public WitClientUtils(IWitClientWrapper witClientWrapper)
         {
@@ -406,16 +408,16 @@ namespace WorkItemImport
             if (op == AttachmentOperation.ADD)
             {
                 WorkItemRelation attachmentRelation = new WorkItemRelation();
-                attachmentRelation.Rel = "AttachedFile";
+                attachmentRelation.Rel = AttachedFile;
                 attachmentRelation.Attributes = new Dictionary<string, object>();
-                attachmentRelation.Attributes["comment"] = comment;
+                attachmentRelation.Attributes[Comment] = comment;
                 wi.Relations.Add(attachmentRelation);
             }
             else
             {
                 WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(
-                    a => a.Rel == "AttachedFile" &&
-                    a.Attributes["comment"].ToString().Split(
+                    a => a.Rel == AttachedFile &&
+                    a.Attributes[Comment].ToString().Split(
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == attOriginId
                 );
                 if (attachmentRelation != default(WorkItemRelation))
@@ -847,7 +849,7 @@ namespace WorkItemImport
                     Path = "/relations/-",
                     Value = new
                     {
-                        rel = "AttachedFile",
+                        rel = AttachedFile,
                         url = attachment.Url,
                         attributes = new
                         {
@@ -881,7 +883,7 @@ namespace WorkItemImport
                 );
             }
 
-            var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
+            var attachments = wi.Relations?.Where(r => r.Rel == AttachedFile) ?? new List<WorkItemRelation>();
             var previousAttachmentsCount = attachments.Count();
 
             WorkItem result = null;
@@ -890,7 +892,7 @@ namespace WorkItemImport
             else
                 throw new MissingFieldException($"Work item ID was null: {wi.Url}");
 
-            var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
+            var newAttachments = result.Relations?.Where(r => r.Rel == AttachedFile);
             var newAttachmentsCount = newAttachments.Count();
 
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
@@ -906,8 +908,8 @@ namespace WorkItemImport
         {
             WorkItemRelation existingAttachmentRelation =
                 wi.Relations?.SingleOrDefault(
-                    a => a.Rel == "AttachedFile" &&
-                    a.Attributes["comment"].ToString().Split(
+                    a => a.Rel == AttachedFile &&
+                    a.Attributes[Comment].ToString().Split(
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == att.AttOriginId
                 );
 
@@ -946,7 +948,7 @@ namespace WorkItemImport
                 );
             }
 
-            IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
+            IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == AttachedFile) ?? new List<WorkItemRelation>();
             int previousAttachmentsCount = existingAttachments.Count();
 
             WorkItem result = null;
@@ -955,7 +957,7 @@ namespace WorkItemImport
             else
                 throw new MissingFieldException($"Work item ID was null: {wi.Url}");
 
-            IEnumerable<WorkItemRelation> newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
+            IEnumerable<WorkItemRelation> newAttachments = result.Relations?.Where(r => r.Rel == AttachedFile);
             int newAttachmentsCount = newAttachments.Count();
 
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
@@ -1043,8 +1045,8 @@ namespace WorkItemImport
             if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
             {
                 return wi.Relations.SingleOrDefault(
-                    a => a.Rel == "AttachedFile" &&
-                    a.Attributes["comment"].ToString().Split(
+                    a => a.Rel == AttachedFile &&
+                    a.Attributes[Comment].ToString().Split(
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == att.AttOriginId
                 );
             }
@@ -1072,7 +1074,7 @@ namespace WorkItemImport
             {
                 var nextWi = GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
                 nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().
-                    Where(rl => rl.Rel != "AttachedFile" && rl.Rel != "Hyperlink").
+                    Where(rl => rl.Rel != AttachedFile && rl.Rel != "Hyperlink").
                     FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
 
                 if (nextWiLink != null && GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
