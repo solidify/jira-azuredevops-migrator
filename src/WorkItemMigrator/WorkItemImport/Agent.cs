@@ -364,7 +364,7 @@ namespace WorkItemImport
             return project;
         }
 
-        private async Task<Operation> WaitForLongRunningOperation(Guid operationId, int interavalInSec = 5, int maxTimeInSeconds = 60, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<Operation> WaitForLongRunningOperation(Guid operationId, int interavalInSec = 5, int maxTimeInSeconds = 60, CancellationToken cancellationToken = default)
         {
             OperationsHttpClient operationsClient = RestConnection.GetClient<OperationsHttpClient>();
             DateTime expiration = DateTime.Now.AddSeconds(maxTimeInSeconds);

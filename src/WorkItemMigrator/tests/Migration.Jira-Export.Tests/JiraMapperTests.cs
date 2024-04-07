@@ -234,9 +234,11 @@ namespace Migration.Jira_Export.Tests
 
         private JiraSettings createJiraSettings()
         {
-            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
-            settings.EpicLinkField = "Epic Link";
-            settings.SprintField = "SprintField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project")
+            {
+                EpicLinkField = "Epic Link",
+                SprintField = "SprintField"
+            };
 
             return settings;
         }
@@ -248,30 +250,42 @@ namespace Migration.Jira_Export.Tests
 
             ConfigJson cjson = new ConfigJson();
 
-            FieldMap f = new FieldMap();
-            f.Fields = new List<Field>();
+            FieldMap f = new FieldMap
+            {
+                Fields = new List<Field>()
+            };
             cjson.FieldMap = f;
 
-            TypeMap t = new TypeMap();
-            t.Types = new List<Type>();
-            Type type = new Type();
-            type.Source = "Story";
-            type.Target = "User Story";
+            TypeMap t = new TypeMap
+            {
+                Types = new List<Type>()
+            };
+            Type type = new Type
+            {
+                Source = "Story",
+                Target = "User Story"
+            };
             t.Types.Add(type);
             cjson.TypeMap = t;
 
-            LinkMap linkMap = new LinkMap();
-            linkMap.Links = new List<Link>();
+            LinkMap linkMap = new LinkMap
+            {
+                Links = new List<Link>()
+            };
             var epicLinkMap = new Link() { Source = "Epic", Target = "System.LinkTypes.Hierarchy-Reverse" };
             var parentLinkMap = new Link() { Source = "Parent", Target = "System.LinkTypes.Hierarchy-Reverse" };
             linkMap.Links.AddRange(new Link[] { epicLinkMap, parentLinkMap });
             cjson.LinkMap = linkMap;
 
-            RepositoryMap repositoryMap = new RepositoryMap();
-            repositoryMap.Repositories = new List<Repository>();
-            Repository repository = new Repository();
-            repository.Source = "Sample Repository";
-            repository.Target = "Destination Repository";
+            RepositoryMap repositoryMap = new RepositoryMap
+            {
+                Repositories = new List<Repository>()
+            };
+            Repository repository = new Repository
+            {
+                Source = "Sample Repository",
+                Target = "Destination Repository"
+            };
             repositoryMap.Repositories.Add(repository);
             cjson.RepositoryMap = repositoryMap;
 
