@@ -32,20 +32,25 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
-            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
-            settings.SprintField = "SprintField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project")
+            {
+                SprintField = "SprintField"
+            };
             provider.GetSettings().ReturnsForAnyArgs(settings);
 
             JiraItem item = JiraItem.CreateFromRest(issueKey, provider);
-            var revision = new JiraRevision(item);
-
-            revision.Fields = new Dictionary<string, object>();
-            revision.Fields["summary"] = revisionSummary;
-            revision.Fields["priority"] = "High";
-            revision.Fields["status"] = "Done";
-            revision.Fields["issuetype"] = issueType;
-            revision.Fields["custom_field_name$Rendered"] = "RenderedValueHere";
-            revision.Fields["description$Rendered"] = "<h>https://example.com</h><span class=\"image-wrap\">span_text<img https://abc.com />image_alt</span><a href=https://123.com class=\"user-hover\" link_meta>link_text</a>";
+            var revision = new JiraRevision(item)
+            {
+                Fields = new Dictionary<string, object>
+                {
+                    ["summary"] = revisionSummary,
+                    ["priority"] = "High",
+                    ["status"] = "Done",
+                    ["issuetype"] = issueType,
+                    ["custom_field_name$Rendered"] = "RenderedValueHere",
+                    ["description$Rendered"] = "<h>https://example.com</h><span class=\"image-wrap\">span_text<img https://abc.com />image_alt</span><a href=https://123.com class=\"user-hover\" link_meta>link_text</a>"
+                }
+            };
 
             return revision;
         }
@@ -198,7 +203,7 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         {
             string[] sprintPath = { "Base", "Segment", "Sprint" };
             object output = FieldMapperUtils.MapSprint(string.Join(",", sprintPath));
-            Assert.AreEqual(sprintPath[sprintPath.Length - 1], output);
+            Assert.AreEqual(sprintPath[^1], output);
         }
 
         [Test]
@@ -359,12 +364,16 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
 
             RevisionAction<JiraAttachment> revisionAction = new RevisionAction<JiraAttachment>();
-            JiraAttachment attachment = new JiraAttachment();
-            attachment.Url = "https://example.com";
+            JiraAttachment attachment = new JiraAttachment
+            {
+                Url = "https://example.com"
+            };
             revisionAction.Value = attachment;
 
-            revision.AttachmentActions = new List<RevisionAction<JiraAttachment>>();
-            revision.AttachmentActions.Add(revisionAction);
+            revision.AttachmentActions = new List<RevisionAction<JiraAttachment>>
+            {
+                revisionAction
+            };
 
             string output = FieldMapperUtils.CorrectRenderedHtmlvalue("" +
                 "<h>https://example.com</h>" +
@@ -407,8 +416,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
 
             RevisionAction<JiraAttachment> revisionAction = new RevisionAction<JiraAttachment>();
-            JiraAttachment attachment = new JiraAttachment();
-            attachment.Url = "https://example.com";
+            JiraAttachment attachment = new JiraAttachment
+            {
+                Url = "https://example.com"
+            };
             revisionAction.Value = attachment;
 
             jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>
@@ -441,8 +452,10 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             var jiraRevision = MockRevisionWithParentItem("issue_key", "My Summary");
 
             RevisionAction<JiraAttachment> revisionAction = new RevisionAction<JiraAttachment>();
-            JiraAttachment attachment = new JiraAttachment();
-            attachment.Url = "https://example.com";
+            JiraAttachment attachment = new JiraAttachment
+            {
+                Url = "https://example.com"
+            };
             revisionAction.Value = attachment;
 
             jiraRevision.AttachmentActions = new List<RevisionAction<JiraAttachment>>

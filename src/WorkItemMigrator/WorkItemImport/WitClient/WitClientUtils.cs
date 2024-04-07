@@ -71,9 +71,11 @@ namespace WorkItemImport
                 {
                     WorkItem targetWorkItem = GetWorkItem(link.TargetWiId);
 
-                    WorkItemRelation relatedLink = new WorkItemRelation();
-                    relatedLink.Rel = parsedLink.ReferenceName;
-                    relatedLink.Url = targetWorkItem.Url;
+                    WorkItemRelation relatedLink = new WorkItemRelation
+                    {
+                        Rel = parsedLink.ReferenceName,
+                        Url = targetWorkItem.Url
+                    };
 
                     relatedLink = ResolveCyclicalLinks(relatedLink, wi);
                     if (!IsDuplicateWorkItemLink(wi.Relations, relatedLink))
@@ -126,11 +128,13 @@ namespace WorkItemImport
                 if (relation.Rel == "System.LinkTypes.Hierarchy-Reverse")
                 {
                     // Remove old link
-                    WiLink linkToRemove = new WiLink();
-                    linkToRemove.Change = ReferenceChangeType.Removed;
-                    linkToRemove.SourceWiId = wiTargetCurrent.Id.Value;
-                    linkToRemove.TargetWiId = int.Parse(relation.Url.Split('/').Last());
-                    linkToRemove.WiType = "System.LinkTypes.Hierarchy-Reverse";
+                    WiLink linkToRemove = new WiLink
+                    {
+                        Change = ReferenceChangeType.Removed,
+                        SourceWiId = wiTargetCurrent.Id.Value,
+                        TargetWiId = int.Parse(relation.Url.Split('/').Last()),
+                        WiType = "System.LinkTypes.Hierarchy-Reverse"
+                    };
                     RemoveAndSaveLink(linkToRemove, wiTargetCurrent, settings);
 
                     // Add new link again
@@ -407,9 +411,11 @@ namespace WorkItemImport
             }
             if (op == AttachmentOperation.ADD)
             {
-                WorkItemRelation attachmentRelation = new WorkItemRelation();
-                attachmentRelation.Rel = AttachedFile;
-                attachmentRelation.Attributes = new Dictionary<string, object>();
+                WorkItemRelation attachmentRelation = new WorkItemRelation
+                {
+                    Rel = AttachedFile,
+                    Attributes = new Dictionary<string, object>()
+                };
                 attachmentRelation.Attributes[Comment] = comment;
                 wi.Relations.Add(attachmentRelation);
             }
@@ -981,7 +987,7 @@ namespace WorkItemImport
                         url = targetWI.Url,
                         attributes = new
                         {
-                            comment = comment
+                            comment
                         }
                     }
                 }

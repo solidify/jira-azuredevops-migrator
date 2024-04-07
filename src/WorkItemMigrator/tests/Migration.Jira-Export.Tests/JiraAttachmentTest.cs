@@ -23,10 +23,11 @@ namespace Migration.Jira_Export.Tests
         [Test]
         public void When_calling_to_string_Then_the_expected_string_value_is_returned()
         {
-            JiraAttachment sut = new JiraAttachment();
-
-            sut.Id = "id";
-            sut.Filename = "name";
+            JiraAttachment sut = new JiraAttachment
+            {
+                Id = "id",
+                Filename = "name"
+            };
 
             string expectedToString = $"{sut.Id}/{sut.Filename}";
 

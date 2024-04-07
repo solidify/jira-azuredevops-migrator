@@ -26,18 +26,18 @@ namespace Migration.Jira_Export.Tests
                 'created': '{Created:yyyy - MM - ddTHH:mm: ss.fffZ}',
                 'items': [
                 {{
-                  'field': {formatJsonValue(Field)},
-                  'fieldtype': {formatJsonValue(FieldType)},
-                  'from': {formatJsonValue(From)},
-                  'fromString': {formatJsonValue(FromString)},
-                  'to': {formatJsonValue(To)},
-                  'toString': {formatJsonValue(ToString)},
+                  'field': {FormatJsonValue(Field)},
+                  'fieldtype': {FormatJsonValue(FieldType)},
+                  'from': {FormatJsonValue(From)},
+                  'fromString': {FormatJsonValue(FromString)},
+                  'to': {FormatJsonValue(To)},
+                  'toString': {FormatJsonValue(ToString)},
                 }}
               ]
             }}");
         }
 
-        private string formatJsonValue(string value)
+        private string FormatJsonValue(string value)
         {
             if (value == null)
                 return "null";
