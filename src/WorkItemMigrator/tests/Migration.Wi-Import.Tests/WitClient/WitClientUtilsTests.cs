@@ -153,9 +153,11 @@ namespace Migration.Wi_Import.Tests
 
             public AttachmentReference CreateAttachment(WiAttachment wiAttachment)
             {
-                AttachmentReference att = new AttachmentReference();
-                att.Id = Guid.NewGuid();
-                att.Url = "https://example.com";
+                AttachmentReference att = new AttachmentReference
+                {
+                    Id = Guid.NewGuid(),
+                    Url = "https://example.com"
+                };
                 return att;
             }
         }
@@ -256,8 +258,10 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = sut.CreateWorkItem("User Story", false);
 
-            IdentityRef assignedTo = new IdentityRef();
-            assignedTo.UniqueName = "Mr. Test";
+            IdentityRef assignedTo = new IdentityRef
+            {
+                UniqueName = "Mr. Test"
+            };
 
             createdWI.Fields[WiFieldReference.AssignedTo] = assignedTo;
 
@@ -337,9 +341,11 @@ namespace Migration.Wi_Import.Tests
                 Index = 1
             };
 
-            WiField revState = new WiField();
-            revState.ReferenceName = WiFieldReference.State;
-            revState.Value = "New";
+            WiField revState = new WiField
+            {
+                ReferenceName = WiFieldReference.State,
+                Value = "New"
+            };
             rev.Fields.Add(revState);
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
@@ -832,18 +838,22 @@ namespace Migration.Wi_Import.Tests
                 }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
-            att.AttOriginId = "100";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png",
+                AttOriginId = "100"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>
+            WiItem wiItem = new WiItem
             {
-                revision
+                Revisions = new List<WiRevision>
+                {
+                    revision
+                }
             };
 
             wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
@@ -871,18 +881,22 @@ namespace Migration.Wi_Import.Tests
                 }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
-            att.AttOriginId = "100";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png",
+                AttOriginId = "100"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>
+            WiItem wiItem = new WiItem
             {
-                revision
+                Revisions = new List<WiRevision>
+                {
+                    revision
+                }
             };
 
             wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
@@ -910,18 +924,22 @@ namespace Migration.Wi_Import.Tests
                 }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
-            att.AttOriginId = "100";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png",
+                AttOriginId = "100"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>
+            WiItem wiItem = new WiItem
             {
-                revision
+                Revisions = new List<WiRevision>
+                {
+                    revision
+                }
             };
 
             wiUtils.CorrectAcceptanceCriteria(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
@@ -987,11 +1005,13 @@ namespace Migration.Wi_Import.Tests
                 Attributes = new Dictionary<string, object>() { { "comment", "Imported from Jira, original ID: 100" } }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Removed;
-            att.FilePath = attachmentFilePath;
-            att.AttOriginId = "100";
-            att.Comment = "My comment";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Removed,
+                FilePath = attachmentFilePath,
+                AttOriginId = "100",
+                Comment = "My comment"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -1019,11 +1039,13 @@ namespace Migration.Wi_Import.Tests
                 Attributes = new Dictionary<string, object>() { { "filePath", attachmentFilePath } }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = attachmentFilePath;
-            att.AttOriginId = "100";
-            att.Comment = "My comment";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = attachmentFilePath,
+                AttOriginId = "100",
+                Comment = "My comment"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -1069,11 +1091,13 @@ namespace Migration.Wi_Import.Tests
             Settings settings = _fixture.Create<Settings>();
 
             // Add attachment
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
-            att.AttOriginId = "100";
-            att.Comment = "My comment";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\MyFiles\\my_image.png",
+                AttOriginId = "100",
+                Comment = "My comment"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -1150,10 +1174,14 @@ namespace Migration.Wi_Import.Tests
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
 
-            WiRevision revision = new WiRevision();
-            revision.Commit = new WiCommit();
-            revision.Commit.Repository = "repository";
-            revision.Commit.Id = "1234567890";
+            WiRevision revision = new WiRevision
+            {
+                Commit = new WiCommit
+                {
+                    Repository = "repository",
+                    Id = "1234567890"
+                }
+            };
 
             Settings settings = new Settings("account", "project", "pat");
 
