@@ -46,7 +46,7 @@ namespace Migration.Jira_Export.Tests
                   'id': '{attachmentId}',
                   'filename': '{attachmentName}',
                   'author': null,
-                  'created': '{DateTime.Now.ToString("yyyy - MM - ddTHH:mm: ss.fffZ")}',
+                  'created': '{DateTime.Now:yyyy - MM - ddTHH:mm: ss.fffZ}',
                   'size': '{_fixture.Create<int>()}',
                   'mimeType': 'image/jpeg',
                   'content': 'https://server/rest/api/2/attachment/{HttpUtility.UrlEncode(attachmentName)}',
