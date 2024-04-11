@@ -491,7 +491,14 @@ namespace JiraExport
                 {
                     value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
                     if (Regex.Match((string)value, "^[;]+$", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Success || (string)value == "")
+                    {
                         value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
+                    }
+                    if(value.ToString().All(c => c == ';'))
+                    {
+                        // Failsafe if all other checks results in an array with correct length but empty elements
+                        value = string.Join(";", prop.Value.Children().ToList());
+                    }
                 }
                 else if (type == Newtonsoft.Json.Linq.JTokenType.Object && prop.Value["value"] != null)
                 {
