@@ -325,9 +325,29 @@ This will set the Iteration path correctly. The final path will be like the foll
 - `<project name>\<base-iteration-path>\<mapped value>`
 - `<project name>\<base-area-path>\<mapped value>`
 
+## 13. How to migrate Development Links (commit, PR, branch)
 
+If you have previously migrated your BitBucket git repositories to your Azure DevOps Server/organization, you can also migrate the development links of the Jira Issues to the corresponding ADO Work Items.
 
-## 13. How to limit the number of issues to be exported during JIRA export (pagination)
+Only **Commit** links are supported as of today (2024-04-12), and no other development link types.
+
+In your configuration file, you must specify the following properties:
+
+```json
+  "include-commits": true,
+  "repository-map": {
+    "repository": [
+      {
+        "source": "repo-name-in-bitbucket",
+        "target": "repo-name-in-ado"
+      }
+    ]
+  },
+```
+
+The **repository-map** must contain a key-value lookup table with the names of the Bitbucket git repositories and their translations in ADO.
+
+## 14. How to limit the number of issues to be exported during JIRA export (pagination)
 
 If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
 
@@ -341,7 +361,7 @@ And so on.
 
 You can always use the **issues** view in your Jira project to experiment with different JQL queries.
 
-## 14. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
+## 15. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
 
 The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 
@@ -364,7 +384,7 @@ curl -D-
  "http://johnie:8081/rest/api/2/search"
 ```
 
-## 15. Azure DevOps Rate and usage limits (ADO Cloud only)
+## 16. Azure DevOps Rate and usage limits (ADO Cloud only)
 
 In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always recommend the following procedure:
 
