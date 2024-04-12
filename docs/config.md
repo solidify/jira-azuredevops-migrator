@@ -36,12 +36,13 @@ The migration configuration file is defined in a json file with the properties d
 |**include-jira-css-styles**|True|boolean|Set to True to generate and include confluence CSS Stylesheets for description, repro steps and comments. Default = True.|
 |**ignore-empty-revisions**|False|boolean|Set to True to ignore importing empty revisions. Empty revisions will be created if you have historical revisions where none of the changed fields or links have been mapped. This may indicate that you have unmapped data, which will not be migrated. Default = False.|
 |**suppress-notifications**|False|boolean|Set to True to suppress all notifications in Azure DevOps about created and updated Work Items. Default = False.|
+|**include-commits**|False|boolean|Set to True to migrated commit links from Jira to Azure DevOps. You will also need to fill out the **repository-map** property. Default = False.|
 |**sleep-time-between-revision-import-milliseconds**|False|integer|How many milliseconds to sleep between each revision import. Use this if throttling is an issue for ADO Services. Default = 0 (no sleep).|
 |**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
 |**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|
 |**field-map**|True|json|List of **fields** you want to migrate from a Jira item to a Azure DevOps/TFS work item.|
-|**repository-map**|True|json|List of **repositories** you want to map from a bitbucket Azure DevOps/TFS.|
+|**repository-map**|True|json|List of **repositories** you want to map from a bitbucket Azure DevOps/TFS. This enables migration of commit links, but only if the **include-commits** property has been set to **true** and the git repositories have already been migrated from BitBucket to Azure DevOps.|
 
 ## Download options
 
@@ -98,7 +99,7 @@ Name-value pairs of field values to map in the migration.
 
 ## Repository properties
 
-Name-value pairs of repositories to map in the migration.
+Name-value pairs of git repositories to map in the migration.
 
 |Name|Required|Type|Description|
 |---|---|---|---|
