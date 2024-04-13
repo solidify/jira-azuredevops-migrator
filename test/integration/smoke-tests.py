@@ -97,7 +97,7 @@ def create_auth_header_ado(PAT):
 ###########################
 
 def list_issues(API_token: str, email: str, jira_url: str, JQL_query: str):
-    api = "{0}/rest/api/2/search?jql={1}&fields=attachment,summary,description,comment,assignee,parent,issuelinks,subtasks,fixVersions,created,updated,priority,status,customfield_10066".format(
+    api = "{0}/rest/api/2/search?jql={1}&fields=attachment,summary,description,comment,assignee,parent,issuelinks,subtasks,fixVersions,created,updated,priority,status,customfield_10066,customfield_10067,customfield_10077,customfield_10101,customfield_10103,customfield_10082,customfield_10084".format(
         jira_url, JQL_query
     )
     headers = {
@@ -209,7 +209,7 @@ def test_date(jira_field_key: str, ado_field_key: str):
         return ec
     return None
 
-def test_field_simple(jira_field_key: str, ado_field_key: str):
+def test_field_named(jira_field_key: str, ado_field_key: str):
     if (
         jira_field_key in jira_issue["fields"]
         and jira_issue["fields"][jira_field_key] != []
@@ -217,6 +217,26 @@ def test_field_simple(jira_field_key: str, ado_field_key: str):
         if (
             ado_work_item["fields"][ado_field_key]
             != jira_issue["fields"][jira_field_key][0]["name"]
+        ):
+            ec = do_error(
+                "Problem for Jira issue '{0}': field '{1}' did not match the target work item. ('{2}' vs '{3}')".format(
+                    jira_issue_mapped_title,
+                    ado_field_key,
+                    jira_issue["fields"][jira_field_key][0]["name"],
+                    ado_work_item["fields"][ado_field_key],
+                )
+            )
+            return ec
+    return None
+
+def test_field_simple(jira_field_key: str, ado_field_key: str):
+    if (
+        jira_field_key in jira_issue["fields"]
+        and jira_issue["fields"][jira_field_key] != None
+    ):
+        if (
+            ado_work_item["fields"][ado_field_key]
+            != jira_issue["fields"][jira_field_key]
         ):
             ec = do_error(
                 "Problem for Jira issue '{0}': field '{1}' did not match the target work item. ('{2}' vs '{3}')".format(
@@ -659,7 +679,7 @@ for jira_issue in jira_issues_json["issues"]:
             and jira_issue["fields"]["fixVersions"] != []
             and jira_issue["fields"]["fixVersions"][0]["name"] == "2021.2.0.296"
         ):
-            if test_field_simple("fixVersions", "Custom.FixVersion") != None:
+            if test_field_named("fixVersions", "Custom.FixVersion") != None:
                 exit_code = 1
 
         # Compare createdDate
@@ -680,7 +700,7 @@ for jira_issue in jira_issues_json["issues"]:
             exit_code = 1
 
         # Compare Story points
-        if test_field_simple("customfield_10014", "Microsoft.VSTS.Scheduling.StoryPoints") != None:
+        if test_field_named("customfield_10014", "Microsoft.VSTS.Scheduling.StoryPoints") != None:
             exit_code = 1
 
         # Compare priority
@@ -715,5 +735,31 @@ for jira_issue in jira_issues_json["issues"]:
                         ado_work_item["fields"]["Microsoft.VSTS.Common.Priority"],
                     )
                 )
+
+        # Compare alexander-testar-plain-text
+        if test_field_simple("customfield_10067", "Custom.CustomPlainText") != None:
+            exit_code = 1
+
+        # Compare alexander-testar-custom-number-field
+        if test_field_simple("customfield_10077", "Custom.CustomNumber") != None:
+            exit_code = 1
+
+        # Compare alexander-testar-custom-rating
+        if test_field_simple("customfield_10101", "Custom.CustomRating") != None:
+            exit_code = 1
+
+        # Compare alexander-testar-custom-slider
+        if test_field_simple("customfield_10103", "Custom.CustomSlider") != None:
+            exit_code = 1
+
+        # Compare alexander-testar-custom-url-field
+        if test_field_simple("customfield_10082", "Custom.CustomUrlField") != None:
+            exit_code = 1
+
+        # Compare alexander-testar-custom-custom-formula
+        if test_field_simple("customfield_10084", "Custom.CustomFormula") != None:
+            exit_code = 1
+
+#alexander-testar-custom-project-picker-single-project   customfield_10100       CustomProjectPickerSingleProject    test_field_named
 
 exit(exit_code)
