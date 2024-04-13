@@ -210,6 +210,128 @@
           "target": "Custom.CustomHtml",
           "source-type": "name",
           "mapper": "MapRendered"
+        },
+        {
+          "source": "alexander-testar-plain-text",
+          "target": "Custom.CustomPlainText",
+          "source-type": "name"
+        },
+        {
+          "source": "alexander-testar-custom-checkboxes",
+          "source-type": "name",
+          "target": "Custom.CustomCheckBoxesMultiSelect",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-date-time-picker",
+          "target": "Custom.CustomDatePicker",
+          "source-type": "name",
+          "type": "datetime"
+        },
+        {
+          "source": "alexander-testar-custom-labels",
+          "source-type": "name",
+          "target": "Custom.CustomLabels",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-number-field",
+          "source-type": "name",
+          "target": "Custom.CustomNumber"
+        },
+        {
+          "source": "alexander-testar-custom-radio-buttons",
+          "source-type": "name",
+          "target": "Custom.CustomRadioButton"
+        },
+        {
+          "source": "alexander-testar-custom-select-list-multiple-choices",
+          "source-type": "name",
+          "target": "Custom.CustomSelectListMultipleChoices",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-select-list-single-choice",
+          "source-type": "name",
+          "target": "Custom.CustomSelectListSingleChoice"
+        },
+        {
+          "source": "alexander-testar-custom-url-field",
+          "source-type": "name",
+          "target": "Custom.CustomUrlField"
+        },
+        {
+          "source": "alexander-testar-custom-boolean",
+          "source-type": "name",
+          "target": "Custom.CustomBoolean"
+        },
+        {
+          "source": "alexander-testar-custom-custom-formula",
+          "source-type": "name",
+          "target": "Custom.CustomFormula"
+        },
+        {
+          "source": "alexander-testar-custom-date-of-first-response",
+          "source-type": "name",
+          "target": "Custom.CustomDateOfFirstResponse"
+        },
+        {
+          "source": "alexander-testar-custom-group-picker-multiple-groups",
+          "source-type": "name",
+          "target": "Custom.CustomGroupPickerMultipleGroups",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-group-picker-single-group",
+          "source-type": "name",
+          "target": "Custom.CustomGroupPickerSingleGroup"
+        },
+        {
+          "source": "alalexander-testar-custom-participants-of-an-issue",
+          "source-type": "name",
+          "target": "Custom.CustomParticipantsOfAnIssueText"
+        },
+        {
+          "source": "alexander-testar-custom-project-picker-single-project",
+          "source-type": "name",
+          "target": "Custom.CustomProjectPickerSingleProject"
+        },
+        {
+          "source": "alexander-testar-custom-rating",
+          "source-type": "name",
+          "target": "Custom.CustomRating"
+        },
+        {
+          "source": "alexander-testar-custom-slider",
+          "source-type": "name",
+          "target": "Custom.CustomSlider"
+        },
+        {
+          "source": "alexander-testar-custom-user-picker-multiple-users",
+          "source-type": "name",
+          "target": "Custom.CustomUserPickerMultipleUsersLongText"
+        },
+        {
+          "source": "alexander-testar-custom-user-property-field-<255-characters",
+          "source-type": "name",
+          "target": "Custom.CustomUserPropertyField255Characters"
+        },
+        {
+          "source": "alexander-testar-custom-username-of-last-updater-or-commenter",
+          "source-type": "name",
+          "target": "Custom.CustomUsernameOfLastUpdaterOrCommenter",
+          "mapper": "MapUser"
+        },
+        {
+          "source": "alexander-testar-custom-version-picker-multiple-versions",
+          "source-type": "name",
+          "target": "Custom.CustomVersionPickerMultipleVersions",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-version-picker-single-version",
+          "source-type": "name",
+          "target": "Custom.CustomVersionPickerSingleVersion"
         }
       ]
     }
