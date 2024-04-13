@@ -504,6 +504,10 @@ namespace JiraExport
                 {
                     value = prop.Value["value"].ToString();
                 }
+                else if (type == Newtonsoft.Json.Linq.JTokenType.Object && prop.Value["name"] != null)
+                {
+                    value = prop.Value["name"].ToString();
+                }
 
                 if (value != null)
                 {
