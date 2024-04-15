@@ -655,12 +655,18 @@ namespace Migration.Jira_Export.Tests
                 { "renderedFields", renderedFields }
             };
 
+            RemoteField r = new RemoteField
+            {
+                id = customFieldId
+            };
+
+            CustomField mockedCustomField = new CustomField(r);
+
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
             var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
-
-            provider.GetCustomId(customFieldName).Returns(customFieldId);
+            provider.GetCustomField(customFieldName).Returns(mockedCustomField);
 
             //Act
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
@@ -709,12 +715,18 @@ namespace Migration.Jira_Export.Tests
                 { "renderedFields", renderedFields }
             };
 
+            RemoteField r = new RemoteField
+            {
+                id = customFieldId
+            };
+
+            CustomField mockedCustomField = new CustomField(r);
+
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
             var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
-
-            provider.GetCustomId(customFieldName).Returns(customFieldId);
+            provider.GetCustomField(customFieldName).Returns(mockedCustomField);
 
             //Act
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
