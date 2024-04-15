@@ -320,7 +320,10 @@ namespace JiraExport
 
         private static string GetCustomFieldId(string fieldName, IJiraProvider jira)
         {
-            return jira.GetCustomId(fieldName);
+            var customField = jira.GetCustomField(fieldName);
+            if (customField != null)
+                return customField.Id;
+            else return null;
         }
 
         protected static string GetCustomFieldName(string fieldId, IJiraProvider jira)
