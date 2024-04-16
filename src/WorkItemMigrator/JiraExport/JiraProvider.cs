@@ -222,7 +222,10 @@ namespace JiraExport
 
                     if (remoteIssueBatch == null || !remoteIssueBatch.Any())
                     {
-                        Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                        if (index == 0)
+                        {
+                            Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                        }
                         break;
                     }
 
