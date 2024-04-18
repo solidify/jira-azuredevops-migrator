@@ -58,9 +58,11 @@ namespace WorkItemImport.WitClient
             }
 
             string url;
+            string nameAttribute;
             if (type == "Commit")
             {
                 url = $"vstfs:///Git/Commit/{projectId}%2F{repositoryId}%2F{developmentLinkId}";
+                nameAttribute = "Fixed in Commit";
             }
             else
             {
@@ -77,7 +79,7 @@ namespace WorkItemImport.WitClient
                     Url = url,
                     Attributes = new Attributes
                     {
-                        Name = "Fixed in Commit"
+                        Name = nameAttribute
                     }
                 }
             };
