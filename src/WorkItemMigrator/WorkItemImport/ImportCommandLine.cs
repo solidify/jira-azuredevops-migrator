@@ -90,7 +90,7 @@ namespace WorkItemImport
                     IgnoreFailedLinks = config.IgnoreFailedLinks,
                     ProcessTemplate = config.ProcessTemplate,
                     IncludeLinkComments = config.IncludeLinkComments,
-                    IncludeCommits = config.IncludeCommits,
+                    IncludeDevelopmentLinks = config.IncludeDevelopmentLinks,
                     FieldMap = config.FieldMap,
                     SuppressNotifications = config.SuppressNotifications
                 };

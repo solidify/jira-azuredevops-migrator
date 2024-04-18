@@ -91,7 +91,7 @@ namespace JiraExport
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
                     JQL = config.Query,
                     UsingJiraCloud = config.UsingJiraCloud,
-                    IncludeCommits = config.IncludeCommits,
+                    IncludeDevelopmentLinks = config.IncludeDevelopmentLinks,
                     RepositoryMap = config.RepositoryMap
                 };
 

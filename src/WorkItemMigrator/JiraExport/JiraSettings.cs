@@ -18,7 +18,7 @@ namespace JiraExport
         public string AttachmentsDir { get; set; }
         public string JQL { get; set; }
         public bool UsingJiraCloud { get; set; }
-        public bool IncludeCommits { get; set; }
+        public bool IncludeDevelopmentLinks { get; set; }
         public RepositoryMap RepositoryMap { get; set; }
 
         public JiraSettings(string userID, string pass, string token, string url, string project)

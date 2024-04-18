@@ -105,15 +105,16 @@ namespace JiraExport
             listOfRevisions.AddRange(commentRevisions);
 
             var settings = jiraProvider.GetSettings();
-            if (settings.IncludeCommits)
+            if (settings.IncludeDevelopmentLinks)
             {
                 if (settings.RepositoryMap == null)
                 {
-                    Logger.Log(LogLevel.Warning, $"IncludeCommits was 'true' in the config, but no RepositoryMap was specified in the config. " +
+                    Logger.Log(LogLevel.Warning, $"IncludeDevelopmentLinks was 'true' in the config, but no RepositoryMap was specified in the config. " +
                         $"Please add a RepositoryMap in order to migrate git artifact links. Git artifacts will be skipped for now...");
                 }
                 else
                 {
+                    // Get development links: commits
                     var commitRepositories = jiraProvider.GetCommitRepositories(jiraItem.Id);
                     foreach (var respository in commitRepositories)
                     {
@@ -122,21 +123,36 @@ namespace JiraExport
                         {
                             var commitCreatedOn = commit.ExValue<DateTime>("$.authorTimestamp");
                             var commitAuthor = GetAuthor(commit as JObject);
-                            var jiraCommit = commit.ToObject<JiraCommit>();
                             var repositoryName = respository.SelectToken("$.name").Value<string>();
                             if (string.IsNullOrEmpty(repositoryName))
                             {
                                 continue;
                             }
 
-                            var hasRespositoryTarget = settings.RepositoryMap.Repositories.Exists(r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
+                            var hasRespositoryTarget = settings.RepositoryMap.Repositories.Exists(
+                                r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
                             if (!hasRespositoryTarget)
                             {
                                 continue;
                             }
 
-                            jiraCommit.Repository = repositoryName;
-                            var commitRevision = new JiraRevision(jiraItem) { Time = commitCreatedOn, Author = commitAuthor, Fields = new Dictionary<string, object>(), Commit = new RevisionAction<JiraCommit>() { ChangeType = RevisionChangeType.Added, Value = jiraCommit } };
+                            var jiraDevelopmentLink = new JiraDevelopmentLink(
+                               repositoryName,
+                               commit.SelectToken("id").ToString(),
+                               commitCreatedOn,
+                               JiraDevelopmentLink.DevelopmentLinkType.Commit
+                           );
+                            var commitRevision = new JiraRevision(jiraItem)
+                            {
+                                Time = commitCreatedOn,
+                                Author = commitAuthor,
+                                Fields = new Dictionary<string, object>(),
+                                DevelopmentLink = new RevisionAction<JiraDevelopmentLink>()
+                                {
+                                    ChangeType = RevisionChangeType.Added,
+                                    Value = jiraDevelopmentLink
+                                }
+                            };
                             listOfRevisions.Add(commitRevision);
                         }
                     }

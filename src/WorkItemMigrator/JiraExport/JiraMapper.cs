@@ -189,18 +189,18 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
-        internal WiCommit MapCommit(JiraRevision jiraRevision)
+        internal WiDevelopmentLink MapDevelopmentLink(JiraRevision jiraRevision)
         {
             if (jiraRevision == null)
                 throw new ArgumentNullException(nameof(jiraRevision));
 
-            if (jiraRevision.Commit == null)
+            if (jiraRevision.DevelopmentLink == null)
             {
                 return null;
             }
 
-            var jiraCommit = jiraRevision.Commit.Value;
-            var respositoryTarget = jiraCommit.Repository;
+            var jiraDevelopmentLink = jiraRevision.DevelopmentLink.Value;
+            var respositoryTarget = jiraDevelopmentLink.Repository;
 
             var respositoryOverride = _config
                 .RepositoryMap
@@ -213,13 +213,14 @@ namespace JiraExport
                 respositoryTarget = respositoryOverride;
             }
 
-            var commit = new WiCommit()
+            var developmentLink = new WiDevelopmentLink()
             {
-                Id = jiraCommit.Id,
+                Id = jiraDevelopmentLink.Id,
                 Repository = respositoryTarget,
+                Type = jiraDevelopmentLink.Type.ToString()
             };
 
-            return commit;
+            return developmentLink;
         }
 
         internal List<WiLink> MapLinks(JiraRevision r)
@@ -348,7 +349,7 @@ namespace JiraExport
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
-            var commit = MapCommit(r);
+            var developmentLink = MapDevelopmentLink(r);
 
             return new WiRevision()
             {
@@ -360,7 +361,7 @@ namespace JiraExport
                 Fields = fields,
                 Links = links,
                 AttachmentReferences = attachments.Any(),
-                Commit = commit
+                DevelopmentLink = developmentLink
             };
         }
 

@@ -1,9 +1,10 @@
 ﻿namespace Migration.WIContract
 {
-    public class WiCommit
+    public class WiDevelopmentLink
     {
         public string Id { get; set; }
         public string Repository { get; set; }
+        public string Type { get; set; }
 
         public override string ToString()
         {
