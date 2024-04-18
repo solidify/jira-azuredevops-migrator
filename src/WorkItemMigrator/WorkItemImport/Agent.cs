@@ -158,10 +158,10 @@ namespace WorkItemImport
                     }
                 }
 
-                // rev with a commit won't have meaningful information, skip saving fields
-                if (rev.Commit != null)
+                // rev with a development link won't have meaningful information, skip saving fields
+                if (rev.DevelopmentLink != null)
                 {
-                    if (settings.IncludeCommits)
+                    if (settings.IncludeDevelopmentLinks)
                     {
                         _witClientUtils.SaveWorkItemArtifacts(rev, wi, settings);
                     }

@@ -1176,10 +1176,11 @@ namespace Migration.Wi_Import.Tests
 
             WiRevision revision = new WiRevision
             {
-                Commit = new WiCommit
+                DevelopmentLink = new WiDevelopmentLink
                 {
                     Repository = "repository",
-                    Id = "1234567890"
+                    Id = "1234567890",
+                    Type = "Commit"
                 }
             };
 
@@ -1200,7 +1201,7 @@ namespace Migration.Wi_Import.Tests
             {
                 Assert.That(updatedWI.Relations.First().Rel, Is.EqualTo("ArtifactLink"));
                 Assert.That(updatedWI.Relations.First().Url, Is.EqualTo($"vstfs:///Git/Commit/" +
-                    $"{witClientWrapper.projectId}%2F{witClientWrapper.repositoryId}%2F{revision.Commit.Id}"));
+                    $"{witClientWrapper.projectId}%2F{witClientWrapper.repositoryId}%2F{revision.DevelopmentLink.Id}"));
             });
         }
 

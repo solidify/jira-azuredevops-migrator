@@ -36,7 +36,7 @@ namespace Migration.Wi_Import.Tests
         public void When_calling_create_json_artifact_link_field_patch_op_with_empty_args_Then_an_exception_is_thrown()
         {
             Assert.That(
-                () => JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, null, null, null),
+                () => JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, null, null, null, null),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -61,7 +61,7 @@ namespace Migration.Wi_Import.Tests
             string projectId = Guid.NewGuid().ToString();
             string repositoryId = Guid.NewGuid().ToString();
             string commitId = Guid.NewGuid().ToString();
-            JsonPatchOperation jsonPatchOp = JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, projectId, repositoryId, commitId);
+            JsonPatchOperation jsonPatchOp = JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, projectId, repositoryId, commitId, "Commit");
             PatchOperationValue artifactLink = jsonPatchOp.Value as PatchOperationValue;
 
             Assert.Multiple(() =>

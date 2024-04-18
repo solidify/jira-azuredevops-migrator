@@ -687,17 +687,23 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(wi));
             }
 
-            if (rev.Commit == null)
+            if (rev.DevelopmentLink == null)
             {
                 return;
             }
 
             Guid projectId = _witClientWrapper.GetProject(settings.Project).Id;
-            Guid repositoryId = _witClientWrapper.GetRepository(settings.Project, rev.Commit.Repository).Id;
+            Guid repositoryId = _witClientWrapper.GetRepository(settings.Project, rev.DevelopmentLink.Repository).Id;
 
             var patchDocument = new JsonPatchDocument
             {
-                JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, projectId.ToString(), repositoryId.ToString(), rev.Commit.Id),
+                JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(
+                    Operation.Add,
+                    projectId.ToString(),
+                    repositoryId.ToString(),
+                    rev.DevelopmentLink.Id,
+                    rev.DevelopmentLink.Type
+                ),
                 JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, rev.Time),
                 JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, rev.Author)
             };
