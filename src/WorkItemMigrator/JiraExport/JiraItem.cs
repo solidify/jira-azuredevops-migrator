@@ -133,6 +133,7 @@ namespace JiraExport
                                 r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
                             if (!hasRespositoryTarget)
                             {
+                                Logger.Log(LogLevel.Warning, $"Key {repositoryName} did not exist in the repository-map. All git artifacts for this repo will be skipped.");
                                 continue;
                             }
 
