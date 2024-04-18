@@ -70,10 +70,11 @@ Contact us at [support.jira-migrator@solidify.dev](mailto:support.jira-migrator@
 
 **Jira Azure DevOps Migrator PRO** contains all the features in the Community Edition, plus the following additional functionality:
 
-- Composite field mapper (consolidate multiple Jira fields into a single ADO field)
 - Migrate **Releases** and the **fixes version** field
   - Release date, start date, release status and release description
+- Migrate **Branch links** from Bitbucket to Azure DevOps.
 - Migrate **Sprint Dates**.
+- Composite field mapper (consolidate multiple Jira fields into a single ADO field)
 - Migrate **Remote Links** (Web links) to Work Item hyperlinks.
 - Correct any **Embedded Links to Jira Issues** in text fields such as Description, Repro Steps and comments, so that they point to the correct Work Item in Azure DevOps.
 - Support for state transition dates (e.g. `ActivatedDate`, `ClosedDate`) for workflows with custom states. By default, only **New**, **Closed** and **Done** are supported.
