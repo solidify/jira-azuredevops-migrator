@@ -334,7 +334,7 @@ Only **Commit** links are supported as of today (2024-04-12), and no other devel
 In your configuration file, you must specify the following properties:
 
 ```json
-  "include-commits": true,
+  "include-development-links": true,
   "repository-map": {
     "repository": [
       {
