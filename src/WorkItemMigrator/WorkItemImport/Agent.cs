@@ -1,4 +1,5 @@
-﻿using Microsoft.TeamFoundation.Core.WebApi;
+﻿using Microsoft.TeamFoundation.Common;
+using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
@@ -453,12 +454,12 @@ namespace WorkItemImport
             if (structureGroup == TreeStructureGroup.Iterations)
             {
                 nameMapped = GetMappedClassificationNodePath(_iterationPathMap, name);
-                fullNameMapped = $"{parent}/{nameMapped}";
+                fullNameMapped = parent.IsNullOrEmpty() ? nameMapped : $"{parent}/{nameMapped}";
             }
             else if (structureGroup == TreeStructureGroup.Areas)
             {
                 nameMapped = GetMappedClassificationNodePath(_areaPathMap, name);
-                fullNameMapped = $"{parent}/{nameMapped}";
+                fullNameMapped = parent.IsNullOrEmpty() ? nameMapped : $"{parent}/{nameMapped}";
             }
             else
             {
