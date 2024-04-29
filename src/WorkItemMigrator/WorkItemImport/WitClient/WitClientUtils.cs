@@ -21,6 +21,10 @@ namespace WorkItemImport
         private const string Reverse = "Reverse";
         private const string AttachedFile = "AttachedFile";
         private const string Comment = "comment";
+        private const string New = "New";
+        private const string Resolved = "Resolved";
+        private const string Done = "Done";
+        private const string Closed = "Closed";
 
         public WitClientUtils(IWitClientWrapper witClientWrapper)
         {
@@ -798,11 +802,11 @@ namespace WorkItemImport
 
             if (
                     (
-                        wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                        || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase)
+                        wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                        || wiState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase)
                     )
-                    && !(revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                    || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
+                    && !(revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                    || revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
                 )
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = "" });
@@ -810,8 +814,8 @@ namespace WorkItemImport
             }
 
             if (
-                revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase)
+                revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                || revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase)
             )
             {
                 if (!rev.Fields.HasAnyByRefName(WiFieldReference.ClosedDate))
@@ -826,13 +830,13 @@ namespace WorkItemImport
             var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
-            if (!wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+            if (!wiState.Equals(New, StringComparison.InvariantCultureIgnoreCase) && revState.Equals(New, StringComparison.InvariantCultureIgnoreCase))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = "" });
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = "" });
             }
 
-            if (wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && !revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+            if (wiState.Equals(New, StringComparison.InvariantCultureIgnoreCase) && !revState.Equals(New, StringComparison.InvariantCultureIgnoreCase))
             {
                 if (!rev.Fields.HasAnyByRefName(WiFieldReference.ActivatedDate))
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = rev.Time });
@@ -847,23 +851,23 @@ namespace WorkItemImport
             var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
-            if ((wiState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)
-                || wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
-                && !revState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)
-                && !revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                && !revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
+            if ((wiState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
+                || wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                || wiState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
+                && !revState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
+                && !revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                && !revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedDate, Value = "" });
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedBy, Value = "" });
             }
 
-            if ((revState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)
-                && !wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                && !wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
-                || ((revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
-                && !wiState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)))
+            if ((revState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
+                && !wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                && !wiState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
+                || ((revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                || revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
+                && !wiState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)))
             {
                 if (!rev.Fields.HasAnyByRefName(WiFieldReference.ResolvedDate))
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedDate, Value = rev.Time });
