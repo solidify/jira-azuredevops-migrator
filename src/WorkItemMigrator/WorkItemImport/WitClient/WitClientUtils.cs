@@ -294,6 +294,7 @@ namespace WorkItemImport
             {
                 CorrectClosedByAndClosedDate(rev, wi);
                 CorrectActivatedByAndActivatedDate(rev, wi);
+                CorrectResolvedByAndResolvedDate(rev, wi);
             }
         }
 
@@ -839,8 +840,37 @@ namespace WorkItemImport
                 if (!rev.Fields.HasAnyByRefName(WiFieldReference.ActivatedBy))
                     rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = rev.Author });
             }
+        }
 
+        private void CorrectResolvedByAndResolvedDate(WiRevision rev, WorkItem wi)
+        {
+            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
+            if ((wiState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)
+                || wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
+                || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
+                && !revState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)
+                && !revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
+                && !revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
+            {
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedDate, Value = "" });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedBy, Value = "" });
+            }
+
+            if ((revState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)
+                && !wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
+                && !wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
+                || ((revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
+                || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
+                && !wiState.Equals("Resolved", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ResolvedDate))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedDate, Value = rev.Time });
+
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ResolvedBy))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedBy, Value = rev.Author });
+            }
         }
 
         private void AddSingleAttachmentToWorkItemAndSave(WiAttachment att, WorkItem wi, Settings settings, DateTime? changedDate = null, string changedBy = "")
