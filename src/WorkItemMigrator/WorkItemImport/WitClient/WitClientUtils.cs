@@ -797,7 +797,11 @@ namespace WorkItemImport
 
         private void CorrectClosedByAndClosedDate(WiRevision rev, WorkItem wi)
         {
-            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var wiState = string.Empty;
+            if (wi.Fields.ContainsKey(WiFieldReference.State))
+            {
+                wiState = wi.Fields[WiFieldReference.State].ToString();
+            }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
             if (
@@ -827,7 +831,11 @@ namespace WorkItemImport
         }
         private void CorrectActivatedByAndActivatedDate(WiRevision rev, WorkItem wi)
         {
-            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var wiState = string.Empty;
+            if (wi.Fields.ContainsKey(WiFieldReference.State))
+            {
+                wiState = wi.Fields[WiFieldReference.State].ToString();
+            }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
             if (!wiState.Equals(New, StringComparison.InvariantCultureIgnoreCase) && revState.Equals(New, StringComparison.InvariantCultureIgnoreCase))
@@ -848,7 +856,11 @@ namespace WorkItemImport
 
         private void CorrectResolvedByAndResolvedDate(WiRevision rev, WorkItem wi)
         {
-            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var wiState = string.Empty;
+            if (wi.Fields.ContainsKey(WiFieldReference.State))
+            {
+                wiState = wi.Fields[WiFieldReference.State].ToString();
+            }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
             if ((wiState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
