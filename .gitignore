@@ -335,3 +335,6 @@ About
 
 # Visual Code
 **/.ionide
+
+# Testing scripts
+*.ps1
