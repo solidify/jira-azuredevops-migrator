@@ -417,8 +417,6 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
-            wiUtils.EnsureFieldsOnStateChange(rev, createdWI);
-
             Assert.DoesNotThrow(() => wiUtils.EnsureFieldsOnStateChange(rev, createdWI));
 
             Assert.Multiple(() =>
