@@ -1,4 +1,5 @@
-﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+﻿using Microsoft.TeamFoundation.Common;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
@@ -804,6 +805,11 @@ namespace WorkItemImport
             }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
+            if (wiState.IsNullOrEmpty())
+            {
+                return;
+            }
+
             if (
                     (
                         wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
@@ -838,6 +844,11 @@ namespace WorkItemImport
             }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
+            if (wiState.IsNullOrEmpty())
+            {
+                return;
+            }
+
             if (!wiState.Equals(New, StringComparison.InvariantCultureIgnoreCase) && revState.Equals(New, StringComparison.InvariantCultureIgnoreCase))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = "" });
@@ -862,6 +873,11 @@ namespace WorkItemImport
                 wiState = wi.Fields[WiFieldReference.State].ToString();
             }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
+
+            if (wiState.IsNullOrEmpty())
+            {
+                return;
+            }
 
             if ((wiState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
                 || wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
