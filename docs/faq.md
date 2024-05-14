@@ -2,7 +2,7 @@
 
 ## 1. Convert Jira formatted descriptions and comments on migration
 
-- With our latest release (2.3.1) we have introduced a new mapper called "MapRendered" that should be used when mapping fields to get the Html rendered value from Jira.
+- As of release 2.3.1 we have introduced a new mapper called "MapRendered" that should be used when mapping fields to get the Html rendered value from Jira.
 
 Example:
 
@@ -111,6 +111,15 @@ For example, let us say you are migrating the Jira projects A, B and C in sequen
 6. Copy `itemsJournal.txt` from **workspaceB** to **workspaceC**
 7. Export project C into **workspaceC**
 8. Import project C1
+
+## 6. What is the purpose of the --force flag?
+
+Here you will find a description on what the `--force` flag does under various circumstances.
+
+|                    | with --force                      | without --force                   | read more                                   |
+|--------------------|-----------------------------------|-----------------------------------|---------------------------------------------|
+| Jira Exporter      | Items in the migration workspace (local) will be overwritten. | Items already downloaded in the workspace will be skipped. Items in the workspace will remain intact. | [jira-export.md](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/jira-export.md) |
+| Work Item Importer | Work Items in ADO will remain intact. New duplicate work items may be created. | Revisions which already have been imported will be skipped. Existing Work Items may be updated with new data if the incoming revisions have not already been imported. | [wi-import.md](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/wi-import.md)|
 
 ## 5. How to migrate custom fields having dropdown lists?
 
