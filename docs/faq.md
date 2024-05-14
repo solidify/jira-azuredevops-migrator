@@ -112,7 +112,7 @@ For example, let us say you are migrating the Jira projects A, B and C in sequen
 7. Export project C into **workspaceC**
 8. Import project C1
 
-## 6. What is the purpose of the --force flag?
+## 5. What is the purpose of the --force flag?
 
 Here you will find a description on what the `--force` flag does under various circumstances.
 
@@ -121,7 +121,7 @@ Here you will find a description on what the `--force` flag does under various c
 | Jira Exporter      | Items in the migration workspace (local) will be overwritten. | Items already downloaded in the workspace will be skipped. Items in the workspace will remain intact. | [jira-export.md](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/jira-export.md) |
 | Work Item Importer | Work Items in ADO will remain intact. New duplicate work items may be created. | Revisions which already have been imported will be skipped. Existing Work Items may be updated with new data if the incoming revisions have not already been imported. | [wi-import.md](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/wi-import.md)|
 
-## 5. How to migrate custom fields having dropdown lists?
+## 6. How to migrate custom fields having dropdown lists?
 
 - To map a custom field which is an dropdown list you can use MapArray mapper to get in a better way.
 Also take a look at the other possible [Mappers](config.md#mappers) to use.
@@ -138,7 +138,7 @@ Example:
 }
 ```
 
-## 6. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
+## 7. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
 
 - User mapping differs between Jira Cloud and Jira Server. To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
@@ -180,7 +180,7 @@ Example:
     Jira.User3@some.domain=AzureDevOps.User3@some.domain
     ```
 
-## 7. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
+## 8. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
 
 You can migrate the logged and remaining time using the following field mappings.
 
@@ -205,7 +205,7 @@ The history of the **logged time** and **remaining time** will be preserved on e
 }
 ```
 
-## 8. How to map custom user picker fields
+## 9. How to map custom user picker fields
 
 Here is how we have successfully mapped user picker fields in the past. `source` should be the field name:
 
@@ -218,7 +218,7 @@ Here is how we have successfully mapped user picker fields in the past. `source`
 },
 ```
 
-## 9. How to map datetime fields
+## 10. How to map datetime fields
 
 Here is how we can map datetime fields like ResolvedDate:
 
@@ -230,7 +230,7 @@ Here is how we can map datetime fields like ResolvedDate:
 }
 ```
 
-## 10. How to migrate an issue fields to a comment
+## 11. How to migrate an issue fields to a comment
 
 Through some manual intervention, we can migrate every historical value of an **issue field** to a **Work Item Comments**. Simply do the following:
 
@@ -254,7 +254,7 @@ Through some manual intervention, we can migrate every historical value of an **
    - `e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667` > `System.History`
 1. Run `WiImport` as usual.
 
-## 11. How to omit the Jira issue ID/key in the work item title
+## 12. How to omit the Jira issue ID/key in the work item title
 
 By default, the field mapping for `System.Title` will be set up so that the title is prefixed with the Issue key. This can be prevented by omitting the **MapTitle mapper** from the field map in the configuration:
 
@@ -275,7 +275,7 @@ Instead of the default:
   }
 ```
 
-## 12. How to map sprints, iteration paths and area paths
+## 13. How to map sprints, iteration paths and area paths
 
 It is possible to do custom mappings of the **Jira Sprints** as **Iteration Paths**, and vice versa for **Area Paths**.
 
@@ -334,7 +334,7 @@ This will set the Iteration path correctly. The final path will be like the foll
 - `<project name>\<base-iteration-path>\<mapped value>`
 - `<project name>\<base-area-path>\<mapped value>`
 
-## 13. How to migrate Development Links (commit, PR, branch)
+## 14. How to migrate Development Links (commit, PR, branch)
 
 If you have previously migrated your BitBucket git repositories to your Azure DevOps Server/organization, you can also migrate the development links of the Jira Issues to the corresponding ADO Work Items.
 
@@ -356,7 +356,7 @@ In your configuration file, you must specify the following properties:
 
 The **repository-map** must contain a key-value lookup table with the names of the Bitbucket git repositories and their translations in ADO.
 
-## 14. How to limit the number of issues to be exported during JIRA export (pagination)
+## 15. How to limit the number of issues to be exported during JIRA export (pagination)
 
 If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
 
@@ -370,7 +370,7 @@ And so on.
 
 You can always use the **issues** view in your Jira project to experiment with different JQL queries.
 
-## 15. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
+## 16. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
 
 The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 
@@ -393,7 +393,7 @@ curl -D-
  "http://johnie:8081/rest/api/2/search"
 ```
 
-## 16. Azure DevOps Rate and usage limits (ADO Cloud only)
+## 17. Azure DevOps Rate and usage limits (ADO Cloud only)
 
 In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always recommend the following procedure:
 
