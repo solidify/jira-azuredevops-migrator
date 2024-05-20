@@ -61,26 +61,30 @@ namespace JiraExport
                 Dictionary<string, object> fieldChanges = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
 
                 var items = change.SelectTokens("$.items[*]")?.Cast<JObject>()?.Select(i => new JiraChangeItem(i));
-                foreach (var item in items)
+
+                if (items != null)
                 {
-                    switch (item.Field)
+                    foreach (var item in items)
                     {
-                        case "Epic Link" when !string.IsNullOrWhiteSpace(epicLinkField):
-                            HandleCustomFieldChange(item, epicLinkField, fieldChanges, fields);
-                            break;
-                        case "Parent":
-                        case "IssueParentAssociation":
-                            HandleCustomFieldChange(item, "parent", fieldChanges, fields);
-                            break;
-                        case "Link":
-                            HandleLinkChange(item, issueKey, jiraProvider, linkChanges, links);
-                            break;
-                        case "Attachment":
-                            HandleAttachmentChange(item, attachmentChanges, attachments);
-                            break;
-                        default:
-                            HandleFieldChange(item, jiraProvider, fieldChanges, fields);
-                            break;
+                        switch (item.Field)
+                        {
+                            case "Epic Link" when !string.IsNullOrWhiteSpace(epicLinkField):
+                                HandleCustomFieldChange(item, epicLinkField, fieldChanges, fields);
+                                break;
+                            case "Parent":
+                            case "IssueParentAssociation":
+                                HandleCustomFieldChange(item, "parent", fieldChanges, fields);
+                                break;
+                            case "Link":
+                                HandleLinkChange(item, issueKey, jiraProvider, linkChanges, links);
+                                break;
+                            case "Attachment":
+                                HandleAttachmentChange(item, attachmentChanges, attachments);
+                                break;
+                            default:
+                                HandleFieldChange(item, jiraProvider, fieldChanges, fields);
+                                break;
+                        }
                     }
                 }
 
@@ -101,15 +105,16 @@ namespace JiraExport
             listOfRevisions.AddRange(commentRevisions);
 
             var settings = jiraProvider.GetSettings();
-            if (settings.IncludeCommits)
+            if (settings.IncludeDevelopmentLinks)
             {
                 if (settings.RepositoryMap == null)
                 {
-                    Logger.Log(LogLevel.Warning, $"IncludeCommits was 'true' in the config, but no RepositoryMap was specified in the config. " +
+                    Logger.Log(LogLevel.Warning, $"IncludeDevelopmentLinks was 'true' in the config, but no RepositoryMap was specified in the config. " +
                         $"Please add a RepositoryMap in order to migrate git artifact links. Git artifacts will be skipped for now...");
                 }
                 else
                 {
+                    // Get development links: commits
                     var commitRepositories = jiraProvider.GetCommitRepositories(jiraItem.Id);
                     foreach (var respository in commitRepositories)
                     {
@@ -118,21 +123,37 @@ namespace JiraExport
                         {
                             var commitCreatedOn = commit.ExValue<DateTime>("$.authorTimestamp");
                             var commitAuthor = GetAuthor(commit as JObject);
-                            var jiraCommit = commit.ToObject<JiraCommit>();
                             var repositoryName = respository.SelectToken("$.name").Value<string>();
                             if (string.IsNullOrEmpty(repositoryName))
                             {
                                 continue;
                             }
 
-                            var hasRespositoryTarget = settings.RepositoryMap.Repositories.Exists(r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
+                            var hasRespositoryTarget = settings.RepositoryMap.Repositories.Exists(
+                                r => r.Source == repositoryName && !string.IsNullOrEmpty(r.Target));
                             if (!hasRespositoryTarget)
                             {
+                                Logger.Log(LogLevel.Warning, $"Key {repositoryName} did not exist in the repository-map. All git artifacts for this repo will be skipped.");
                                 continue;
                             }
 
-                            jiraCommit.Repository = repositoryName;
-                            var commitRevision = new JiraRevision(jiraItem) { Time = commitCreatedOn, Author = commitAuthor, Fields = new Dictionary<string, object>(), Commit = new RevisionAction<JiraCommit>() { ChangeType = RevisionChangeType.Added, Value = jiraCommit } };
+                            var jiraDevelopmentLink = new JiraDevelopmentLink(
+                               repositoryName,
+                               commit.SelectToken("id").ToString(),
+                               commitCreatedOn,
+                               JiraDevelopmentLink.DevelopmentLinkType.Commit
+                           );
+                            var commitRevision = new JiraRevision(jiraItem)
+                            {
+                                Time = commitCreatedOn,
+                                Author = commitAuthor,
+                                Fields = new Dictionary<string, object>(),
+                                DevelopmentLink = new RevisionAction<JiraDevelopmentLink>()
+                                {
+                                    ChangeType = RevisionChangeType.Added,
+                                    Value = jiraDevelopmentLink
+                                }
+                            };
                             listOfRevisions.Add(commitRevision);
                         }
                     }
@@ -316,7 +337,10 @@ namespace JiraExport
 
         private static string GetCustomFieldId(string fieldName, IJiraProvider jira)
         {
-            return jira.GetCustomId(fieldName);
+            var customField = jira.GetCustomField(fieldName);
+            if (customField != null)
+                return customField.Id;
+            else return null;
         }
 
         protected static string GetCustomFieldName(string fieldId, IJiraProvider jira)
@@ -487,11 +511,22 @@ namespace JiraExport
                 {
                     value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.name")).ToList());
                     if (Regex.Match((string)value, "^[;]+$", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Success || (string)value == "")
+                    {
                         value = string.Join(";", prop.Value.Select(st => st.ExValue<string>("$.value")).ToList());
+                    }
+                    if(value.ToString().All(c => c == ';'))
+                    {
+                        // Failsafe if all other checks results in an array with correct length but empty elements
+                        value = string.Join(";", prop.Value.Children().ToList());
+                    }
                 }
                 else if (type == Newtonsoft.Json.Linq.JTokenType.Object && prop.Value["value"] != null)
                 {
                     value = prop.Value["value"].ToString();
+                }
+                else if (type == Newtonsoft.Json.Linq.JTokenType.Object && prop.Value["name"] != null)
+                {
+                    value = prop.Value["name"].ToString();
                 }
 
                 if (value != null)

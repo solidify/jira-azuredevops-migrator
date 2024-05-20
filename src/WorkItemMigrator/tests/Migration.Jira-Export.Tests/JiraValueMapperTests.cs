@@ -214,10 +214,14 @@ namespace Migration.Jira_Export.Tests
                 }
             };
 
-            var config = new ConfigJson();
-            config.FieldMap = new FieldMap();
-            config.FieldMap.Fields = new List<Field> { fieldConfig };
-            config.TypeMap = typeMap;
+            var config = new ConfigJson
+            {
+                FieldMap = new FieldMap
+                {
+                    Fields = new List<Field> { fieldConfig }
+                },
+                TypeMap = typeMap
+            };
 
             var exportIssuesSummary = new ExportIssuesSummary();
 
@@ -259,9 +263,11 @@ namespace Migration.Jira_Export.Tests
 
         private JiraSettings CreateJiraSettings()
         {
-            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
-            settings.EpicLinkField = "Epic Link";
-            settings.SprintField = "SprintField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project")
+            {
+                EpicLinkField = "Epic Link",
+                SprintField = "SprintField"
+            };
 
             return settings;
         }

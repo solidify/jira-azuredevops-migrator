@@ -32,15 +32,21 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             };
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
-            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
-            settings.SprintField = "SprintField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project")
+            {
+                SprintField = "SprintField"
+            };
             provider.GetSettings().ReturnsForAnyArgs(settings);
 
             JiraItem item = JiraItem.CreateFromRest(issueKey, provider);
 
-            var revision = new JiraRevision(item);
-            revision.Fields = new Dictionary<string, object>();
-            revision.Fields["summary"] = revisionSummary;
+            var revision = new JiraRevision(item)
+            {
+                Fields = new Dictionary<string, object>
+                {
+                    ["summary"] = revisionSummary
+                }
+            };
 
             return revision;
         }
@@ -76,16 +82,21 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
 
-            Link link = new Link();
-            link.Source = child;
-            link.Target = targetWiType;
-
-            ConfigJson configJson = new ConfigJson();
-
-            configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>
+            Link link = new Link
             {
-                link
+                Source = child,
+                Target = targetWiType
+            };
+
+            ConfigJson configJson = new ConfigJson
+            {
+                LinkMap = new LinkMap
+                {
+                    Links = new List<Link>
+                    {
+                        link
+                    }
+                }
             };
 
             List<WiLink> links = new List<WiLink>();
@@ -116,16 +127,21 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
 
-            Link link = new Link();
-            link.Source = child;
-            link.Target = targetWiType;
-
-            ConfigJson configJson = new ConfigJson();
-
-            configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>
+            Link link = new Link
             {
-                link
+                Source = child,
+                Target = targetWiType
+            };
+
+            ConfigJson configJson = new ConfigJson
+            {
+                LinkMap = new LinkMap
+                {
+                    Links = new List<Link>
+                    {
+                        link
+                    }
+                }
             };
 
             List<WiLink> links = new List<WiLink>();
@@ -165,16 +181,21 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
 
-            Link link = new Link();
-            link.Source = child;
-            link.Target = targetWiType;
-
-            ConfigJson configJson = new ConfigJson();
-
-            configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>
+            Link link = new Link
             {
-                link
+                Source = child,
+                Target = targetWiType
+            };
+
+            ConfigJson configJson = new ConfigJson
+            {
+                LinkMap = new LinkMap
+                {
+                    Links = new List<Link>
+                    {
+                        link
+                    }
+                }
             };
 
             List<WiLink> links = new List<WiLink>();
@@ -217,16 +238,21 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
             revision2.ParentItem.Revisions.Insert(0, revision);
             revision.ParentItem.Revisions.Insert(0, revision);
 
-            Link link = new Link();
-            link.Source = child;
-            link.Target = targetWiType;
-
-            ConfigJson configJson = new ConfigJson();
-
-            configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>
+            Link link = new Link
             {
-                link
+                Source = child,
+                Target = targetWiType
+            };
+
+            ConfigJson configJson = new ConfigJson
+            {
+                LinkMap = new LinkMap
+                {
+                    Links = new List<Link>
+                    {
+                        link
+                    }
+                }
             };
 
             List<WiLink> links = new List<WiLink>();
@@ -271,16 +297,21 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
 
             JiraRevision revision = MockRevisionWithParentItem(issueKey, summary);
 
-            Link link = new Link();
-            link.Source = child;
-            link.Target = targetWiType;
-
-            ConfigJson configJson = new ConfigJson();
-
-            configJson.LinkMap = new LinkMap();
-            configJson.LinkMap.Links = new List<Link>
+            Link link = new Link
             {
-                link
+                Source = child,
+                Target = targetWiType
+            };
+
+            ConfigJson configJson = new ConfigJson
+            {
+                LinkMap = new LinkMap
+                {
+                    Links = new List<Link>
+                    {
+                        link
+                    }
+                }
             };
 
             List<WiLink> links = new List<WiLink>();

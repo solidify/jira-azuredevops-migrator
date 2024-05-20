@@ -19,7 +19,7 @@ namespace WorkItemImport
         public bool IgnoreFailedLinks { get; internal set; }
         public string ProcessTemplate { get; internal set; }
         public bool IncludeLinkComments { get; internal set; }
-        public bool IncludeCommits { get; internal set; }
+        public bool IncludeDevelopmentLinks { get; internal set; }
         public FieldMap FieldMap { get; internal set; }
         public bool SuppressNotifications { get; internal set; }
     }

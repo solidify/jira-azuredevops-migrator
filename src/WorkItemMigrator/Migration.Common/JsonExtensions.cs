@@ -12,12 +12,12 @@ namespace Migration.Common
                 throw new ArgumentNullException(nameof(token));
 
             if (!token.HasValues)
-                return default(T);
+                return default;
 
             var value = token.SelectToken(path, false);
 
             if (value == null)
-                return default(T);
+                return default;
 
             return value.Value<T>();
         }

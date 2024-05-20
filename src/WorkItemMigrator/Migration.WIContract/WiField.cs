@@ -22,9 +22,11 @@
         public static string State => "System.State";
         public static string CreatedBy => "System.CreatedBy";
         public static string ChangedBy => "System.ChangedBy";
+        public static string ResolvedBy => "Microsoft.VSTS.Common.ResolvedBy";
         public static string AssignedTo => "System.AssignedTo";
         public static string ChangedDate => "System.ChangedDate";
         public static string CreatedDate => "System.CreatedDate";
+        public static string ResolvedDate => "Microsoft.VSTS.Common.ResolvedDate";
         public static string ReproSteps => "Microsoft.VSTS.TCM.ReproSteps";
         public static string Description => "System.Description";
         public static string ActivatedBy => "Microsoft.VSTS.Common.ActivatedBy";

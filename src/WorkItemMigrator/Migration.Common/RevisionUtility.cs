@@ -35,18 +35,18 @@ namespace Migration.Common
         public static T GetFieldValueOrDefault<T>(this List<WiField> fields, string refName)
         {
             if (fields == null)
-                return default(T);
+                return default;
 
             if (fields.Count == 0)
-                return default(T);
+                return default;
 
-            var value = fields.FirstOrDefault(x => x.ReferenceName.Equals(refName));
+            var value = fields.Find(x => x.ReferenceName.Equals(refName));
 
             if (value == null)
-                return default(T);
+                return default;
 
             if (value.Value == null)
-                return default(T);
+                return default;
 
             return (T)value.Value;
         }
@@ -59,7 +59,7 @@ namespace Migration.Common
             if (fields.Count == 0)
                 return false;
 
-            if (fields.Any(f => f.ReferenceName.Equals(refName, StringComparison.InvariantCultureIgnoreCase)))
+            if (fields.Exists(f => f.ReferenceName.Equals(refName, StringComparison.InvariantCultureIgnoreCase)))
                 return true;
 
             return false;

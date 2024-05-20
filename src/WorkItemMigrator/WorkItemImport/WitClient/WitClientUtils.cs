@@ -1,4 +1,5 @@
-﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+﻿using Microsoft.TeamFoundation.Common;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
@@ -17,6 +18,14 @@ namespace WorkItemImport
     public class WitClientUtils
     {
         private readonly IWitClientWrapper _witClientWrapper;
+        private const string Forward = "Forward";
+        private const string Reverse = "Reverse";
+        private const string AttachedFile = "AttachedFile";
+        private const string Comment = "comment";
+        private const string New = "New";
+        private const string Resolved = "Resolved";
+        private const string Done = "Done";
+        private const string Closed = "Closed";
 
         public WitClientUtils(IWitClientWrapper witClientWrapper)
         {
@@ -67,9 +76,11 @@ namespace WorkItemImport
                 {
                     WorkItem targetWorkItem = GetWorkItem(link.TargetWiId);
 
-                    WorkItemRelation relatedLink = new WorkItemRelation();
-                    relatedLink.Rel = parsedLink.ReferenceName;
-                    relatedLink.Url = targetWorkItem.Url;
+                    WorkItemRelation relatedLink = new WorkItemRelation
+                    {
+                        Rel = parsedLink.ReferenceName,
+                        Url = targetWorkItem.Url
+                    };
 
                     relatedLink = ResolveCyclicalLinks(relatedLink, wi);
                     if (!IsDuplicateWorkItemLink(wi.Relations, relatedLink))
@@ -87,11 +98,11 @@ namespace WorkItemImport
                     {
                         if (ex2.Message.Contains("TF201036: You cannot add a Child link between work items"))
                         {
-                            ForceSwapLinkAndSave(link, wi, ex2, settings, "Forward", GetWorkItem(link.TargetWiId), "child");
+                            ForceSwapLinkAndSave(link, wi, ex2, settings, Forward, GetWorkItem(link.TargetWiId), "child");
                         }
                         else if (ex2.Message.Contains("TF201036: You cannot add a Parent link between work items"))
                         {
-                            ForceSwapLinkAndSave(link, wi, ex2, settings, "Reverse", GetWorkItem(link.SourceWiId), "parent");
+                            ForceSwapLinkAndSave(link, wi, ex2, settings, Reverse, GetWorkItem(link.SourceWiId), "parent");
                         }
                         else
                         {
@@ -122,11 +133,13 @@ namespace WorkItemImport
                 if (relation.Rel == "System.LinkTypes.Hierarchy-Reverse")
                 {
                     // Remove old link
-                    WiLink linkToRemove = new WiLink();
-                    linkToRemove.Change = ReferenceChangeType.Removed;
-                    linkToRemove.SourceWiId = wiTargetCurrent.Id.Value;
-                    linkToRemove.TargetWiId = int.Parse(relation.Url.Split('/').Last());
-                    linkToRemove.WiType = "System.LinkTypes.Hierarchy-Reverse";
+                    WiLink linkToRemove = new WiLink
+                    {
+                        Change = ReferenceChangeType.Removed,
+                        SourceWiId = wiTargetCurrent.Id.Value,
+                        TargetWiId = int.Parse(relation.Url.Split('/').Last()),
+                        WiType = "System.LinkTypes.Hierarchy-Reverse"
+                    };
                     RemoveAndSaveLink(linkToRemove, wiTargetCurrent, settings);
 
                     // Add new link again
@@ -286,6 +299,7 @@ namespace WorkItemImport
             {
                 CorrectClosedByAndClosedDate(rev, wi);
                 CorrectActivatedByAndActivatedDate(rev, wi);
+                CorrectResolvedByAndResolvedDate(rev, wi);
             }
         }
 
@@ -383,7 +397,7 @@ namespace WorkItemImport
                 }
             }
 
-            if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Removed))
+            if (rev.Attachments.Exists(a => a.Change == ReferenceChangeType.Removed))
                 wi.Fields[WiFieldReference.History] = $"Removed attachments(s): {string.Join(";", rev.Attachments.Where(a => a.Change == ReferenceChangeType.Removed).Select(a => a.ToString()))}";
 
             return success;
@@ -403,17 +417,19 @@ namespace WorkItemImport
             }
             if (op == AttachmentOperation.ADD)
             {
-                WorkItemRelation attachmentRelation = new WorkItemRelation();
-                attachmentRelation.Rel = "AttachedFile";
-                attachmentRelation.Attributes = new Dictionary<string, object>();
-                attachmentRelation.Attributes["comment"] = comment;
+                WorkItemRelation attachmentRelation = new WorkItemRelation
+                {
+                    Rel = AttachedFile,
+                    Attributes = new Dictionary<string, object>()
+                };
+                attachmentRelation.Attributes[Comment] = comment;
                 wi.Relations.Add(attachmentRelation);
             }
             else
             {
                 WorkItemRelation attachmentRelation = wi.Relations.FirstOrDefault(
-                    a => a.Rel == "AttachedFile" &&
-                    a.Attributes["comment"].ToString().Split(
+                    a => a.Rel == AttachedFile &&
+                    a.Attributes[Comment].ToString().Split(
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == attOriginId
                 );
                 if (attachmentRelation != default(WorkItemRelation))
@@ -677,17 +693,23 @@ namespace WorkItemImport
                 throw new ArgumentException(nameof(wi));
             }
 
-            if (rev.Commit == null)
+            if (rev.DevelopmentLink == null)
             {
                 return;
             }
 
             Guid projectId = _witClientWrapper.GetProject(settings.Project).Id;
-            Guid repositoryId = _witClientWrapper.GetRepository(settings.Project, rev.Commit.Repository).Id;
+            Guid repositoryId = _witClientWrapper.GetRepository(settings.Project, rev.DevelopmentLink.Repository).Id;
 
             var patchDocument = new JsonPatchDocument
             {
-                JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(Operation.Add, projectId.ToString(), repositoryId.ToString(), rev.Commit.Id),
+                JsonPatchDocUtils.CreateJsonArtifactLinkPatchOp(
+                    Operation.Add,
+                    projectId.ToString(),
+                    repositoryId.ToString(),
+                    rev.DevelopmentLink.Id,
+                    rev.DevelopmentLink.Type
+                ),
                 JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, rev.Time),
                 JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, rev.Author)
             };
@@ -730,7 +752,7 @@ namespace WorkItemImport
 
             foreach (var att in filteredRelations)
             {
-                string fileName = att.FilePath.Split('\\')?.Last() ?? string.Empty;
+                string fileName = att.FilePath.Split('\\').Last() ?? string.Empty;
                 string encodedFileName = EncodeFileNameUsingJiraStandard(fileName);
                 string restApiUrlOption = "/rest/api/3/attachment/content/" + att.AttOriginId;
                 if (
@@ -776,16 +798,25 @@ namespace WorkItemImport
 
         private void CorrectClosedByAndClosedDate(WiRevision rev, WorkItem wi)
         {
-            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var wiState = string.Empty;
+            if (wi.Fields.ContainsKey(WiFieldReference.State))
+            {
+                wiState = wi.Fields[WiFieldReference.State].ToString();
+            }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
+
+            if (wiState.IsNullOrEmpty())
+            {
+                return;
+            }
 
             if (
                     (
-                        wiState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                        || wiState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase)
+                        wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                        || wiState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase)
                     )
-                    && !(revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                    || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase))
+                    && !(revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                    || revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
                 )
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ClosedDate, Value = "" });
@@ -793,8 +824,8 @@ namespace WorkItemImport
             }
 
             if (
-                revState.Equals("Done", StringComparison.InvariantCultureIgnoreCase)
-                || revState.Equals("Closed", StringComparison.InvariantCultureIgnoreCase)
+                revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                || revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase)
             )
             {
                 if (!rev.Fields.HasAnyByRefName(WiFieldReference.ClosedDate))
@@ -806,13 +837,71 @@ namespace WorkItemImport
         }
         private void CorrectActivatedByAndActivatedDate(WiRevision rev, WorkItem wi)
         {
-            var wiState = wi.Fields[WiFieldReference.State].ToString() ?? string.Empty;
+            var wiState = string.Empty;
+            if (wi.Fields.ContainsKey(WiFieldReference.State))
+            {
+                wiState = wi.Fields[WiFieldReference.State].ToString();
+            }
             var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
 
-            if (!wiState.Equals("New", StringComparison.InvariantCultureIgnoreCase) && revState.Equals("New", StringComparison.InvariantCultureIgnoreCase))
+            if (wiState.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            if (!wiState.Equals(New, StringComparison.InvariantCultureIgnoreCase) && revState.Equals(New, StringComparison.InvariantCultureIgnoreCase))
             {
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = "" });
                 rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = "" });
+            }
+
+            if (wiState.Equals(New, StringComparison.InvariantCultureIgnoreCase) && !revState.Equals(New, StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ActivatedDate))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedDate, Value = rev.Time });
+
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ActivatedBy))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ActivatedBy, Value = rev.Author });
+            }
+        }
+
+        private void CorrectResolvedByAndResolvedDate(WiRevision rev, WorkItem wi)
+        {
+            var wiState = string.Empty;
+            if (wi.Fields.ContainsKey(WiFieldReference.State))
+            {
+                wiState = wi.Fields[WiFieldReference.State].ToString();
+            }
+            var revState = rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State) ?? string.Empty;
+
+            if (wiState.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            if ((wiState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
+                || wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                || wiState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
+                && !revState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
+                && !revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                && !revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
+            {
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedDate, Value = "" });
+                rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedBy, Value = "" });
+            }
+
+            if ((revState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)
+                && !wiState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                && !wiState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
+                || ((revState.Equals(Done, StringComparison.InvariantCultureIgnoreCase)
+                || revState.Equals(Closed, StringComparison.InvariantCultureIgnoreCase))
+                && !wiState.Equals(Resolved, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ResolvedDate))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedDate, Value = rev.Time });
+
+                if (!rev.Fields.HasAnyByRefName(WiFieldReference.ResolvedBy))
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ResolvedBy, Value = rev.Author });
             }
         }
 
@@ -834,7 +923,7 @@ namespace WorkItemImport
                     Path = "/relations/-",
                     Value = new
                     {
-                        rel = "AttachedFile",
+                        rel = AttachedFile,
                         url = attachment.Url,
                         attributes = new
                         {
@@ -868,7 +957,7 @@ namespace WorkItemImport
                 );
             }
 
-            var attachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
+            var attachments = wi.Relations?.Where(r => r.Rel == AttachedFile) ?? new List<WorkItemRelation>();
             var previousAttachmentsCount = attachments.Count();
 
             WorkItem result = null;
@@ -877,7 +966,7 @@ namespace WorkItemImport
             else
                 throw new MissingFieldException($"Work item ID was null: {wi.Url}");
 
-            var newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
+            var newAttachments = result.Relations?.Where(r => r.Rel == AttachedFile);
             var newAttachmentsCount = newAttachments.Count();
 
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
@@ -893,8 +982,8 @@ namespace WorkItemImport
         {
             WorkItemRelation existingAttachmentRelation =
                 wi.Relations?.SingleOrDefault(
-                    a => a.Rel == "AttachedFile" &&
-                    a.Attributes["comment"].ToString().Split(
+                    a => a.Rel == AttachedFile &&
+                    a.Attributes[Comment].ToString().Split(
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == att.AttOriginId
                 );
 
@@ -933,7 +1022,7 @@ namespace WorkItemImport
                 );
             }
 
-            IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == "AttachedFile") ?? new List<WorkItemRelation>();
+            IEnumerable<WorkItemRelation> existingAttachments = wi.Relations?.Where(r => r.Rel == AttachedFile) ?? new List<WorkItemRelation>();
             int previousAttachmentsCount = existingAttachments.Count();
 
             WorkItem result = null;
@@ -942,7 +1031,7 @@ namespace WorkItemImport
             else
                 throw new MissingFieldException($"Work item ID was null: {wi.Url}");
 
-            IEnumerable<WorkItemRelation> newAttachments = result.Relations?.Where(r => r.Rel == "AttachedFile");
+            IEnumerable<WorkItemRelation> newAttachments = result.Relations?.Where(r => r.Rel == AttachedFile);
             int newAttachmentsCount = newAttachments.Count();
 
             Logger.Log(LogLevel.Info, $"Updated Existing Work Item: '{wi.Id}'. Had {previousAttachmentsCount} attachments, now has {newAttachmentsCount}");
@@ -966,7 +1055,7 @@ namespace WorkItemImport
                         url = targetWI.Url,
                         attributes = new
                         {
-                            comment = comment
+                            comment
                         }
                     }
                 }
@@ -1030,8 +1119,8 @@ namespace WorkItemImport
             if (isAttachmentMigratedDelegate(att.AttOriginId, out string attWiId))
             {
                 return wi.Relations.SingleOrDefault(
-                    a => a.Rel == "AttachedFile" &&
-                    a.Attributes["comment"].ToString().Split(
+                    a => a.Rel == AttachedFile &&
+                    a.Attributes[Comment].ToString().Split(
                         new string[] { ", original ID: " }, StringSplitOptions.None)[1] == att.AttOriginId
                 );
             }
@@ -1059,7 +1148,7 @@ namespace WorkItemImport
             {
                 var nextWi = GetWorkItem(GetRelatedWorkItemIdFromLink(nextWiLink));
                 nextWiLink = nextWi.Relations.OfType<WorkItemRelation>().
-                    Where(rl => rl.Rel != "AttachedFile").
+                    Where(rl => rl.Rel != AttachedFile && rl.Rel != "Hyperlink").
                     FirstOrDefault(rl => GetRelatedWorkItemIdFromLink(rl) == startingWi.Id);
 
                 if (nextWiLink != null && GetRelatedWorkItemIdFromLink(nextWiLink) == startingWi.Id)
@@ -1072,13 +1161,13 @@ namespace WorkItemImport
 
         private string GetReverseLinkTypeReferenceName(string referenceName)
         {
-            if (referenceName.Contains("Forward"))
+            if (referenceName.Contains(Forward))
             {
-                return referenceName.Replace("Forward", "Reverse");
+                return referenceName.Replace(Forward, Reverse);
             }
             else
             {
-                return referenceName.Replace("Reverse", "Forward");
+                return referenceName.Replace(Reverse, Forward);
             }
         }
 

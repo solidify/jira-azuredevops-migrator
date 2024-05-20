@@ -28,7 +28,7 @@ namespace Migration.WIContract
         public List<WiField> Fields { get; set; }
         public List<WiLink> Links { get; set; }
         public List<WiAttachment> Attachments { get; set; }
-        public WiCommit Commit { get; set; }
+        public WiDevelopmentLink DevelopmentLink { get; set; }
 
         [DefaultValue(false)]
         public bool AttachmentReferences { get; set; } = false;

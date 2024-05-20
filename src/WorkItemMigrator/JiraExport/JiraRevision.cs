@@ -32,7 +32,7 @@ namespace JiraExport
         public List<RevisionAction<JiraLink>> LinkActions { get; set; }
 
         public List<RevisionAction<JiraAttachment>> AttachmentActions { get; set; }
-        public RevisionAction<JiraCommit> Commit { get; set; }
+        public RevisionAction<JiraDevelopmentLink> DevelopmentLink { get; set; }
         public JiraItem ParentItem { get; private set; }
         public int Index { get; set; }
 

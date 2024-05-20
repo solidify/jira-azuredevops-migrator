@@ -265,10 +265,10 @@ namespace JiraExport
             if (string.IsNullOrWhiteSpace(htmlValue))
                 return htmlValue;
 
-            foreach (var att in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value))
+            foreach (var attUrl in revision.AttachmentActions.Where(aa => aa.ChangeType == RevisionChangeType.Added).Select(aa => aa.Value.Url))
             {
-                if (!string.IsNullOrWhiteSpace(att.Url) && htmlValue.Contains(att.Url))
-                    htmlValue = htmlValue.Replace(att.Url, att.Url);
+                if (!string.IsNullOrWhiteSpace(attUrl) && htmlValue.Contains(attUrl))
+                    htmlValue = htmlValue.Replace(attUrl, attUrl);
             }
 
             htmlValue = RevisionUtility.ReplaceHtmlElements(htmlValue);

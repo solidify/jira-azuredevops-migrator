@@ -10,9 +10,9 @@ namespace JiraExport
 {
     public class ExportIssuesSummary
     {
-        private List<string> _unmappedIssueTypes;
-        private Dictionary<string, List<string>> _unmappedIssueStates;
-        private List<string> _unmappedUsers;
+        private readonly List<string> _unmappedIssueTypes;
+        private readonly Dictionary<string, List<string>> _unmappedIssueStates;
+        private readonly List<string> _unmappedUsers;
 
         public ExportIssuesSummary() {
             _unmappedIssueTypes = new List<string>();
@@ -105,7 +105,7 @@ namespace JiraExport
         {
             return
                 _unmappedIssueTypes.Any()
-                || _unmappedIssueStates.Count() > 0
+                || _unmappedIssueStates.Any()
                 || _unmappedUsers.Any();
         }
     }

@@ -90,7 +90,7 @@ namespace WorkItemImport
                     IgnoreFailedLinks = config.IgnoreFailedLinks,
                     ProcessTemplate = config.ProcessTemplate,
                     IncludeLinkComments = config.IncludeLinkComments,
-                    IncludeCommits = config.IncludeCommits,
+                    IncludeDevelopmentLinks = config.IncludeDevelopmentLinks,
                     FieldMap = config.FieldMap,
                     SuppressNotifications = config.SuppressNotifications
                 };
@@ -135,7 +135,8 @@ namespace WorkItemImport
                         if (config.IgnoreEmptyRevisions &&
                             executionItem.Revision.Fields.Count == 0 &&
                             executionItem.Revision.Links.Count == 0 &&
-                            executionItem.Revision.Attachments.Count == 0)
+                            executionItem.Revision.Attachments.Count == 0 &&
+                            executionItem.Revision.DevelopmentLink == null)
                         {
                             Logger.Log(LogLevel.Info, $"Skipped processing empty revision: {executionItem.OriginId}, rev {executionItem.Revision.Index}");
                             continue;

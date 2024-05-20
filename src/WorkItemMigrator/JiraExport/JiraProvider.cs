@@ -173,7 +173,15 @@ namespace JiraExport
             {
                 using (var file = File.Create(fileFullPath))
                 {
-                    await stream.CopyToAsync(file);
+                    try
+                    {
+                        await stream.CopyToAsync(file);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e, $"Error while writing attachment to file: {fileFullPath}. Releasing file lock anyway.");
+                    }
+                    file.Close();
                 }
             }
         }
@@ -209,12 +217,15 @@ namespace JiraExport
                 }
                 if (response != null)
                 {
-                    remoteIssueBatch = response?.SelectTokens("$.issues[*]").OfType<JObject>()
+                    remoteIssueBatch = response.SelectTokens("$.issues[*]").OfType<JObject>()
                                             .Select(i => i.SelectToken("$.key").Value<string>());
 
-                    if (remoteIssueBatch == null)
+                    if (remoteIssueBatch == null || !remoteIssueBatch.Any())
                     {
-                        Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                        if (index == 0)
+                        {
+                            Logger.Log(LogLevel.Warning, $"No issuse were found using jql: {jql}");
+                        }
                         break;
                     }
 
@@ -335,7 +346,7 @@ namespace JiraExport
         {
             var attChanges = rev.AttachmentActions;
 
-            if (attChanges != null && attChanges.Any(a => a.ChangeType == RevisionChangeType.Added))
+            if (attChanges != null && attChanges.Exists(a => a.ChangeType == RevisionChangeType.Added))
             {
                 var downloadedAtts = new List<JiraAttachment>();
 
@@ -373,7 +384,7 @@ namespace JiraExport
                 var isUserEmailMissing = string.IsNullOrEmpty(user.Email);
                 if (isUserEmailMissing)
                 {
-                    Logger.Log(LogLevel.Warning,
+                    Logger.Log(LogLevel.Info,
                         Settings.UsingJiraCloud
                             ? $"Email is not public for user '{usernameOrAccountId}' in Jira," +
                             $" using usernameOrAccountId '{usernameOrAccountId}' for mapping." +
@@ -392,7 +403,7 @@ namespace JiraExport
             }
             catch (Exception)
             {
-                Logger.Log(LogLevel.Warning,
+                Logger.Log(LogLevel.Info,
                     Settings.UsingJiraCloud
                         ? $"Specified user '{usernameOrAccountId}' does not exist or you do not have required permissions, using accountId '{usernameOrAccountId}'"
                         : $"User '{usernameOrAccountId}' not found in Jira, using username '{usernameOrAccountId}' for mapping.");

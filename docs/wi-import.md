@@ -10,8 +10,8 @@ Usage: wi-import [options]
 |---|---|---|
 |-? \| -h \| --help|False|Show help information|
 |--token \<accesstoken>|True|Personal access token to use for authentication|
-|--url \<adourl>|True|Url of the Azure DevOps organization/collection|
-|--config \<configurationfilename>|True|Import the work items based on the configuration file|
+|--url \<ado url>|True|Url of the Azure DevOps organization/collection|
+|--config \<configuration filename>|True|Import the work items based on the configuration file|
 |--force|False|Force execution from start (instead of continuing from previous run). **Note**: this option will result in duplicate items being imported and is primarily intended to be used during non-production imports when testing out the configuration.|
 |--continue \<boolean>|False|Continue execution upon a critical error|
 
@@ -22,11 +22,11 @@ Usage: wi-import [options]
 ### ADO Services (cloud)
 
 ```bash
-wi-import --token myToken --url https://dev.azure.com/myorganization --config config.json --force
+.\wi-import.exe --token myToken --url https://dev.azure.com/myorganization --config config.json --force
 ```
 
 ### ADO Server/TFS Server (on premises)
 
 ```bash
-wi-import --token myToken --url https://tfs.mycompany.com/DefaultCollection --config config.json --force
+.\wi-import.exe --token myToken --url https://tfs.mycompany.com/DefaultCollection --config config.json --force
 ```

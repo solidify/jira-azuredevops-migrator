@@ -35,9 +35,11 @@ namespace Migration.Wi_Import.Tests
 
             public WorkItem CreateWorkItem(string wiType, bool suppressNotifications, DateTime? createdDate = null, string createdBy = "")
             {
-                WorkItem workItem = new WorkItem();
-                workItem.Id = _wiIdCounter;
-                workItem.Url = $"https://example/workItems/{_wiIdCounter}";
+                WorkItem workItem = new WorkItem
+                {
+                    Id = _wiIdCounter,
+                    Url = $"https://example/workItems/{_wiIdCounter}"
+                };
                 workItem.Fields[WiFieldReference.WorkItemType] = wiType;
                 if (createdDate != default)
                     workItem.Fields[WiFieldReference.CreatedDate] = createdDate;
@@ -69,26 +71,19 @@ namespace Migration.Wi_Import.Tests
                         else if (op.Path.StartsWith("/relations/"))
                         {
                             string rel = op.Value.GetType().GetProperty("rel")?.GetValue(op.Value, null).ToString();
-                            if (rel == null)
-                            {
-                                rel = op.Value.GetType().GetProperty("Rel")?.GetValue(op.Value, null).ToString();
-                            }
+                            rel ??= op.Value.GetType().GetProperty("Rel")?.GetValue(op.Value, null).ToString();
                             string url = op.Value.GetType().GetProperty("url")?.GetValue(op.Value, null).ToString();
-                            if (url == null)
-                            {
-                                url = op.Value.GetType().GetProperty("Url")?.GetValue(op.Value, null).ToString();
-                            }
+                            url ??= op.Value.GetType().GetProperty("Url")?.GetValue(op.Value, null).ToString();
                             object attributes = op.Value.GetType().GetProperty("attributes")?.GetValue(op.Value, null);
-                            if (attributes == null)
-                            {
-                                attributes = op.Value.GetType().GetProperty("Attributes")?.GetValue(op.Value, null);
-                            }
+                            attributes ??= op.Value.GetType().GetProperty("Attributes")?.GetValue(op.Value, null);
                             string comment = attributes?.GetType().GetProperty("comment")?.GetValue(attributes, null).ToString();
 
-                            WorkItemRelation wiRelation = new WorkItemRelation();
-                            wiRelation.Rel = rel;
-                            wiRelation.Url = url;
-                            wiRelation.Attributes = new Dictionary<string, object> { { "comment", comment } };
+                            WorkItemRelation wiRelation = new WorkItemRelation
+                            {
+                                Rel = rel,
+                                Url = url,
+                                Attributes = new Dictionary<string, object> { { "comment", comment } }
+                            };
 
                             if (wi.Relations.FirstOrDefault(r => r.Rel == wiRelation.Rel && r.Url == wiRelation.Url) == null)
                                 wi.Relations.Add(wiRelation);
@@ -114,8 +109,7 @@ namespace Migration.Wi_Import.Tests
             public TeamProject GetProject(string projectId)
             {
                 TeamProject tp = new TeamProject();
-                Guid projGuid;
-                if (Guid.TryParse(projectId, out projGuid))
+                if (Guid.TryParse(projectId, out Guid projGuid))
                 {
                     tp.Id = projGuid;
                 }
@@ -129,9 +123,11 @@ namespace Migration.Wi_Import.Tests
 
             public GitRepository GetRepository(string project, string repository)
             {
-                GitRepository gr = new GitRepository();
-                gr.Id = repositoryId;
-                gr.Name = repository;
+                GitRepository gr = new GitRepository
+                {
+                    Id = repositoryId,
+                    Name = repository
+                };
 
                 return gr;
             }
@@ -157,9 +153,11 @@ namespace Migration.Wi_Import.Tests
 
             public AttachmentReference CreateAttachment(WiAttachment wiAttachment)
             {
-                AttachmentReference att = new AttachmentReference();
-                att.Id = Guid.NewGuid();
-                att.Url = "https://example.com";
+                AttachmentReference att = new AttachmentReference
+                {
+                    Id = Guid.NewGuid(),
+                    Url = "https://example.com"
+                };
                 return att;
             }
         }
@@ -198,10 +196,12 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_ensure_author_fields_with_first_revision_Then_author_is_added_to_fields()
         {
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
-            rev.Index = 0;
-            rev.Author = "Firstname Lastname";
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>(),
+                Index = 0,
+                Author = "Firstname Lastname"
+            };
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
@@ -217,10 +217,12 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_ensure_author_fields_with_subsequent_revision_Then_author_is_added_to_fields()
         {
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
-            rev.Index = 1;
-            rev.Author = "Firstname Lastname";
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>(),
+                Index = 1,
+                Author = "Firstname Lastname"
+            };
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
             wiUtils.EnsureAuthorFields(rev);
@@ -248,14 +250,18 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils sut = new WitClientUtils(witClientWrapper);
 
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
-            rev.Index = 0;
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>(),
+                Index = 0
+            };
 
             WorkItem createdWI = sut.CreateWorkItem("User Story", false);
 
-            IdentityRef assignedTo = new IdentityRef();
-            assignedTo.UniqueName = "Mr. Test";
+            IdentityRef assignedTo = new IdentityRef
+            {
+                UniqueName = "Mr. Test"
+            };
 
             createdWI.Fields[WiFieldReference.AssignedTo] = assignedTo;
 
@@ -288,10 +294,12 @@ namespace Migration.Wi_Import.Tests
 
             DateTime now = DateTime.Now;
 
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
-            rev.Time = now;
-            rev.Index = 0;
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>(),
+                Time = now,
+                Index = 0
+            };
 
             createdWI.Fields[WiFieldReference.ChangedDate] = now;
 
@@ -327,13 +335,17 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
-            rev.Index = 1;
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>(),
+                Index = 1
+            };
 
-            WiField revState = new WiField();
-            revState.ReferenceName = WiFieldReference.State;
-            revState.Value = "New";
+            WiField revState = new WiField
+            {
+                ReferenceName = WiFieldReference.State,
+                Value = "New"
+            };
             rev.Fields.Add(revState);
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
@@ -358,13 +370,17 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
-            rev.Index = 1;
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>(),
+                Index = 1
+            };
 
-            WiField revState = new WiField();
-            revState.ReferenceName = WiFieldReference.State;
-            revState.Value = "New";
+            WiField revState = new WiField
+            {
+                ReferenceName = WiFieldReference.State,
+                Value = "New"
+            };
             rev.Fields.Add(revState);
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
@@ -381,6 +397,41 @@ namespace Migration.Wi_Import.Tests
         }
 
         [Test]
+        public void When_calling_ensure_fields_on_a_wi_with_no_state_field_Then_no_execption_is_thrown_and_no_revision_fields_are_set()
+        {
+            MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
+            WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
+
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>(),
+                Index = 1
+            };
+
+            WiField revState = new WiField
+            {
+                ReferenceName = WiFieldReference.State,
+                Value = "New"
+            };
+            rev.Fields.Add(revState);
+
+            WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
+
+            Assert.DoesNotThrow(() => wiUtils.EnsureFieldsOnStateChange(rev, createdWI));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(rev.Fields.GetFieldValueOrDefault<string>(WiFieldReference.State), Is.EqualTo("New"));
+                Assert.That(rev.Fields.Where(f => f.ReferenceName.Equals(WiFieldReference.ClosedDate)).Count, Is.EqualTo(0));
+                Assert.That(rev.Fields.Where(f => f.ReferenceName.Equals(WiFieldReference.ClosedBy)).Count, Is.EqualTo(0));
+                Assert.That(rev.Fields.Where(f => f.ReferenceName.Equals(WiFieldReference.ActivatedDate)).Count, Is.EqualTo(0));
+                Assert.That(rev.Fields.Where(f => f.ReferenceName.Equals(WiFieldReference.ActivatedBy)).Count, Is.EqualTo(0));
+                Assert.That(rev.Fields.Where(f => f.ReferenceName.Equals(WiFieldReference.ResolvedDate)).Count, Is.EqualTo(0));
+                Assert.That(rev.Fields.Where(f => f.ReferenceName.Equals(WiFieldReference.ResolvedBy)).Count, Is.EqualTo(0));
+            });
+        }
+
+        [Test]
         public void When_calling_ensure_classification_fields_with_empty_args_Then_an_exception_is_thrown()
         {
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
@@ -393,8 +444,10 @@ namespace Migration.Wi_Import.Tests
         [Test]
         public void When_calling_ensure_classification_fields_Then_areapath_and_iterationpath_are_added_to_fields()
         {
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>()
+            };
 
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
@@ -428,12 +481,16 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>()
+            };
 
-            WiField revTitleField = new WiField();
-            revTitleField.ReferenceName = WiFieldReference.Title;
-            revTitleField.Value = "My title";
+            WiField revTitleField = new WiField
+            {
+                ReferenceName = WiFieldReference.Title,
+                Value = "My title"
+            };
 
             rev.Fields.Add(revTitleField);
 
@@ -456,12 +513,16 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = wiUtils.CreateWorkItem("Bug", false);
 
-            WiRevision rev = new WiRevision();
-            rev.Fields = new List<WiField>();
+            WiRevision rev = new WiRevision
+            {
+                Fields = new List<WiField>()
+            };
 
-            WiField revTitleField = new WiField();
-            revTitleField.ReferenceName = WiFieldReference.Title;
-            revTitleField.Value = "My title";
+            WiField revTitleField = new WiField
+            {
+                ReferenceName = WiFieldReference.Title,
+                Value = "My title"
+            };
 
             rev.Fields.Add(revTitleField);
 
@@ -544,13 +605,15 @@ namespace Migration.Wi_Import.Tests
 
             Settings settings = _fixture.Create<Settings>();
 
-            WiLink link = new WiLink();
-            link.WiType = "System.LinkTypes.Hierarchy-Forward";
-            link.SourceOriginId = "100";
-            link.SourceWiId = 1;
-            link.TargetOriginId = "101";
-            link.TargetWiId = 2;
-            link.Change = ReferenceChangeType.Added;
+            WiLink link = new WiLink
+            {
+                WiType = "System.LinkTypes.Hierarchy-Forward",
+                SourceOriginId = "100",
+                SourceWiId = 1,
+                TargetOriginId = "101",
+                TargetWiId = 2,
+                Change = ReferenceChangeType.Added
+            };
 
             wiUtils.AddAndSaveLink(link, createdWI, settings);
 
@@ -572,25 +635,29 @@ namespace Migration.Wi_Import.Tests
             Settings settings = _fixture.Create<Settings>();
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
-            var attachment = new WorkItemRelation();
-            attachment.Title = "LinkTitle";
-            attachment.Rel = "AttachedFile";
-            attachment.Url = $"https://dev.azure.com/someorg/someattachment/{System.Guid.NewGuid()}";
-            attachment.Attributes = new Dictionary<string, object>()
+            var attachment = new WorkItemRelation
+            {
+                Title = "LinkTitle",
+                Rel = "AttachedFile",
+                Url = $"https://dev.azure.com/someorg/someattachment/{System.Guid.NewGuid()}",
+                Attributes = new Dictionary<string, object>()
             {
                     { "id", _fixture.Create<string>() },
                     { "name", "filename.png" }
+            }
             };
             createdWI.Relations.Add(attachment);
             WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
 
-            WiLink link = new WiLink();
-            link.WiType = "System.LinkTypes.Hierarchy-Forward";
-            link.SourceOriginId = "100";
-            link.SourceWiId = 1;
-            link.TargetOriginId = "101";
-            link.TargetWiId = 2;
-            link.Change = ReferenceChangeType.Added;
+            WiLink link = new WiLink
+            {
+                WiType = "System.LinkTypes.Hierarchy-Forward",
+                SourceOriginId = "100",
+                SourceWiId = 1,
+                TargetOriginId = "101",
+                TargetWiId = 2,
+                Change = ReferenceChangeType.Added
+            };
 
             wiUtils.AddAndSaveLink(link, createdWI, settings);
 
@@ -613,24 +680,28 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             WorkItem linkedWI = wiUtils.CreateWorkItem("Task", false);
-            var attachment = new WorkItemRelation();
-            attachment.Title = "LinkTitle";
-            attachment.Rel = "AttachedFile";
-            attachment.Url = $"https://dev.azure.com/someorg/someattachment/{System.Guid.NewGuid()}";
-            attachment.Attributes = new Dictionary<string, object>()
+            var attachment = new WorkItemRelation
             {
+                Title = "LinkTitle",
+                Rel = "AttachedFile",
+                Url = $"https://dev.azure.com/someorg/someattachment/{System.Guid.NewGuid()}",
+                Attributes = new Dictionary<string, object>()
+                {
                     { "id", _fixture.Create<string>() },
                     { "name", "filename.png" }
+                }
             };
             linkedWI.Relations.Add(attachment);
 
-            WiLink link = new WiLink();
-            link.WiType = "System.LinkTypes.Hierarchy-Forward";
-            link.SourceOriginId = "100";
-            link.SourceWiId = 1;
-            link.TargetOriginId = "101";
-            link.TargetWiId = 2;
-            link.Change = ReferenceChangeType.Added;
+            WiLink link = new WiLink
+            {
+                WiType = "System.LinkTypes.Hierarchy-Forward",
+                SourceOriginId = "100",
+                SourceWiId = 1,
+                TargetOriginId = "101",
+                TargetWiId = 2,
+                Change = ReferenceChangeType.Added
+            };
 
             wiUtils.AddAndSaveLink(link, createdWI, settings);
 
@@ -664,8 +735,10 @@ namespace Migration.Wi_Import.Tests
 
             Settings settings = _fixture.Create<Settings>();
 
-            WiLink link = new WiLink();
-            link.WiType = "System.LinkTypes.Hierarchy-Forward";
+            WiLink link = new WiLink
+            {
+                WiType = "System.LinkTypes.Hierarchy-Forward"
+            };
 
             bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings);
 
@@ -683,13 +756,15 @@ namespace Migration.Wi_Import.Tests
 
             Settings settings = _fixture.Create<Settings>();
 
-            WiLink link = new WiLink();
-            link.WiType = "System.LinkTypes.Hierarchy-Forward";
-            link.SourceOriginId = "100";
-            link.SourceWiId = 1;
-            link.TargetOriginId = "101";
-            link.TargetWiId = 2;
-            link.Change = ReferenceChangeType.Added;
+            WiLink link = new WiLink
+            {
+                WiType = "System.LinkTypes.Hierarchy-Forward",
+                SourceOriginId = "100",
+                SourceWiId = 1,
+                TargetOriginId = "101",
+                TargetWiId = 2,
+                Change = ReferenceChangeType.Added
+            };
 
             wiUtils.AddAndSaveLink(link, createdWI, settings);
 
@@ -733,18 +808,22 @@ namespace Migration.Wi_Import.Tests
                 }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
-            att.AttOriginId = "100";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png",
+                AttOriginId = "100"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>
+            WiItem wiItem = new WiItem
             {
-                revision
+                Revisions = new List<WiRevision>
+                {
+                    revision
+                }
             };
 
             wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
@@ -794,18 +873,22 @@ namespace Migration.Wi_Import.Tests
                 }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
-            att.AttOriginId = "100";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png",
+                AttOriginId = "100"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>
+            WiItem wiItem = new WiItem
             {
-                revision
+                Revisions = new List<WiRevision>
+                {
+                    revision
+                }
             };
 
             wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
@@ -833,18 +916,22 @@ namespace Migration.Wi_Import.Tests
                 }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
-            att.AttOriginId = "100";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png",
+                AttOriginId = "100"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>
+            WiItem wiItem = new WiItem
             {
-                revision
+                Revisions = new List<WiRevision>
+                {
+                    revision
+                }
             };
 
             wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
@@ -872,18 +959,22 @@ namespace Migration.Wi_Import.Tests
                 }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png";
-            att.AttOriginId = "100";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\workspace\\Attachments\\100\\my_image.png",
+                AttOriginId = "100"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
 
-            WiItem wiItem = new WiItem();
-            wiItem.Revisions = new List<WiRevision>
+            WiItem wiItem = new WiItem
             {
-                revision
+                Revisions = new List<WiRevision>
+                {
+                    revision
+                }
             };
 
             wiUtils.CorrectAcceptanceCriteria(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
@@ -911,11 +1002,13 @@ namespace Migration.Wi_Import.Tests
 
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
-            att.AttOriginId = "100";
-            att.Comment = "My comment";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\MyFiles\\my_image.png",
+                AttOriginId = "100",
+                Comment = "My comment"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -947,11 +1040,13 @@ namespace Migration.Wi_Import.Tests
                 Attributes = new Dictionary<string, object>() { { "comment", "Imported from Jira, original ID: 100" } }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Removed;
-            att.FilePath = attachmentFilePath;
-            att.AttOriginId = "100";
-            att.Comment = "My comment";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Removed,
+                FilePath = attachmentFilePath,
+                AttOriginId = "100",
+                Comment = "My comment"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -979,11 +1074,13 @@ namespace Migration.Wi_Import.Tests
                 Attributes = new Dictionary<string, object>() { { "filePath", attachmentFilePath } }
             });
 
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = attachmentFilePath;
-            att.AttOriginId = "100";
-            att.Comment = "My comment";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = attachmentFilePath,
+                AttOriginId = "100",
+                Comment = "My comment"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -1029,11 +1126,13 @@ namespace Migration.Wi_Import.Tests
             Settings settings = _fixture.Create<Settings>();
 
             // Add attachment
-            WiAttachment att = new WiAttachment();
-            att.Change = ReferenceChangeType.Added;
-            att.FilePath = "C:\\Temp\\MyFiles\\my_image.png";
-            att.AttOriginId = "100";
-            att.Comment = "My comment";
+            WiAttachment att = new WiAttachment
+            {
+                Change = ReferenceChangeType.Added,
+                FilePath = "C:\\Temp\\MyFiles\\my_image.png",
+                AttOriginId = "100",
+                Comment = "My comment"
+            };
 
             WiRevision revision = new WiRevision();
             revision.Attachments.Add(att);
@@ -1110,10 +1209,15 @@ namespace Migration.Wi_Import.Tests
             WorkItem createdWI = wiUtils.CreateWorkItem("User Story", false);
             createdWI.Fields[WiFieldReference.ChangedDate] = DateTime.Now;
 
-            WiRevision revision = new WiRevision();
-            revision.Commit = new WiCommit();
-            revision.Commit.Repository = "repository";
-            revision.Commit.Id = "1234567890";
+            WiRevision revision = new WiRevision
+            {
+                DevelopmentLink = new WiDevelopmentLink
+                {
+                    Repository = "repository",
+                    Id = "1234567890",
+                    Type = "Commit"
+                }
+            };
 
             Settings settings = new Settings("account", "project", "pat");
 
@@ -1132,7 +1236,7 @@ namespace Migration.Wi_Import.Tests
             {
                 Assert.That(updatedWI.Relations.First().Rel, Is.EqualTo("ArtifactLink"));
                 Assert.That(updatedWI.Relations.First().Url, Is.EqualTo($"vstfs:///Git/Commit/" +
-                    $"{witClientWrapper.projectId}%2F{witClientWrapper.repositoryId}%2F{revision.Commit.Id}"));
+                    $"{witClientWrapper.projectId}%2F{witClientWrapper.repositoryId}%2F{revision.DevelopmentLink.Id}"));
             });
         }
 

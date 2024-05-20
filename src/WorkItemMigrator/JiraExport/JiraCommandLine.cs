@@ -91,7 +91,7 @@ namespace JiraExport
                     AttachmentsDir = Path.Combine(migrationWorkspace, config.AttachmentsFolder),
                     JQL = config.Query,
                     UsingJiraCloud = config.UsingJiraCloud,
-                    IncludeCommits = config.IncludeCommits,
+                    IncludeDevelopmentLinks = config.IncludeDevelopmentLinks,
                     RepositoryMap = config.RepositoryMap
                 };
 
@@ -176,7 +176,7 @@ namespace JiraExport
                 {
                     var rev1LinkSourceWiIds = rev1.Links.Select(l => l.SourceOriginId).ToList();
                     var revsWithOppositeLink = revisionsWithLinkChanges.Where(
-                        r => r.Links.Any(l => rev1LinkSourceWiIds.Contains(l.TargetOriginId))
+                        r => r.Links.Exists(l => rev1LinkSourceWiIds.Contains(l.TargetOriginId))
                     );
                     foreach (var rev2 in revsWithOppositeLink)
                     {

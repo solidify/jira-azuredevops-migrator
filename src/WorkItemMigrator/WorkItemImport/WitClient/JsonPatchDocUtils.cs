@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 using System;
+using System.Web;
 
 namespace WorkItemImport.WitClient
 {
@@ -33,11 +34,17 @@ namespace WorkItemImport.WitClient
             };
         }
 
-        public static JsonPatchOperation CreateJsonArtifactLinkPatchOp(Operation op, string projectId, string repositoryId, string commitId)
+        public static JsonPatchOperation CreateJsonArtifactLinkPatchOp(
+            Operation op,
+            string projectId,
+            string repositoryId,
+            string developmentLinkId,
+            string type
+        )
         {
-            if (string.IsNullOrEmpty(commitId))
+            if (string.IsNullOrEmpty(developmentLinkId))
             {
-                throw new ArgumentException(nameof(commitId));
+                throw new ArgumentException(nameof(developmentLinkId));
             }
 
             if (string.IsNullOrEmpty(projectId))
@@ -50,6 +57,18 @@ namespace WorkItemImport.WitClient
                 throw new ArgumentException(nameof(repositoryId));
             }
 
+            string url;
+            string nameAttribute;
+            if (type == "Commit")
+            {
+                url = $"vstfs:///Git/Commit/{projectId}%2F{repositoryId}%2F{developmentLinkId}";
+                nameAttribute = "Fixed in Commit";
+            }
+            else
+            {
+                throw new ArgumentException(nameof(type));
+            }
+
             return new JsonPatchOperation()
             {
                 Operation = op,
@@ -57,10 +76,10 @@ namespace WorkItemImport.WitClient
                 Value = new PatchOperationValue
                 {
                     Rel = "ArtifactLink",
-                    Url = $"vstfs:///Git/Commit/{projectId}%2F{repositoryId}%2F{commitId}",
+                    Url = url,
                     Attributes = new Attributes
                     {
-                        Name = "Fixed in Commit"
+                        Name = nameAttribute
                     }
                 }
             };

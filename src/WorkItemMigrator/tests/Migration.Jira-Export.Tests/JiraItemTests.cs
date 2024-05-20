@@ -46,7 +46,7 @@ namespace Migration.Jira_Export.Tests
                   'id': '{attachmentId}',
                   'filename': '{attachmentName}',
                   'author': null,
-                  'created': '{DateTime.Now.ToString("yyyy - MM - ddTHH:mm: ss.fffZ")}',
+                  'created': '{DateTime.Now:yyyy - MM - ddTHH:mm: ss.fffZ}',
                   'size': '{_fixture.Create<int>()}',
                   'mimeType': 'image/jpeg',
                   'content': 'https://server/rest/api/2/attachment/{HttpUtility.UrlEncode(attachmentName)}',
@@ -77,7 +77,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -140,7 +140,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -190,7 +190,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -244,7 +244,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -306,7 +306,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -356,7 +356,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -405,7 +405,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -456,7 +456,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -515,7 +515,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -563,7 +563,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             //Act
@@ -601,7 +601,7 @@ namespace Migration.Jira_Export.Tests
 
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
 
             CustomField customField = null;
@@ -655,12 +655,18 @@ namespace Migration.Jira_Export.Tests
                 { "renderedFields", renderedFields }
             };
 
+            RemoteField r = new RemoteField
+            {
+                id = customFieldId
+            };
+
+            CustomField mockedCustomField = new CustomField(r);
+
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
-
-            provider.GetCustomId(customFieldName).Returns(customFieldId);
+            provider.GetCustomField(customFieldName).Returns(mockedCustomField);
 
             //Act
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
@@ -709,12 +715,18 @@ namespace Migration.Jira_Export.Tests
                 { "renderedFields", renderedFields }
             };
 
+            RemoteField r = new RemoteField
+            {
+                id = customFieldId
+            };
+
+            CustomField mockedCustomField = new CustomField(r);
+
             provider.DownloadIssue(default).ReturnsForAnyArgs(remoteIssue);
             provider.DownloadChangelog(default).ReturnsForAnyArgs(changelog);
-            var jiraSettings = createJiraSettings();
+            var jiraSettings = CreateJiraSettings();
             provider.GetSettings().ReturnsForAnyArgs(jiraSettings);
-
-            provider.GetCustomId(customFieldName).Returns(customFieldId);
+            provider.GetCustomField(customFieldName).Returns(mockedCustomField);
 
             //Act
             var jiraItem = JiraItem.CreateFromRest(issueKey, provider);
@@ -731,11 +743,13 @@ namespace Migration.Jira_Export.Tests
             });
         }
 
-        private JiraSettings createJiraSettings()
+        private JiraSettings CreateJiraSettings()
         {
-            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project");
-            settings.EpicLinkField = "EpicLinkField";
-            settings.SprintField = "SprintField";
+            JiraSettings settings = new JiraSettings("userID", "pass", "token", "url", "project")
+            {
+                EpicLinkField = "EpicLinkField",
+                SprintField = "SprintField"
+            };
 
             return settings;
         }

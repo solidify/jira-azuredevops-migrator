@@ -5,6 +5,7 @@ using Migration.Common.Log;
 using Migration.WIContract;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Migration.Jira-Export.Tests")]
@@ -136,7 +137,7 @@ namespace JiraExport
                         }
                         else if (dataType == "datetime" || dataType == "date")
                         {
-                            value = IfChanged<DateTime>(item.Source, isCustomField);
+                            value = IfChangedDateTime(item.Source, isCustomField);
                         }
                         else
                         {
@@ -188,18 +189,18 @@ namespace JiraExport
             return mappingPerWiType;
         }
 
-        internal WiCommit MapCommit(JiraRevision jiraRevision)
+        internal WiDevelopmentLink MapDevelopmentLink(JiraRevision jiraRevision)
         {
             if (jiraRevision == null)
                 throw new ArgumentNullException(nameof(jiraRevision));
 
-            if (jiraRevision.Commit == null)
+            if (jiraRevision.DevelopmentLink == null)
             {
                 return null;
             }
 
-            var jiraCommit = jiraRevision.Commit.Value;
-            var respositoryTarget = jiraCommit.Repository;
+            var jiraDevelopmentLink = jiraRevision.DevelopmentLink.Value;
+            var respositoryTarget = jiraDevelopmentLink.Repository;
 
             var respositoryOverride = _config
                 .RepositoryMap
@@ -212,13 +213,14 @@ namespace JiraExport
                 respositoryTarget = respositoryOverride;
             }
 
-            var commit = new WiCommit()
+            var developmentLink = new WiDevelopmentLink()
             {
-                Id = jiraCommit.Id,
+                Id = jiraDevelopmentLink.Id,
                 Repository = respositoryTarget,
+                Type = jiraDevelopmentLink.Type.ToString()
             };
 
-            return commit;
+            return developmentLink;
         }
 
         internal List<WiLink> MapLinks(JiraRevision r)
@@ -347,7 +349,7 @@ namespace JiraExport
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
-            var commit = MapCommit(r);
+            var developmentLink = MapDevelopmentLink(r);
 
             return new WiRevision()
             {
@@ -359,7 +361,7 @@ namespace JiraExport
                 Fields = fields,
                 Links = links,
                 AttachmentReferences = attachments.Any(),
-                Commit = commit
+                DevelopmentLink = developmentLink
             };
         }
 
@@ -400,6 +402,41 @@ namespace JiraExport
                     else
                     {
                         return (true, (T)value);
+                    }
+                }
+                else
+                {
+                    return (false, null);
+                }
+            };
+        }
+
+        private Func<JiraRevision, (bool, object)> IfChangedDateTime(string sourceField, bool isCustomField, Func<DateTime, object> mapperFunc = null)
+        {
+            if (isCustomField)
+            {
+                sourceField = _jiraProvider.GetCustomId(sourceField) ?? sourceField;
+            }
+
+            return (r) =>
+            {
+                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
+                {
+                    if (mapperFunc != null)
+                    {
+                        return (true, mapperFunc((DateTime)value));
+                    }
+                    else
+                    {
+                        if (DateTime.TryParseExact(value.ToString(), "dd/MMM/yy", CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.None, out DateTime result))
+                        {
+                            return (true, result.ToUniversalTime());
+                        }
+                        else
+                        {
+                            return (true, value);
+                        }
                     }
                 }
                 else
