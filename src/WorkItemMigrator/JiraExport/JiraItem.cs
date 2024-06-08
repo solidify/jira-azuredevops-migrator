@@ -467,7 +467,6 @@ namespace JiraExport
                         { "assignee", extractAccountIdOrUsername },
                         { "creator", extractAccountIdOrUsername },
                         { "reporter", extractAccountIdOrUsername},
-                        { jira.GetSettings().SprintField, t => string.Join(", ", ParseCustomField(jira.GetSettings().SprintField, t, jira)) },
                         { "status", extractName },
                         { "parent", t => t.ExValue<string>("$.key") },
                         { "issuetype", extractName },
