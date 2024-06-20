@@ -17,7 +17,7 @@ Example:
 ## 2. Why I am getting Unauthorized exception when running the export?
 
 - Ensure that your Jira credentials and Jira URL are correct.
-- Ensure that your `jira-export` command and all the flags are correct. See: <https://github.com/solidify/jira-azuredevops-migrator/blob/doc/update-usage-examples/docs/jira-export.md>
+- Ensure that your `jira-export` command and all the flags are correct. See: <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/jira-export.md>
 - Try different combinations of your jira user/api credentials. The functionality here could depend on wether you are using Jira Cloud or Jira Server, as well as wether you have set your user's email as public in the user profile in Jira Cloud, and jira might not be accepting certain credentials. Try all combinations of the following:
   - username: **email**
   - username: **Jira Username**
