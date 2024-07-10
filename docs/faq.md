@@ -275,7 +275,24 @@ Instead of the default:
   }
 ```
 
-## 13. How to map sprints, iteration paths and area paths
+## 13. What are the base-area-path and base-iteration-path properties in the config.json file?
+
+**`base-area-path`:**  
+The `base-area-path` property in the migrator configuration specifies the root area path under which all migrated work items will be placed. This path organizes work items into different functional or project areas within Azure DevOps.
+
+**`base-iteration-path`:**  
+The `base-iteration-path` property defines the root iteration path for the migrated work items. This path is used to organize work items according to different iterations or sprints.
+
+### How to determine the correct values:
+
+- **`base-area-path`:** Navigate to your Azure DevOps project and go to **Project Settings** > **Project Configuration** > **Areas**. Identify the root area path you want to use for your migrated work items.
+- **`base-iteration-path`:** Similarly, navigate to **Project Settings** > **Project Configuration** > **Iterations**. Identify the root iteration path you want to use.
+
+### What if my Jira project structure does not directly map to the Azure DevOps structure?
+
+In such cases, you may need to create a mapping strategy to translate Jira project components to Azure DevOps area and iteration paths. This might involve some manual configuration and planning to ensure that the migrated work items fit into the desired structure. See the next section in this FAQ for a guide on how to map sprints, iteration paths and area paths.
+
+## 14. How to map sprints, iteration paths and area paths
 
 It is possible to do custom mappings of the **Jira Sprints** as **Iteration Paths**, and vice versa for **Area Paths**.
 
@@ -334,7 +351,7 @@ This will set the Iteration path correctly. The final path will be like the foll
 - `<project name>\<base-iteration-path>\<mapped value>`
 - `<project name>\<base-area-path>\<mapped value>`
 
-## 14. How to migrate Development Links (commit, PR, branch)
+## 15. How to migrate Development Links (commit, PR, branch)
 
 If you have previously migrated your BitBucket git repositories to your Azure DevOps Server/organization, you can also migrate the development links of the Jira Issues to the corresponding ADO Work Items.
 
@@ -356,7 +373,7 @@ In your configuration file, you must specify the following properties:
 
 The **repository-map** must contain a key-value lookup table with the names of the Bitbucket git repositories and their translations in ADO.
 
-## 15. How to limit the number of issues to be exported during JIRA export (pagination)
+## 16. How to limit the number of issues to be exported during JIRA export (pagination)
 
 If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
 
@@ -370,7 +387,7 @@ And so on.
 
 You can always use the **issues** view in your Jira project to experiment with different JQL queries.
 
-## 16. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
+## 17. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
 
 The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 
@@ -393,7 +410,7 @@ curl -D-
  "http://johnie:8081/rest/api/2/search"
 ```
 
-## 17. Azure DevOps Rate and usage limits (ADO Cloud only)
+## 18. Azure DevOps Rate and usage limits (ADO Cloud only)
 
 In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always recommend the following procedure:
 
