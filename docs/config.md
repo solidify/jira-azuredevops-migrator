@@ -29,8 +29,8 @@ The migration configuration file is defined in a json file with the properties d
 |**log-level**|False|string|Debug, Info, Warning, Error or Critical. Default = "Debug".|
 |**attachment-folder**|True|string|Location to store attachments.|
 |**user-mapping-file**|False|string|Name of user mapping file. If no specific path is set the program expects it to be located in the "workspace" folder.|
-|**base-area-path**|False|string|Area path. Default is empty.|
-|**base-iteration-path**|False|string|Iteration path. Default is empty.|
+|**base-area-path**|False|string|The root area path under which all migrated work items will be placed. Default is empty.|
+|**base-iteration-path**|False|string|The root iteration path for the migrated work items. Default is empty.|
 |**ignore-failed-links**|False|boolean|Set to True if failed links are to be ignored. Default = False.|
 |**include-link-comments**|False|boolean|Set to True to get a verbose comment on the work item for every work item link created. Default = True.|
 |**include-jira-css-styles**|True|boolean|Set to True to generate and include confluence CSS Stylesheets for description, repro steps and comments. Default = True.|
