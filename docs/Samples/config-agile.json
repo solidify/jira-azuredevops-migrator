@@ -146,10 +146,6 @@
             },
             {
               "source": "Done",
-              "target": "Resolved"
-            },
-            {
-              "source": "Done",
               "target": "Closed"
             },
             {
