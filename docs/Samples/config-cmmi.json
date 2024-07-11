@@ -197,10 +197,6 @@
                             "target": "Resolved"
                         },
                         {
-                            "source": "Done",
-                            "target": "Resolved"
-                        },
-                        {
                             "source": "Confirm",
                             "target": "Resolved"
                         },
