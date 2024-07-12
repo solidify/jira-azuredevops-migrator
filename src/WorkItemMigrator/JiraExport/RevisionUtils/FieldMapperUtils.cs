@@ -88,10 +88,10 @@ namespace JiraExport
                     var mappedValue = (from s in item.Mapping.Values where s.Source == value.ToString() select s.Target).FirstOrDefault();
                     if (string.IsNullOrEmpty(mappedValue))
                     {
-                        Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}' for item type '{r.Type}'.");
+                        Logger.Log(LogLevel.Warning, $"Missing mapping value '{value}' for field '{itemSource}' for item type '{targetWit}'.");
                         if(itemSource == "status")
                         {
-                            exportIssuesSummary.AddUnmappedIssueState(r.Type, value.ToString());
+                            exportIssuesSummary.AddUnmappedIssueState(targetWit, value.ToString());
                         }
                     }
                     return (true, mappedValue);
