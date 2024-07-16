@@ -124,9 +124,23 @@ namespace WorkItemImport
                         WorkItem wi = null;
 
                         if (executionItem.WiId > 0)
+                        {
                             wi = agent.GetWorkItem(executionItem.WiId);
+                            if (wi == null)
+                            {
+                                Logger.Log(LogLevel.Error, $"Tried fetching work item with id={executionItem.WiId}, " +
+                                    "but that work item does not exist on the target ADO organization/collection. " +
+                                    "Perhaps the item has been deleted manually? If so, the ItemsJournal.txt file " +
+                                    "is no longer valid. Please delete the work items in the target project and " +
+                                    "rerun the wi-import, or run the import with --force enabled."
+                                );
+                                continue;
+                            }
+                        }
                         else
+                        {
                             wi = agent.CreateWorkItem(executionItem.WiType, settings.SuppressNotifications, executionItem.Revision.Time, executionItem.Revision.Author);
+                        }
 
                         Logger.Log(LogLevel.Info, $"Processing {importedItems + 1}/{revisionCount} - wi '{(wi.Id > 0 ? wi.Id.ToString() : "Initial revision")}', jira '{executionItem.OriginId}, rev {executionItem.Revision.Index}'.");
 
