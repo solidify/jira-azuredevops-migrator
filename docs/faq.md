@@ -83,7 +83,7 @@ See <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/conf
 
 ### Scenario 2: Multiple projects
 
-When migrating multiple project, one after another (or otherwise running several migrations with different queries in a serial fashion), you may get duplicate issues if you have enabled the *include-linked-issues-not-captured-by-query* flag.
+When migrating multiple project, one after another (or otherwise running several migrations with different queries in a serial fashion), you may get duplicate issues if you set *download-options* to anything other than 0.
 
 The recommendation is thus to turn off all linked issues (parents, epic links and sub items) by setting the following property in the configuration file:
 
