@@ -410,7 +410,37 @@ curl -D-
  "http://johnie:8081/rest/api/2/search"
 ```
 
-## 18. Azure DevOps Rate and usage limits (ADO Cloud only)
+## 18. Sprint names are corrupted. ADO Iteration paths are named "[ synced = false  ]"
+
+The issue is usually that a custom field has been defined in Jira which is also named "Sprint", and the tool is picking up this field instead of the default Srpint field.
+
+Based on this forum post, you could possibly try to map the reserved customfield ID for the Sprint field: <https://community.developer.atlassian.com/t/confirm-variancy-of-jira-cloud-issue-field-keys-for-custom-fields/21134>
+
+Use the above forum post to determine the custom field ID for Sprint in your organization, then try the following field mapping:
+
+```json
+      {
+        "source": "customfield_10016",
+        "target": "System.IterationPath",
+        "mapper": "MapSprint"
+      },
+```
+
+It could be worth trying this mapping when running against Jira Cloud too:
+
+```json
+      {
+        "source": "customfield_10010",
+        "target": "System.IterationPath",
+        "mapper": "MapSprint"
+      },
+```
+
+It seems that for jira server, the field IDs can different between different developer instances. You can use the Get Fields endpoint to find out which field ID (customfield_xxxxx) is used by Sprint in your instance: https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#about
+
+Give it a try and let me know if it still does not work.
+
+## 19. Azure DevOps Rate and usage limits (ADO Cloud only)
 
 In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always recommend the following procedure:
 
