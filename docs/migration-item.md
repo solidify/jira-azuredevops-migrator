@@ -4,7 +4,7 @@ This document describes the structure of the migration item file.
 
 ## Structure
 
-This migration file describes an issue in a format which is compliant with the Azure DevOps Rest API, including attributes and historical revisions. Here's a breakdown of its structure.
+The migration file describes an issue in a format which is compliant with the Azure DevOps Rest API, including attributes and historical revisions. Here's a breakdown of its structure.
 
 ### Root Level
 - **Type**: A string indicating the type of work item.
