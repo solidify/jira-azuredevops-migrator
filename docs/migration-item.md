@@ -4,6 +4,48 @@ This document describes the structure of the migration item file.
 
 ## Structure
 
+This migration file describes an issue in a format which is compliant with the Azure DevOps Rest API, including attributes and historical revisions. Here's a breakdown of its structure.
+
+### Root Level
+- **Type**: A string indicating the type of work item.
+- **OriginId**: A string representing the original identifier of the Jira Issue.
+- **WiId**: An integer that represents the work item ID; it is set to `-1`, indicating an uninitialized state.
+- **Revisions**: An array of objects, each representing a revision made to the work item. This array holds the detailed history of changes.
+
+### Revisions Array
+Each item in the `Revisions` array has the following structure:
+
+- **Author**: A string containing the email of the user who made the revision.
+- **Time**: A string in ISO 8601 format representing the timestamp of when the revision was made.
+- **Index**: An integer indicating the revision's sequential index.
+- **Fields**: An array of objects, each representing a field that was modified in this revision.
+- **Links**: An array that holds links to related work items or artifacts.
+- **Attachments**: An array that holds references to attachments added in this revision.
+- **AttachmentReferences**: A boolean indicating whether there are attachment references associated with this revision.
+
+### Fields Array
+Each object within the `Fields` array has:
+
+- **ReferenceName**: A string specifying the internal name of the field (e.g., "System.Title", "System.State").
+- **Value**: A string holding the value assigned to that field during the revision.
+
+### Links Array
+Each object in the `Links` array represents a relationship or link to another entity:
+
+- **Change**: A value indicating the type of change (0 for addition, 1 for removal).
+- **TargetOriginId**: The identifier of the linked entity (e.g., another issue).
+- **TargetWiId**: An ID related to the work item the link points to (0 indicates an uninitialized state).
+- **WiType**: The type of link, such as `"System.LinkTypes.Hierarchy-Reverse"`.
+
+### Attachments Array
+Each object in the `Attachments` array represents a file associated with the revision:
+
+- **Change**:  A value indicating the type of change (0 for addition, 1 for removal).
+- **FileName**: The name of the file.
+- **Comment**: A comment associated with the attachment. Currently, the value will always be `"Imported from Jira"`.
+- **AttOriginId**: The ID of the attachment from the Jira system.
+- **FilePath**: The file path where the attachment is stored relative to the migration workspace.
+
 ## Example item
 
 ```json
@@ -101,6 +143,39 @@ This document describes the structure of the migration item file.
             "Links": [],
             "Attachments": [],
             "AttachmentReferences": false
+        },
+        {
+            "Author": "some.user@azuredevops.domain",
+            "Time": "2018-02-01T20:22:18.5+01:00",
+            "Index": 5,
+            "Fields": [],
+            "Links": [
+                {
+                    "Change": 0,
+                    "TargetOriginId": "SCRUM-21",
+                    "TargetWiId": 0,
+                    "WiType": "System.LinkTypes.Hierarchy-Reverse"
+                }
+            ],
+            "Attachments": [],
+            "AttachmentReferences": true
+        },
+        {
+            "Author": "some.user@azuredevops.domain",
+            "Time": "2018-02-01T20:22:18.5+01:00",
+            "Index": 6,
+            "Fields": [],
+            "Links": [],
+            "Attachments": [
+                {
+                    "Change": 0,
+                    "FileName": "image-2023-05-12-14-16-59-315.png",
+                    "Comment": "Imported from Jira",
+                    "AttOriginId": "98397",
+                    "FilePath": "workspace\\Attachments\\98397\\image-2023-05-12-14-16-59-315.png"
+                }
+            ],
+            "AttachmentReferences": true
         }
     ]
 }
