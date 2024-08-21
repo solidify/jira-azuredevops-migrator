@@ -590,7 +590,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.AddAndSaveLink(null, null, null),
+                () => wiUtils.AddAndSaveLink(null, null, null, null, DateTime.Now),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -615,7 +615,7 @@ namespace Migration.Wi_Import.Tests
                 Change = ReferenceChangeType.Added
             };
 
-            wiUtils.AddAndSaveLink(link, createdWI, settings);
+            wiUtils.AddAndSaveLink(link, createdWI, settings, "author", DateTime.Now);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -659,7 +659,7 @@ namespace Migration.Wi_Import.Tests
                 Change = ReferenceChangeType.Added
             };
 
-            wiUtils.AddAndSaveLink(link, createdWI, settings);
+            wiUtils.AddAndSaveLink(link, createdWI, settings, "author", DateTime.Now);
 
             WorkItemRelation rel = createdWI.Relations.Where(rl => rl.Rel != "AttachedFile").Single();
 
@@ -703,7 +703,7 @@ namespace Migration.Wi_Import.Tests
                 Change = ReferenceChangeType.Added
             };
 
-            wiUtils.AddAndSaveLink(link, createdWI, settings);
+            wiUtils.AddAndSaveLink(link, createdWI, settings, "author", DateTime.Now);
 
             WorkItemRelation rel = createdWI.Relations[0];
 
@@ -721,7 +721,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.RemoveAndSaveLink(null, null, null),
+                () => wiUtils.RemoveAndSaveLink(null, null, null, null, DateTime.Now),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -740,7 +740,7 @@ namespace Migration.Wi_Import.Tests
                 WiType = "System.LinkTypes.Hierarchy-Forward"
             };
 
-            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings, "author", DateTime.Now);
 
             Assert.That(result, Is.EqualTo(false));
         }
@@ -766,9 +766,9 @@ namespace Migration.Wi_Import.Tests
                 Change = ReferenceChangeType.Added
             };
 
-            wiUtils.AddAndSaveLink(link, createdWI, settings);
+            wiUtils.AddAndSaveLink(link, createdWI, settings, "author", DateTime.Now);
 
-            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings);
+            bool result = wiUtils.RemoveAndSaveLink(link, createdWI, settings, "author", DateTime.Now);
 
             Assert.Multiple(() =>
             {
