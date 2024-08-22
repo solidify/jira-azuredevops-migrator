@@ -1059,9 +1059,15 @@ namespace WorkItemImport
                         }
                     }
                 },
-                JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy),
                 JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
             };
+
+            if (!string.IsNullOrEmpty(changedBy))
+            {
+                linkPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy)
+                );
+            }
 
             if (sourceWI.Id.HasValue)
                 _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value, settings.SuppressNotifications);
@@ -1094,9 +1100,15 @@ namespace WorkItemImport
                     Operation = Operation.Remove,
                     Path = "/relations/"+relIndex
                 },
-                JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy),
                 JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedDate, changedDate)
             };
+
+            if (!string.IsNullOrEmpty(changedBy))
+            {
+                linkPatchDocument.Add(
+                    JsonPatchDocUtils.CreateJsonFieldPatchOp(Operation.Add, WiFieldReference.ChangedBy, changedBy)
+                );
+            }
 
             if (sourceWI.Id.HasValue)
                 _witClientWrapper.UpdateWorkItem(linkPatchDocument, sourceWI.Id.Value, settings.SuppressNotifications);
