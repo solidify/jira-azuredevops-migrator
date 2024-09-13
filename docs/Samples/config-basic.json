@@ -55,10 +55,6 @@
         "target": "Issue"
       },
       {
-        "source": "Bug",
-        "target": "Bug"
-      },
-      {
         "source": "Task",
         "target": "Task"
       }
