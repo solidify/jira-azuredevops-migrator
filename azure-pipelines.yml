@@ -87,7 +87,7 @@ steps:
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy JiraExport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net48'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net6'
     Contents: |
         ApplicationInsights.config
         Atlassian.Jira.dll
@@ -111,7 +111,7 @@ steps:
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy WorkItemImport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\net48'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\net6'
     Contents: |
         Microsoft.TeamFoundation.Client.dll
         Microsoft.TeamFoundation.Common.dll
