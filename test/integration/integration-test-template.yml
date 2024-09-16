@@ -33,7 +33,9 @@ steps:
         ApplicationInsights.config
         Atlassian.Jira.dll
         jira-export.exe
+        jira-export.dll
         jira-export.exe.config
+        jira-export.runtimeconfig.json
         Microsoft.AI.Agent.Intercept.dll
         Microsoft.AI.DependencyCollector.dll
         Microsoft.ApplicationInsights.dll
@@ -44,6 +46,7 @@ steps:
         Newtonsoft.Json.dll
         RestSharp.dll
         Semver.dll
+        System.Configuration.ConfigurationManager.dll
         System.Diagnostics.DiagnosticSource.dll
     TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
     flattenFolders: true
@@ -69,6 +72,8 @@ steps:
         System.Net.Http.Formatting.dll
         wi-import.exe
         wi-import.exe.config
+        wi-import.dll
+        wi-import.runtimeconfig.json
     TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
     flattenFolders: true
 
