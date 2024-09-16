@@ -1,10 +1,9 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
+using NUnit.Framework;
 using System;
-using WorkItemImport;
 using System.Diagnostics.CodeAnalysis;
+using WorkItemImport;
 
 namespace Migration.Wi_Import.Tests
 {
@@ -48,9 +47,7 @@ namespace Migration.Wi_Import.Tests
 
             var sut = new ImportCommandLine(args);
 
-            Assert.That(() => sut.Run(), !Throws.InstanceOf<Exception>());
-
-
+            Assert.AreEqual(-1, sut.Run());
         }
     }
 }

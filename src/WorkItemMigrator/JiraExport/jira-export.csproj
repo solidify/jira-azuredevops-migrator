@@ -88,8 +88,8 @@
     <Reference Include="Microsoft.Extensions.CommandLineUtils, Version=1.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.CommandLineUtils.1.1.1\lib\net451\Microsoft.Extensions.CommandLineUtils.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp, Version=106.0.0.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
       <HintPath>..\packages\RestSharp.106.10.1\lib\net452\RestSharp.dll</HintPath>
@@ -101,6 +101,7 @@
       <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.5.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
     <Reference Include="System.Management" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -112,9 +113,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExportIssuesSummary.cs" />
     <Compile Include="IJiraProvider.cs" />
     <Compile Include="IJiraServiceWrapper.cs" />
     <Compile Include="JiraCommandLine.cs" />
+    <Compile Include="JiraDevelopmentLink.cs" />
     <Compile Include="JiraServiceWrapper.cs" />
     <Compile Include="JiraMapper.cs" />
     <Compile Include="JiraAttachment.cs" />
@@ -124,6 +127,7 @@
     <Compile Include="JiraProvider.cs" />
     <Compile Include="JiraRevision.cs" />
     <Compile Include="JiraSettings.cs" />
+    <Compile Include="RevisionUtils\Base36.cs" />
     <Compile Include="RevisionUtils\FieldMapperUtils.cs" />
     <Compile Include="RevisionUtils\LinkMapperUtils.cs" />
     <Compile Include="Program.cs" />

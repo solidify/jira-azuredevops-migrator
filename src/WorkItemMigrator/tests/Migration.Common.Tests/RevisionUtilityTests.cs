@@ -1,10 +1,9 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
-using System.Collections.Generic;
-using System;
 using Migration.WIContract;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.Common.Tests
@@ -95,8 +94,10 @@ namespace Migration.Common.Tests
         [Test]
         public void When_calling_hasanybyrefname_when_list_contains_matching_refname_Then_true_is_returned()
         {
-            WiField field = new WiField();
-            field.ReferenceName = "name";
+            WiField field = new WiField
+            {
+                ReferenceName = "name"
+            };
             List<WiField> list = new List<WiField>
             {
                 field
@@ -111,8 +112,10 @@ namespace Migration.Common.Tests
         [Test]
         public void When_calling_hasanybyrefname_when_list_does_not_contain_matching_refname_Then_false_is_returned()
         {
-            WiField field = new WiField();
-            field.ReferenceName = "anothername";
+            WiField field = new WiField
+            {
+                ReferenceName = "anothername"
+            };
             List<WiField> list = new List<WiField>
             {
                 field

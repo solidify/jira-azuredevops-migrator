@@ -1,0 +1,338 @@
+{
+    "source-project": "Agile-Demo",
+    "target-project": "AzureDevOps-Jira-Migrator-Smoke-Tests",
+    "query": "project = \"AGILEDEMO\" ORDER BY created DESC",
+    "using-jira-cloud": true,
+    "workspace": "__workspace__",
+    "epic-link-field": "Epic Link",
+    "sprint-field": "Sprint",
+    "download-options": 7,
+    "batch-size": 20,
+    "log-level": "Info",
+    "attachment-folder": "Attachments",
+    "user-mapping-file": "users.txt",
+    "base-area-path": "Migrated",
+    "base-iteration-path": "Migrated",
+    "ignore-failed-links": true,
+    "process-template": "Agile",
+    "link-map": {
+      "link": [
+        {
+          "source": "Epic",
+          "target": "System.LinkTypes.Hierarchy-Reverse"
+        },
+        {
+          "source": "Parent",
+          "target": "System.LinkTypes.Hierarchy-Reverse"
+        },
+        {
+          "source": "Child",
+          "target": "System.LinkTypes.Hierarchy-Forward"
+        },
+        {
+          "source": "Relates",
+          "target": "System.LinkTypes.Related"
+        },
+        {
+          "source": "Duplicate",
+          "target": "System.LinkTypes.Duplicate-Forward"
+        }
+      ]
+    },
+    "type-map": {
+      "type": [
+        {
+          "source": "Epic",
+          "target": "Epic"
+        },
+        {
+          "source": "Story",
+          "target": "Feature"
+        },
+        {
+          "source": "Bug",
+          "target": "Bug"
+        },
+        {
+          "source": "Task",
+          "target": "User Story"
+        },
+        {
+            "source": "Sub-task",
+            "target": "Task"
+        },
+        {
+            "source": "Test",
+            "target": "Task"
+        }
+      ]
+    },
+    "field-map": {
+      "field": [
+        {
+          "source": "summary",
+          "target": "System.Title",
+          "mapper": "MapTitle"
+        },
+        {
+          "source": "assignee",
+          "target": "System.AssignedTo",
+          "mapper": "MapUser"
+        },
+        {
+          "source": "description",
+          "target": "System.Description",
+          "mapper": "MapRendered"
+        },
+        {
+          "source": "priority",
+          "target": "Microsoft.VSTS.Common.Priority",
+          "mapping": {
+            "values": [
+              {
+                "source": "Highest",
+                "target": "1"
+              },
+              {
+                "source": "High",
+                "target": "2"
+              },
+              {
+                "source": "Medium",
+                "target": "3"
+              },
+              {
+                "source": "Low",
+                "target": "3"
+              },
+              {
+                "source": "Lowest",
+                "target": "4"
+              }
+            ]
+          }
+        },
+        {
+          "source": "labels",
+          "target": "System.Tags",
+          "mapper": "MapTags"
+        },
+        {
+          "source": "comment",
+          "target": "System.History",
+          "mapper": "MapRendered"
+        },
+        {
+          "source": "status",
+          "target": "System.State",
+          "for": "Feature,Epic,User Story,Bug",
+          "mapping": {
+            "values": [
+              {
+                "source": "To Do",
+                "target": "New"
+              },
+              {
+                "source": "In Progress",
+                "target": "Active"
+              },
+              {
+                "source": "Done",
+                "target": "Resolved"
+              },
+              {
+                "source": "Done",
+                "target": "Closed"
+              },
+              {
+                "source": "Removed",
+                "target": "Removed"
+              }
+            ]
+          }
+        },
+        {
+          "source": "status",
+          "target": "System.State",
+          "for": "Task",
+          "mapping": {
+            "values": [
+              {
+                "source": "To Do",
+                "target": "New"
+              },
+              {
+                "source": "In Progress",
+                "target": "Active"
+              },
+              {
+                "source": "Done",
+                "target": "Closed"
+              },
+              {
+                "source": "Removed",
+                "target": "Removed"
+              }
+            ]
+          }
+        },
+        {
+          "source": "Story Points",
+          "source-type": "name",
+          "target": "Microsoft.VSTS.Scheduling.StoryPoints",
+          "not-for": "Task"
+        },
+        {
+          "source": "timeestimate",
+          "target": "Microsoft.VSTS.Scheduling.RemainingWork",
+          "mapper": "MapRemainingWork",
+          "for": "Bug,Task"
+        },
+        {
+          "source": "description",
+          "target": "Microsoft.VSTS.TCM.ReproSteps",
+          "for": "Bug"
+        },
+        {
+          "source": "environment",
+          "source-type": "name",
+          "target": "Microsoft.VSTS.TCM.SystemInfo",
+          "for": "Bug,Epic"
+        },
+        {
+          "source": "fixversions",
+          "source-type": "name",
+          "target": "Custom.FixVersion",
+          "for": "Bug,Feature,Task,User Story"
+        },
+        {
+          "source": "alexander-custom-html",
+          "target": "Custom.CustomHtml",
+          "source-type": "name",
+          "mapper": "MapRendered"
+        },
+        {
+          "source": "alexander-testar-plain-text",
+          "target": "Custom.CustomPlainText",
+          "source-type": "name"
+        },
+        {
+          "source": "alexander-testar-custom-checkboxes",
+          "source-type": "name",
+          "target": "Custom.CustomCheckBoxesMultiSelect",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-date-time-picker",
+          "target": "Custom.CustomDatePicker",
+          "source-type": "name",
+          "type": "datetime"
+        },
+        {
+          "source": "alexander-testar-custom-labels",
+          "source-type": "name",
+          "target": "Custom.CustomLabels",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-number-field",
+          "source-type": "name",
+          "target": "Custom.CustomNumber"
+        },
+        {
+          "source": "alexander-testar-custom-radio-buttons",
+          "source-type": "name",
+          "target": "Custom.CustomRadioButton"
+        },
+        {
+          "source": "alexander-testar-custom-select-list-multiple-choices",
+          "source-type": "name",
+          "target": "Custom.CustomSelectListMultipleChoices",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-select-list-single-choice",
+          "source-type": "name",
+          "target": "Custom.CustomSelectListSingleChoice"
+        },
+        {
+          "source": "alexander-testar-custom-url-field",
+          "source-type": "name",
+          "target": "Custom.CustomUrlField"
+        },
+        {
+          "source": "alexander-testar-custom-boolean",
+          "source-type": "name",
+          "target": "Custom.CustomBoolean"
+        },
+        {
+          "source": "alexander-testar-custom-custom-formula",
+          "source-type": "name",
+          "target": "Custom.CustomFormula"
+        },
+        {
+          "source": "alexander-testar-custom-date-of-first-response",
+          "source-type": "name",
+          "target": "Custom.CustomDateOfFirstResponse"
+        },
+        {
+          "source": "alexander-testar-custom-group-picker-multiple-groups",
+          "source-type": "name",
+          "target": "Custom.CustomGroupPickerMultipleGroups",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-group-picker-single-group",
+          "source-type": "name",
+          "target": "Custom.CustomGroupPickerSingleGroup"
+        },
+        {
+          "source": "alalexander-testar-custom-participants-of-an-issue",
+          "source-type": "name",
+          "target": "Custom.CustomParticipantsOfAnIssueText"
+        },
+        {
+          "source": "alexander-testar-custom-project-picker-single-project",
+          "source-type": "name",
+          "target": "Custom.CustomProjectPickerSingleProject"
+        },
+        {
+          "source": "alexander-testar-custom-rating",
+          "source-type": "name",
+          "target": "Custom.CustomRating"
+        },
+        {
+          "source": "alexander-testar-custom-slider",
+          "source-type": "name",
+          "target": "Custom.CustomSlider"
+        },
+        {
+          "source": "alexander-testar-custom-user-picker-multiple-users",
+          "source-type": "name",
+          "target": "Custom.CustomUserPickerMultipleUsersLongText"
+        },
+        {
+          "source": "alexander-testar-custom-user-property-field-<255-characters",
+          "source-type": "name",
+          "target": "Custom.CustomUserPropertyField255Characters"
+        },
+        {
+          "source": "alexander-testar-custom-username-of-last-updater-or-commenter",
+          "source-type": "name",
+          "target": "Custom.CustomUsernameOfLastUpdaterOrCommenter",
+          "mapper": "MapUser"
+        },
+        {
+          "source": "alexander-testar-custom-version-picker-multiple-versions",
+          "source-type": "name",
+          "target": "Custom.CustomVersionPickerMultipleVersions",
+          "mapper": "MapArray"
+        },
+        {
+          "source": "alexander-testar-custom-version-picker-single-version",
+          "source-type": "name",
+          "target": "Custom.CustomVersionPickerSingleVersion"
+        }
+      ]
+    }
+  }

@@ -4,11 +4,13 @@
 
 The journal file contains data on the following format:
 
-        Source item id;target item id;revision
+```txt
+Source item id;target item id;revision
+```
 
 ## Example file
 
-```
+```txt
 SCRUM-16;9191;0
 SCRUM-18;9192;0
 SCRUM-19;9193;0

@@ -18,7 +18,7 @@ All logging logic can be review in the 'src/WorkItemMigrator/Migration.Common.Lo
 
 If you want to opt out of us collecting telemetry you just need to remove the application insights key from the application config files:
 
-```
+```xml
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   ...

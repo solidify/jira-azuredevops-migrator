@@ -1,0 +1,216 @@
+{
+    "source-project": "Zephyr_Squad_Demo",
+    "target-project": "AzureDevOps-Jira-Migrator-Smoke-Tests",
+    "query": "project = \"ZEP\"",
+    "using-jira-cloud": false,
+    "workspace": "__workspace__",
+    "epic-link-field": "Epic Link",
+    "sprint-field": "Sprint",
+    "download-options": 7,
+    "batch-size": 20,
+    "log-level": "Info",
+    "attachment-folder": "Attachments",
+    "user-mapping-file": "users.txt",
+    "base-area-path": "Migrated",
+    "base-iteration-path": "Migrated",
+    "ignore-failed-links": true,
+    "process-template": "Agile",
+    "link-map": {
+      "link": [
+        {
+          "source": "Epic",
+          "target": "System.LinkTypes.Hierarchy-Reverse"
+        },
+        {
+          "source": "Parent",
+          "target": "System.LinkTypes.Hierarchy-Reverse"
+        },
+        {
+          "source": "Child",
+          "target": "System.LinkTypes.Hierarchy-Forward"
+        },
+        {
+          "source": "Relates",
+          "target": "System.LinkTypes.Related"
+        },
+        {
+          "source": "Duplicate",
+          "target": "System.LinkTypes.Duplicate-Forward"
+        }
+      ]
+    },
+    "type-map": {
+      "type": [
+        {
+          "source": "Epic",
+          "target": "Epic"
+        },
+        {
+          "source": "Story",
+          "target": "Feature"
+        },
+        {
+          "source": "Bug",
+          "target": "Bug"
+        },
+        {
+          "source": "Task",
+          "target": "User Story"
+        },
+        {
+            "source": "Sub-task",
+            "target": "Task"
+        },
+        {
+            "source": "Test",
+            "target": "Task"
+        }
+      ]
+    },
+    "field-map": {
+      "field": [
+        {
+          "source": "summary",
+          "target": "System.Title",
+          "mapper": "MapTitle"
+        },
+        {
+          "source": "assignee",
+          "target": "System.AssignedTo",
+          "mapper": "MapUser"
+        },
+        {
+          "source": "description",
+          "target": "System.Description",
+          "mapper": "MapRendered"
+        },
+        {
+          "source": "priority",
+          "target": "Microsoft.VSTS.Common.Priority",
+          "mapping": {
+            "values": [
+              {
+                "source": "Highest",
+                "target": "1"
+              },
+              {
+                "source": "High",
+                "target": "2"
+              },
+              {
+                "source": "Medium",
+                "target": "3"
+              },
+              {
+                "source": "Low",
+                "target": "3"
+              },
+              {
+                "source": "Lowest",
+                "target": "4"
+              }
+            ]
+          }
+        },
+        {
+          "source": "labels",
+          "target": "System.Tags",
+          "mapper": "MapTags"
+        },
+        {
+          "source": "comment",
+          "target": "System.History",
+          "mapper": "MapRendered"
+        },
+        {
+          "source": "status",
+          "target": "System.State",
+          "for": "Feature,Epic,User Story,Bug",
+          "mapping": {
+            "values": [
+              {
+                "source": "To Do",
+                "target": "New"
+              },
+              {
+                "source": "In Progress",
+                "target": "Active"
+              },
+              {
+                "source": "Done",
+                "target": "Resolved"
+              },
+              {
+                "source": "Done",
+                "target": "Closed"
+              },
+              {
+                "source": "Removed",
+                "target": "Removed"
+              }
+            ]
+          }
+        },
+        {
+          "source": "status",
+          "target": "System.State",
+          "for": "Task",
+          "mapping": {
+            "values": [
+              {
+                "source": "To Do",
+                "target": "New"
+              },
+              {
+                "source": "In Progress",
+                "target": "Active"
+              },
+              {
+                "source": "Done",
+                "target": "Closed"
+              },
+              {
+                "source": "Removed",
+                "target": "Removed"
+              }
+            ]
+          }
+        },
+        {
+          "source": "Story Points",
+          "source-type": "name",
+          "target": "Microsoft.VSTS.Scheduling.StoryPoints",
+          "not-for": "Task"
+        },
+        {
+          "source": "timeestimate",
+          "target": "Microsoft.VSTS.Scheduling.RemainingWork",
+          "mapper": "MapRemainingWork",
+          "for": "Bug,Task"
+        },
+        {
+          "source": "description",
+          "target": "Microsoft.VSTS.TCM.ReproSteps",
+          "for": "Bug"
+        },
+        {
+          "source": "environment",
+          "source-type": "name",
+          "target": "Microsoft.VSTS.TCM.SystemInfo",
+          "for": "Bug,Epic"
+        },
+        {
+          "source": "fixversions",
+          "source-type": "name",
+          "target": "Custom.FixVersion",
+          "for": "Bug,Feature"
+        },
+        {
+          "source": "alexander-custom-html",
+          "target": "Custom.CustomHtml",
+          "source-type": "name",
+          "mapper": "MapRendered"
+        }
+      ]
+    }
+  }

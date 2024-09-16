@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Common.Config;
-
+﻿using Common.Config;
 using Migration.Common;
 using Migration.Common.Config;
 using Migration.Common.Log;
 using Migration.WIContract;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Migration.Jira-Export.Tests")]
 
@@ -19,21 +18,23 @@ namespace JiraExport
         private readonly Dictionary<string, FieldMapping<JiraRevision>> _fieldMappingsPerType;
         private readonly HashSet<string> _targetTypes;
         private readonly ConfigJson _config;
+        private readonly ExportIssuesSummary exportIssuesSummary;
 
-        public JiraMapper(IJiraProvider jiraProvider, ConfigJson config) : base(jiraProvider?.GetSettings()?.UserMappingFile)
+        public JiraMapper(IJiraProvider jiraProvider, ConfigJson config, ExportIssuesSummary exportIssuesSummary)
+            : base(jiraProvider?.GetSettings()?.UserMappingFile)
         {
             _jiraProvider = jiraProvider;
             _config = config;
             _targetTypes = InitializeTypeMappings();
-            _fieldMappingsPerType = InitializeFieldMappings();
-
+            _fieldMappingsPerType = InitializeFieldMappings(exportIssuesSummary);
+            this.exportIssuesSummary = exportIssuesSummary;
         }
 
         #region Mapping definitions
 
         internal WiItem Map(JiraItem issue)
         {
-            if(issue == null)
+            if (issue == null)
                 throw new ArgumentNullException(nameof(issue));
 
             var wiItem = new WiItem();
@@ -52,13 +53,15 @@ namespace JiraExport
                 else
                 {
                     Logger.Log(LogLevel.Error, $"Type mapping missing for '{issue.Key}' with Jira type '{issue.Type}'. Item was not exported which may cause missing links in issues referencing this item.");
+                    exportIssuesSummary.AddUnmappedIssueType(issue.Type);
                     return null;
                 }
             }
+
             return wiItem;
         }
 
-        internal Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings()
+        internal Dictionary<string, FieldMapping<JiraRevision>> InitializeFieldMappings(ExportIssuesSummary exportIssuesSummary)
         {
             Logger.Log(LogLevel.Info, "Initializing Jira field mapping...");
 
@@ -76,11 +79,14 @@ namespace JiraExport
                 if (item.Source != null)
                 {
                     var isCustomField = item.SourceType == "name";
+                    if (isCustomField && _jiraProvider.GetCustomId(item.Source) == null)
+                        Logger.Log(LogLevel.Warning, $"Could not find the field id for '{item.Source}', please check the field mapping!");
+
                     Func<JiraRevision, (bool, object)> value;
 
                     if (item.Mapping?.Values != null)
                     {
-                        value = r => FieldMapperUtils.MapValue(r, item.Source, item.Target, _config);
+                        value = r => FieldMapperUtils.MapValue(r, item.Source, item.Target, _config, exportIssuesSummary);
                     }
                     else if (!string.IsNullOrWhiteSpace(item.Mapper))
                     {
@@ -110,6 +116,9 @@ namespace JiraExport
                             case "MapRendered":
                                 value = r => FieldMapperUtils.MapRenderedValue(r, item.Source, isCustomField, _jiraProvider.GetCustomId(item.Source), _config);
                                 break;
+                            case "MapLexoRank":
+                                value = IfChanged<string>(item.Source, isCustomField, FieldMapperUtils.MapLexoRank);
+                                break;
                             default:
                                 value = IfChanged<string>(item.Source, isCustomField);
                                 break;
@@ -128,7 +137,7 @@ namespace JiraExport
                         }
                         else if (dataType == "datetime" || dataType == "date")
                         {
-                            value = IfChanged<DateTime>(item.Source, isCustomField);
+                            value = IfChangedDateTime(item.Source, isCustomField);
                         }
                         else
                         {
@@ -178,6 +187,40 @@ namespace JiraExport
             }
 
             return mappingPerWiType;
+        }
+
+        internal WiDevelopmentLink MapDevelopmentLink(JiraRevision jiraRevision)
+        {
+            if (jiraRevision == null)
+                throw new ArgumentNullException(nameof(jiraRevision));
+
+            if (jiraRevision.DevelopmentLink == null)
+            {
+                return null;
+            }
+
+            var jiraDevelopmentLink = jiraRevision.DevelopmentLink.Value;
+            var respositoryTarget = jiraDevelopmentLink.Repository;
+
+            var respositoryOverride = _config
+                .RepositoryMap
+                .Repositories?
+                .Find(r => r.Source == respositoryTarget)?
+                .Target;
+
+            if (!string.IsNullOrEmpty(respositoryOverride))
+            {
+                respositoryTarget = respositoryOverride;
+            }
+
+            var developmentLink = new WiDevelopmentLink()
+            {
+                Id = jiraDevelopmentLink.Id,
+                Repository = respositoryTarget,
+                Type = jiraDevelopmentLink.Type.ToString()
+            };
+
+            return developmentLink;
         }
 
         internal List<WiLink> MapLinks(JiraRevision r)
@@ -275,6 +318,11 @@ namespace JiraExport
 
                             if (include)
                             {
+                                value = TruncateField(value, fieldreference);
+                                if(value == null)
+                                {
+                                    value = "";
+                                }
                                 Logger.Log(LogLevel.Debug, $"Mapped value '{value}' to field '{fieldreference}'.");
                                 fields.Add(new WiField()
                                 {
@@ -301,6 +349,7 @@ namespace JiraExport
             List<WiAttachment> attachments = MapAttachments(r);
             List<WiField> fields = MapFields(r);
             List<WiLink> links = MapLinks(r);
+            var developmentLink = MapDevelopmentLink(r);
 
             return new WiRevision()
             {
@@ -311,7 +360,8 @@ namespace JiraExport
                 Attachments = attachments,
                 Fields = fields,
                 Links = links,
-                AttachmentReferences = attachments.Any()
+                AttachmentReferences = attachments.Any(),
+                DevelopmentLink = developmentLink
             };
         }
 
@@ -335,8 +385,7 @@ namespace JiraExport
         {
             if (isCustomField)
             {
-                var customFieldName = _jiraProvider.GetCustomId(sourceField);
-                sourceField = customFieldName;
+                sourceField = _jiraProvider.GetCustomId(sourceField) ?? sourceField;
             }
 
             return (r) =>
@@ -359,8 +408,43 @@ namespace JiraExport
             };
         }
 
+        private Func<JiraRevision, (bool, object)> IfChangedDateTime(string sourceField, bool isCustomField, Func<DateTime, object> mapperFunc = null)
+        {
+            if (isCustomField)
+            {
+                sourceField = _jiraProvider.GetCustomId(sourceField) ?? sourceField;
+            }
+
+            return (r) =>
+            {
+                if (r.Fields.TryGetValue(sourceField.ToLower(), out object value))
+                {
+                    if (mapperFunc != null)
+                    {
+                        return (true, mapperFunc((DateTime)value));
+                    }
+                    else
+                    {
+                        if (DateTime.TryParseExact(value.ToString(), "dd/MMM/yy", CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.None, out DateTime result))
+                        {
+                            return (true, result.ToUniversalTime());
+                        }
+                        else
+                        {
+                            return (true, value);
+                        }
+                    }
+                }
+                else
+                {
+                    return (false, null);
+                }
+            };
+        }
+
         #endregion
-        
+
         private List<string> GetWorkItemTypes(params string[] notFor)
         {
             List<string> list;
@@ -373,6 +457,27 @@ namespace JiraExport
                 list = _targetTypes.ToList();
             }
             return list;
+        }
+
+        internal object TruncateField(object value, string field)
+        {
+            if (value == null) return value;
+            string valueStr = value.ToString();
+            var fieldLimits = new Dictionary<string, int>()
+            {
+                { WiFieldReference.Title, 255 }
+            };
+            if (fieldLimits.ContainsKey(field))
+            {
+                int limit = fieldLimits[field];
+                if (valueStr.Length > limit)
+                {
+                    string truncated = valueStr.Substring(0, limit - 3) + "...";
+                    Logger.Log(LogLevel.Warning, $"Field {field} was truncated. Maximum length: {limit}, new value: {truncated}");
+                    return truncated;
+                }
+            }
+            return valueStr;
         }
     }
 }

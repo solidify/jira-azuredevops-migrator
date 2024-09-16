@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿using Microsoft.TeamFoundation.Common;
 using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Operations;
-
 using Migration.Common;
 using Migration.Common.Log;
 using Migration.WIContract;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using VsWebApi = Microsoft.VisualStudio.Services.WebApi;
 using WebApi = Microsoft.TeamFoundation.WorkItemTracking.WebApi;
-using WebModel = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using System.IO;
 
 namespace WorkItemImport
 {
@@ -30,6 +26,8 @@ namespace WorkItemImport
         public int RootIteration { get; private set; }
         public Dictionary<string, int> AreaCache { get; private set; } = new Dictionary<string, int>();
         public int RootArea { get; private set; }
+        private readonly Dictionary<string, string> _iterationPathMap = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _areaPathMap = new Dictionary<string, string>();
 
         private WitClientUtils _witClientUtils;
         private WebApi.WorkItemTrackingHttpClient _wiClient;
@@ -56,12 +54,12 @@ namespace WorkItemImport
             return _witClientUtils.GetWorkItem(wiId);
         }
 
-        public WorkItem CreateWorkItem(string type, DateTime createdDate, string createdBy)
+        public WorkItem CreateWorkItem(string type, bool suppressNotifications, DateTime createdDate, string createdBy)
         {
-            return _witClientUtils.CreateWorkItem(type, createdDate, createdBy);
+            return _witClientUtils.CreateWorkItem(type, suppressNotifications, createdDate, createdBy);
         }
 
-        public bool ImportRevision(WiRevision rev, WorkItem wi)
+        public bool ImportRevision(WiRevision rev, WorkItem wi, Settings settings)
         {
             var incomplete = false;
             try
@@ -86,19 +84,33 @@ namespace WorkItemImport
                 if (rev.Fields.Any() && !UpdateWIHistoryField(rev.Fields, wi))
                     incomplete = true;
 
-                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi))
+                if (rev.Links.Any() && !ApplyAndSaveLinks(rev, wi, settings))
                     incomplete = true;
 
                 if (incomplete)
-                    Logger.Log(LogLevel.Warning, $"'{rev.ToString()}' - not all changes were saved.");
+                    Logger.Log(LogLevel.Warning, $"'{rev}' - not all changes were saved.");
 
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev}'.");
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                _witClientUtils.SaveWorkItemAttachments(rev, wi);
+                if (wi.Fields.ContainsKey(WiFieldReference.AcceptanceCriteria) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.AcceptanceCriteria].ToString()))
+                {
+                    Logger.Log(LogLevel.Debug, $"Correcting acceptance criteria on separate revision on '{rev}'.");
+
+                    try
+                    {
+                        _witClientUtils.CorrectAcceptanceCriteria(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex, $"Failed to correct acceptance criteria for '{wi.Id}', rev '{rev}'.");
+                    }
+                }
+
+                _witClientUtils.SaveWorkItemAttachments(rev, wi, settings);
 
                 foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
                 {
@@ -106,9 +118,9 @@ namespace WorkItemImport
                         _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
                 }
 
-                if (rev.Attachments.Any(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
+                if (rev.Attachments.Exists(a => a.Change == ReferenceChangeType.Added) && rev.AttachmentReferences)
                 {
-                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev.ToString()}'.");
+                    Logger.Log(LogLevel.Debug, $"Correcting description on separate revision on '{rev}'.");
 
                     try
                     {
@@ -116,16 +128,56 @@ namespace WorkItemImport
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev.ToString()}'.");
+                        Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                    }
+
+                    // Correct other HTMl fields than description
+                    foreach (var field in settings.FieldMap.Fields)
+                    {
+                        if (
+                            field.Mapper == "MapRendered"
+                            && (field.For == "All" || field.For.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && (field.NotFor == null || !field.NotFor.Split(',').Contains(wi.Fields[WiFieldReference.WorkItemType]))
+                            && wi.Fields.ContainsKey(field.Target)
+                            && field.Target != WiFieldReference.Description
+                        )
+                        {
+                            try
+                            {
+                                _witClientUtils.CorrectRenderedField(
+                                    wi,
+                                    _context.GetItem(rev.ParentOriginId),
+                                    rev,
+                                    field.Target,
+                                    _context.Journal.IsAttachmentMigrated
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                            }
+                        }
                     }
                 }
 
-                _witClientUtils.SaveWorkItemFields(wi);
+                // rev with a development link won't have meaningful information, skip saving fields
+                if (rev.DevelopmentLink != null)
+                {
+                    if (settings.IncludeDevelopmentLinks)
+                    {
+                        _witClientUtils.SaveWorkItemArtifacts(rev, wi, settings);
+                    }
+                }
+                else
+                {
+                    _witClientUtils.SaveWorkItemFields(wi, settings);
+                }
 
                 if (wi.Id.HasValue)
                 {
                     _context.Journal.MarkRevProcessed(rev.ParentOriginId, wi.Id.Value, rev.Index);
-                } else
+                }
+                else
                 {
                     throw new MissingFieldException($"Work Item had no ID: {wi.Url}");
                 }
@@ -171,7 +223,7 @@ namespace WorkItemImport
                 return null;
             }
 
-            (var iterationCache, int rootIteration) = agent.CreateClasificationCacheAsync(settings.Project, WebModel.TreeStructureGroup.Iterations).Result;
+            (var iterationCache, int rootIteration) = agent.CreateClasificationCacheAsync(settings.Project, TreeStructureGroup.Iterations).Result;
             if (iterationCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build iteration cache.");
@@ -181,7 +233,7 @@ namespace WorkItemImport
             agent.IterationCache = iterationCache;
             agent.RootIteration = rootIteration;
 
-            (var areaCache, int rootArea) = agent.CreateClasificationCacheAsync(settings.Project, WebModel.TreeStructureGroup.Areas).Result;
+            (var areaCache, int rootArea) = agent.CreateClasificationCacheAsync(settings.Project, TreeStructureGroup.Areas).Result;
             if (areaCache == null)
             {
                 Logger.Log(LogLevel.Critical, "Could not build area cache.");
@@ -314,7 +366,7 @@ namespace WorkItemImport
             return project;
         }
 
-        private async Task<Operation> WaitForLongRunningOperation(Guid operationId, int interavalInSec = 5, int maxTimeInSeconds = 60, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<Operation> WaitForLongRunningOperation(Guid operationId, int interavalInSec = 5, int maxTimeInSeconds = 60, CancellationToken cancellationToken = default)
         {
             OperationsHttpClient operationsClient = RestConnection.GetClient<OperationsHttpClient>();
             DateTime expiration = DateTime.Now.AddSeconds(maxTimeInSeconds);
@@ -344,12 +396,12 @@ namespace WorkItemImport
             }
         }
 
-        private async Task<(Dictionary<string, int>, int)> CreateClasificationCacheAsync(string project, WebModel.TreeStructureGroup structureGroup)
+        private async Task<(Dictionary<string, int>, int)> CreateClasificationCacheAsync(string project, TreeStructureGroup structureGroup)
         {
             try
             {
-                Logger.Log(LogLevel.Info, $"Building {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} cache...");
-                WebModel.WorkItemClassificationNode all = await WiClient.GetClassificationNodeAsync(project, structureGroup, null, 1000);
+                Logger.Log(LogLevel.Info, $"Building {(structureGroup == TreeStructureGroup.Iterations ? "iteration" : "area")} cache...");
+                WorkItemClassificationNode all = await WiClient.GetClassificationNodeAsync(project, structureGroup, null, 1000);
 
                 var clasificationCache = new Dictionary<string, int>();
 
@@ -363,17 +415,17 @@ namespace WorkItemImport
             }
             catch (Exception ex)
             {
-                Logger.Log(ex, $"Error while building {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} cache.");
+                Logger.Log(ex, $"Error while building {(structureGroup == TreeStructureGroup.Iterations ? "iteration" : "area")} cache.");
                 return (null, -1);
             }
         }
 
-        private void CreateClasificationCacheRec(WebModel.WorkItemClassificationNode current, Dictionary<string, int> agg, string parentPath)
+        private void CreateClasificationCacheRec(WorkItemClassificationNode current, Dictionary<string, int> agg, string parentPath)
         {
             string fullName = !string.IsNullOrWhiteSpace(parentPath) ? parentPath + "/" + current.Name : current.Name;
 
             agg.Add(fullName, current.Id);
-            Logger.Log(LogLevel.Debug, $"{(current.StructureType == WebModel.TreeNodeStructureType.Iteration ? "Iteration" : "Area")} '{fullName}' added to cache");
+            Logger.Log(LogLevel.Debug, $"{(current.StructureType == TreeNodeStructureType.Iteration ? "Iteration" : "Area")} '{fullName}' added to cache");
             if (current.Children != null)
             {
                 foreach (var node in current.Children)
@@ -381,7 +433,10 @@ namespace WorkItemImport
             }
         }
 
-        public int? EnsureClasification(string fullName, WebModel.TreeStructureGroup structureGroup = WebModel.TreeStructureGroup.Iterations)
+        public string EnsureClasification(
+            string fullName,
+            TreeStructureGroup structureGroup = TreeStructureGroup.Iterations
+        )
         {
             if (string.IsNullOrWhiteSpace(fullName))
             {
@@ -389,41 +444,96 @@ namespace WorkItemImport
                 throw new ArgumentException("fullName");
             }
 
-            var path = fullName.Split('/');
-            var name = path.Last();
-            var parent = string.Join("/", path.Take(path.Length - 1));
+            var pathSplit = fullName.Split('/');
+            var name = pathSplit[pathSplit.Length - 1];
+            var parent = string.Join("/", pathSplit.Take(pathSplit.Length - 1));
+
+            string nameMapped = "";
+            string fullNameMapped = "";
+
+            if (structureGroup == TreeStructureGroup.Iterations)
+            {
+                nameMapped = GetMappedClassificationNodePath(_iterationPathMap, name);
+                fullNameMapped = parent.IsNullOrEmpty() ? nameMapped : $"{parent}/{nameMapped}";
+            }
+            else if (structureGroup == TreeStructureGroup.Areas)
+            {
+                nameMapped = GetMappedClassificationNodePath(_areaPathMap, name);
+                fullNameMapped = parent.IsNullOrEmpty() ? nameMapped : $"{parent}/{nameMapped}";
+            }
+            else
+            {
+                Logger.Log(LogLevel.Error, $"Invalid tree structure group: {structureGroup}");
+            }
 
             if (!string.IsNullOrEmpty(parent))
                 EnsureClasification(parent, structureGroup);
 
-            var cache = structureGroup == WebModel.TreeStructureGroup.Iterations ? IterationCache : AreaCache;
+            var cache = structureGroup == TreeStructureGroup.Iterations ? IterationCache : AreaCache;
 
             lock (cache)
             {
-                if (cache.TryGetValue(fullName, out int id))
-                    return id;
+                if (cache.TryGetValue(fullNameMapped, out int id))
+                    return fullNameMapped;
 
-                WebModel.WorkItemClassificationNode node = null;
+                WorkItemClassificationNode node = null;
 
                 try
                 {
                     node = WiClient.CreateOrUpdateClassificationNodeAsync(
-                        new WebModel.WorkItemClassificationNode() { Name = name, }, Settings.Project, structureGroup, parent).Result;
+                        new WorkItemClassificationNode() { Name = nameMapped, }, Settings.Project, structureGroup, parent).Result;
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(ex, $"Error while adding {(structureGroup == WebModel.TreeStructureGroup.Iterations ? "iteration" : "area")} '{fullName}' to Azure DevOps/TFS.", LogLevel.Critical);
+                    Logger.Log(ex, $"Error while adding {(structureGroup == TreeStructureGroup.Iterations ? "iteration" : "area")} '{fullNameMapped}' to Azure DevOps/TFS.", LogLevel.Warning);
                 }
 
                 if (node != null)
                 {
-                    Logger.Log(LogLevel.Debug, $"{(structureGroup == WebModel.TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullName}' added to Azure DevOps/TFS.");
-                    cache.Add(fullName, node.Id);
-                    return node.Id;
+                    Logger.Log(LogLevel.Debug, $"{(structureGroup == TreeStructureGroup.Iterations ? "Iteration" : "Area")} '{fullNameMapped}' added to Azure DevOps/TFS.");
+                    cache.Add(fullNameMapped, node.Id);
+                    return fullNameMapped;
                 }
             }
             return null;
         }
+
+        // Ensure that classification nodes with conflicting names in ADO are migrated with unique names.
+        // ADO Classification nodes are case insensitive
+        private string GetMappedClassificationNodePath(Dictionary<string, string> dictionary, string name)
+        {
+            if (!dictionary.ContainsKey(name))
+            {
+                string nameUpdated = name;
+                bool newSprintNameInIterationPathCaseInvariant = false;
+                int suffix = 0;
+                while (!newSprintNameInIterationPathCaseInvariant)
+                {
+                    if (!DictionaryContainsValueCaseInvariant(dictionary, nameUpdated))
+                    {
+                        newSprintNameInIterationPathCaseInvariant = true;
+                        dictionary[name] = nameUpdated;
+                    }
+                    suffix += 1;
+                    nameUpdated = $"{name}-{suffix}";
+                }
+            }
+            name = dictionary[name];
+            return name;
+        }
+
+        private bool DictionaryContainsValueCaseInvariant(Dictionary<string, string> dictionary, string name)
+        {
+            foreach (var value in dictionary.Values)
+            {
+                if (value.ToLower() == name.ToLower())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
 
         #endregion
 
@@ -431,7 +541,7 @@ namespace WorkItemImport
 
         private bool UpdateWIHistoryField(IEnumerable<WiField> fields, WorkItem wi)
         {
-            if(fields.FirstOrDefault( i => i.ReferenceName == WiFieldReference.History ) == null )
+            if (fields.FirstOrDefault(i => i.ReferenceName == WiFieldReference.History) == null)
             {
                 wi.Fields.Remove(WiFieldReference.History);
             }
@@ -466,8 +576,8 @@ namespace WorkItemImport
 
                             if (!string.IsNullOrWhiteSpace(iterationPath))
                             {
-                                EnsureClasification(iterationPath, WebModel.TreeStructureGroup.Iterations);
-                                wi.Fields[WiFieldReference.IterationPath] = $@"{Settings.Project}\{iterationPath}".Replace("/", @"\");
+                                string iterationPathMapped = EnsureClasification(iterationPath, TreeStructureGroup.Iterations);
+                                wi.Fields[WiFieldReference.IterationPath] = $@"{Settings.Project}\{iterationPathMapped}".Replace("/", @"\");
                             }
                             else
                             {
@@ -490,15 +600,15 @@ namespace WorkItemImport
 
                             if (!string.IsNullOrWhiteSpace(areaPath))
                             {
-                                EnsureClasification(areaPath, WebModel.TreeStructureGroup.Areas);
-                                wi.Fields[WiFieldReference.AreaPath] = $@"{Settings.Project}\{areaPath}".Replace("/", @"\");
+                                string areaPathMapped = EnsureClasification(areaPath, TreeStructureGroup.Areas);
+                                wi.Fields[WiFieldReference.AreaPath] = $@"{Settings.Project}\{areaPathMapped}".Replace("/", @"\");
                             }
                             else
                             {
                                 wi.Fields[WiFieldReference.AreaPath] = Settings.Project;
                             }
 
-                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{ wi.Fields[WiFieldReference.AreaPath] }'.");
+                            Logger.Log(LogLevel.Debug, $"Mapped AreaPath '{wi.Fields[WiFieldReference.AreaPath]}'.");
 
                             break;
 
@@ -530,7 +640,7 @@ namespace WorkItemImport
             return success;
         }
 
-        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi)
+        private bool ApplyAndSaveLinks(WiRevision rev, WorkItem wi, Settings settings)
         {
             bool success = true;
 
@@ -547,16 +657,18 @@ namespace WorkItemImport
                     if (link.TargetWiId == -1)
                     {
                         var errorLevel = Settings.IgnoreFailedLinks ? LogLevel.Warning : LogLevel.Error;
-                        Logger.Log(errorLevel, $"'{link.ToString()}' - target work item for Jira '{link.TargetOriginId}' is not yet created in Azure DevOps/TFS.");
+                        Logger.Log(errorLevel, $"'{link}' - target work item for Jira '{link.TargetOriginId}'" +
+                            $" is not yet created in Azure DevOps/TFS. You can safely ignore this warning if" +
+                            $" this work item is scheduled for import later in your migration.");
                         success = false;
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi))
+                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi, settings, rev.Author, rev.Time))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi))
+                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi, settings, rev.Author, rev.Time))
                     {
                         success = false;
                     }
@@ -568,14 +680,16 @@ namespace WorkItemImport
                 }
             }
 
-            if (rev.Links.Any(l => l.Change == ReferenceChangeType.Removed))
-                wi.Fields[WiFieldReference.History] = $"Removed link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
-            else if (rev.Links.Any(l => l.Change == ReferenceChangeType.Added))
-                wi.Fields[WiFieldReference.History] = $"Added link(s): { string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
+            if (settings.IncludeLinkComments)
+            {
+                if (rev.Links.Exists(l => l.Change == ReferenceChangeType.Removed))
+                    wi.Fields[WiFieldReference.History] = $"Removed link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Removed).Select(l => l.ToString()))}";
+                else if (rev.Links.Exists(l => l.Change == ReferenceChangeType.Added))
+                    wi.Fields[WiFieldReference.History] = $"Added link(s): {string.Join(";", rev.Links.Where(l => l.Change == ReferenceChangeType.Added).Select(l => l.ToString()))}";
+            }
 
             return success;
         }
-
         #endregion
     }
 }

@@ -14,6 +14,11 @@
   "base-area-path": "Migrated",
   "base-iteration-path": "Migrated",
   "ignore-failed-links": true,
+  "include-link-comments": false,
+  "include-jira-css-styles": false,
+  "ignore-empty-revisions": false,
+  "suppress-notifications": false,
+  "sleep-time-between-revision-import-milliseconds": 0,
   "process-template": "Scrum",
   "link-map": {
     "link": [
@@ -24,6 +29,10 @@
       {
         "source": "Parent",
         "target": "System.LinkTypes.Hierarchy-Reverse"
+      },
+      {
+        "source": "Child",
+        "target": "System.LinkTypes.Hierarchy-Forward"
       },
       {
         "source": "Relates",
@@ -78,6 +87,7 @@
       {
         "source": "description",
         "target": "System.Description",
+        "not-for": "Bug",
         "mapper": "MapRendered"
       },
       {
@@ -222,7 +232,8 @@
       {
         "source": "description",
         "target": "Microsoft.VSTS.TCM.ReproSteps",
-        "for": "Bug"
+        "for": "Bug",
+        "mapper": "MapRendered"
       }
     ]
   }

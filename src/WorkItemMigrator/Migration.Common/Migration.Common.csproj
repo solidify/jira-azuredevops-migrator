@@ -33,8 +33,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -64,6 +64,8 @@
     <Compile Include="Config\Link.cs" />
     <Compile Include="Config\LinkMap.cs" />
     <Compile Include="Config\Mapping.cs" />
+    <Compile Include="Config\RepositoryMap.cs" />
+    <Compile Include="Config\Repository.cs" />
     <Compile Include="Config\Value.cs" />
     <Compile Include="Config\Type.cs" />
     <Compile Include="Config\TypeMap.cs" />

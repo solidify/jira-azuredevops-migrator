@@ -1,10 +1,9 @@
-﻿using NUnit.Framework;
-
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture;
 using Common.Config;
-using System.IO;
+using NUnit.Framework;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 
 namespace Migration.Common.Tests
 {
@@ -24,10 +23,12 @@ namespace Migration.Common.Tests
         [Test]
         public void When_initializing_migration_context_Then_folder_paths_are_correct()
         {
-            ConfigJson config = new ConfigJson();
-            config.AttachmentsFolder = "AttachmentsFolder";
-            config.UserMappingFile = "UserMappingFile";
-            config.Workspace = "C:\\Temp\\JiraExport\\";
+            ConfigJson config = new ConfigJson
+            {
+                AttachmentsFolder = "AttachmentsFolder",
+                UserMappingFile = "UserMappingFile",
+                Workspace = "C:\\Temp\\JiraExport\\"
+            };
             MigrationContext.Init("app", config, "debug", true, "");
 
             Assert.Multiple(() =>

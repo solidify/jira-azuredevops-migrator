@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Migration.Common.Log;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -78,8 +79,17 @@ namespace Migration.Common
 
         public void MarkAttachmentAsProcessed(string attOriginId, string attWiId)
         {
-            ProcessedAttachments.Add(attOriginId, attWiId);
-            WriteAttachment(attOriginId, attWiId);
+            try
+            {
+                ProcessedAttachments.Add(attOriginId, attWiId);
+                WriteAttachment(attOriginId, attWiId);
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(LogLevel.Warning, $"Failed to write attachment to the attachmentsJournal.txt file. An attachment with attOriginId={attOriginId} was already present in the dictionary. (attWiId={attWiId})");
+                Logger.Log(LogLevel.Warning, ex.Message);
+            }
+
         }
 
         private void WriteAttachment(string attOriginId, string attWiId)

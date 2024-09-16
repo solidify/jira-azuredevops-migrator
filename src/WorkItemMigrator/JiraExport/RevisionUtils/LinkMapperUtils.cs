@@ -26,7 +26,7 @@ namespace JiraExport
             if (r.Fields.TryGetValue(field, out object value))
             {
                 var parentKeyStr = r.OriginId.Substring(r.OriginId.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
-                var childKeyStr = value?.ToString().Substring((value?.ToString()).LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
+                var childKeyStr = value?.ToString().Substring((value.ToString()).LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase) + 1);
 
                 if (int.TryParse(parentKeyStr, out var parentKey) && int.TryParse(childKeyStr, out var childKey) && parentKey > childKey)
                     AddSingleLink(r, links, field, type, config);
@@ -55,6 +55,8 @@ namespace JiraExport
 
             if (r.Fields.TryGetValue(field, out object value))
             {
+                value = NumericCheckOnLinkTypeField(r, field, value);
+
                 var changeType = value == null ? ReferenceChangeType.Removed : ReferenceChangeType.Added;
                 var linkType = (from t in config.LinkMap.Links where t.Source == type select t.Target).FirstOrDefault();
 
@@ -62,6 +64,11 @@ namespace JiraExport
                 if (r.Index != 0)
                 {
                     var prevLinkValue = r.ParentItem.Revisions[r.Index - 1].GetFieldValue(field);
+                    var prevLinkValueUnchecked = NumericCheckOnLinkTypeField(r, field, prevLinkValue);
+                    if(prevLinkValueUnchecked != null)
+                    {
+                        prevLinkValue = prevLinkValueUnchecked.ToString();
+                    }
                     // if previous value is not null, add removal of previous link
                     if (!string.IsNullOrWhiteSpace(prevLinkValue))
                     {
@@ -86,12 +93,30 @@ namespace JiraExport
                         Change = changeType,
                         SourceOriginId = r.ParentItem.Key,
                         TargetOriginId = linkedItemKey,
-                        WiType = linkType,
+                        WiType = linkType
                     };
 
                     links.Add(link);
                 }
             }
+        }
+
+        private static object NumericCheckOnLinkTypeField(JiraRevision r, string field, object value)
+        {
+            // 2023-12-05: For later versions pf Jira cloud, the parent link/epic link fields have been replaced by a single
+            // field named "Parent". This is represented by the ParentItem field and r.field["parent"] instead holds the numeric ID.
+            // Here we ensure that what we get is the issue key
+
+            if (value != null)
+            {
+                bool isNumeric = int.TryParse(value.ToString(), out int n);
+                if (isNumeric && field == "parent" && r.ParentItem != null && r.ParentItem.Parent != null)
+                {
+                    value = r.ParentItem.Parent;
+                }
+            }
+
+            return value;
         }
 
         public static void AddSingleLink(JiraRevision r, List<WiLink> links, string field, string type, ConfigJson config)

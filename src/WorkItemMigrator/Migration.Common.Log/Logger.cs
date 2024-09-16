@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.Extensibility;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
 
 namespace Migration.Common.Log
 {
@@ -22,8 +22,8 @@ namespace Migration.Common.Log
         private const string SEPARATOR = "====================================================================";
         private static string _logFilePath;
         private static LogLevel _logLevel;
-        private static List<string> _errors = new List<string>();
-        private static List<string> _warnings = new List<string>();
+        private static readonly List<string> _errors = new List<string>();
+        private static readonly List<string> _warnings = new List<string>();
         private static TelemetryClient _telemetryClient = null;
         private static bool? _continueOnCritical;
 
@@ -38,7 +38,7 @@ namespace Migration.Common.Log
             {
                 Directory.CreateDirectory(dirPath);
             }
-            _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now.ToString("yyMMdd-HHmmss")}.txt");
+            _logFilePath = Path.Combine(dirPath, $"{app}-log-{DateTime.Now:yyMMdd-HHmmss}.txt");
             _logLevel = GetLogLevelFromString(level);
             _continueOnCritical = ParseContinueOnCritical(continueOnCritical);
         }
@@ -69,15 +69,13 @@ namespace Migration.Common.Log
         {
             LogEvent(message, properties);
 
-            if (_telemetryClient != null)
-                _telemetryClient.Flush();
+            _telemetryClient?.Flush();
         }
 
         private static void InitApplicationInsights()
         {
             var key = ConfigurationManager.AppSettings["applicationInsightsKey"];
-
-            if (!string.IsNullOrEmpty(key) && Guid.TryParse(key, out Guid temp))
+            if (!string.IsNullOrEmpty(key) && Guid.TryParse(key, out _))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = key;
                 _telemetryClient = new TelemetryClient();
@@ -105,7 +103,7 @@ namespace Migration.Common.Log
                 {
                     answer = _continueOnCritical.Value ? ConsoleKey.Y : ConsoleKey.N;
                 }
-                
+
                 if (answer == ConsoleKey.N)
                     throw new AbortMigrationException(message);
             }
@@ -123,7 +121,7 @@ namespace Migration.Common.Log
         public static void Log(Exception ex, string message, LogLevel logLevel = LogLevel.Error)
         {
             LogExceptionToApplicationInsights(ex);
-            Log(logLevel, $"{message + Environment.NewLine}[{ex.GetType().ToString()}] {ex.ToString()}: {Environment.NewLine + ex.StackTrace}");
+            Log(logLevel, $"{message + Environment.NewLine}[{ex.GetType()}] {ex}: {Environment.NewLine + ex.StackTrace}");
         }
 
         private static void LogInternal(LogLevel level, string message)
@@ -139,20 +137,17 @@ namespace Migration.Common.Log
 
         private static void LogTrace(string message, LogLevel level)
         {
-            if (_telemetryClient != null)
-                _telemetryClient.TrackTrace(message, (SeverityLevel)level);
+            _telemetryClient?.TrackTrace(message, (SeverityLevel)level);
         }
 
         private static void LogEvent(string message, Dictionary<string, string> properties)
         {
-            if (_telemetryClient != null)
-                _telemetryClient.TrackEvent(message, properties);
+            _telemetryClient?.TrackEvent(message, properties);
         }
 
         private static void LogExceptionToApplicationInsights(Exception ex)
         {
-            if (_telemetryClient != null)
-                _telemetryClient.TrackException(ex);
+            _telemetryClient?.TrackException(ex);
         }
 
         private static void ToFile(LogLevel level, string message)

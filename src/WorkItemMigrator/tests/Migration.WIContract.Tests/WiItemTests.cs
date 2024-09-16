@@ -1,7 +1,6 @@
-using NUnit.Framework;
-
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
+using NUnit.Framework;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Migration.WIContract.Tests
@@ -23,11 +22,12 @@ namespace Migration.WIContract.Tests
         [Test]
         public void When_calling_ToString_Then_the_expected_String_value_is_returned()
         {
-            WiItem sut = new WiItem();
-
-            sut.Type = "type";
-            sut.OriginId = "originId";
-            sut.WiId = 1;
+            WiItem sut = new WiItem
+            {
+                Type = "type",
+                OriginId = "originId",
+                WiId = 1
+            };
 
             string expectedToString = $"[{sut.Type}]{sut.OriginId}/{sut.WiId}";
 
