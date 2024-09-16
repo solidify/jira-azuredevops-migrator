@@ -40,7 +40,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy JiraExport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net6'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net48'
     Contents: |
         ApplicationInsights.config
         Atlassian.Jira.dll
@@ -63,7 +63,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy WorkItemImport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\net6'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\net48'
     Contents: |
         Microsoft.TeamFoundation.Client.dll
         Microsoft.TeamFoundation.Common.dll
@@ -102,10 +102,10 @@ steps:
       New-Item -Path "$(System.DefaultWorkingDirectory)" -Name "workspace" -ItemType Directory
       Copy-Item "$(System.DefaultWorkingDirectory)\test\integration\users.txt" -Destination "$(System.DefaultWorkingDirectory)\workspace"
 
-- script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
+- script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net48\jira-export.exe -u $(JiraUser) -p $(JiraApiToken) --url $(JiraUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
   displayName: jira-export.exe
 
-- script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
+- script: $(System.DefaultWorkingDirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\net48\wi-import.exe --token $(AdoApiToken) --url $(AdoOrganizationUrl) --config $(System.DefaultWorkingDirectory)\test\integration\config.json --force
   displayName: wi-import.exe
 
 - task: PythonScript@0
