@@ -2,14 +2,14 @@ resources:
 - repo: self
 
 pool:
-  vmimage: windows-2019
+  vmimage: windows-latest
 
 variables:
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
   major: 3
   minor: 0
-  dotNetVersion: '3.1.x'
+  dotNetVersion: '6.0.x'
 
 name: $(major).$(minor)$(rev:.r)
 
@@ -87,12 +87,14 @@ steps:
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy JiraExport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net6'
     Contents: |
         ApplicationInsights.config
         Atlassian.Jira.dll
         jira-export.exe
+        jira-export.dll
         jira-export.exe.config
+        jira-export.runtimeconfig.json
         Microsoft.AI.Agent.Intercept.dll
         Microsoft.AI.DependencyCollector.dll
         Microsoft.ApplicationInsights.dll
@@ -103,6 +105,7 @@ steps:
         Newtonsoft.Json.dll
         RestSharp.dll
         Semver.dll
+        System.Configuration.ConfigurationManager.dll
         System.Diagnostics.DiagnosticSource.dll
     TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
     flattenFolders: true
@@ -111,7 +114,7 @@ steps:
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy WorkItemImport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\WorkItemImport\bin\$(BuildConfiguration)\net6'
     Contents: |
         Microsoft.TeamFoundation.Client.dll
         Microsoft.TeamFoundation.Common.dll
@@ -129,6 +132,8 @@ steps:
         System.Net.Http.Formatting.dll
         wi-import.exe
         wi-import.exe.config
+        wi-import.dll
+        wi-import.runtimeconfig.json
     TargetFolder: '$(build.artifactstagingdirectory)\WorkItemMigrator'
     flattenFolders: true
 
