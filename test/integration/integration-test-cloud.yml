@@ -8,7 +8,7 @@ variables:
 - name: BuildPlatform
   value: 'any cpu'
 - name: BuildConfiguration
-  value: 'release'
+  value: 'Release'
 - name: ConfigFileName
   value: 'config-cloud.json'
 - name: AuthMethod

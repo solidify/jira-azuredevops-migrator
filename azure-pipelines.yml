@@ -6,7 +6,7 @@ pool:
 
 variables:
   BuildPlatform: 'any cpu'
-  BuildConfiguration: 'release'
+  BuildConfiguration: 'Release'
   major: 3
   minor: 0
   dotNetVersion: '6.0.x'
@@ -87,7 +87,7 @@ steps:
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy JiraExport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net6\win-x64'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net6'
     Contents: |
         ApplicationInsights.config
         Atlassian.Jira.dll
