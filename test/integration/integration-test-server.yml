@@ -5,7 +5,7 @@ variables:
 - name: BuildPlatform
   value: 'any cpu'
 - name: BuildConfiguration
-  value: 'release'
+  value: 'Release'
 - name: ConfigFileName
   value: 'config-server.json'
 - name: AuthMethod
