@@ -87,7 +87,7 @@ steps:
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'Copy JiraExport files'
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net6'
+    SourceFolder: '$(system.defaultworkingdirectory)\src\WorkItemMigrator\JiraExport\bin\$(BuildConfiguration)\net6\win-x64'
     Contents: |
         ApplicationInsights.config
         Atlassian.Jira.dll
