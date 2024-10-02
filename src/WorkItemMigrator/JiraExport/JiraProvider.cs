@@ -80,9 +80,30 @@ namespace JiraExport
             return Settings;
         }
 
-        public IssueLinkType GetLinkType(string linkTypeString, string targetItemKey)
+        public IssueLinkType GetLinkType(string linkTypeString, string targetItemKey, out bool isInwardLink)
         {
-            return LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Outward + " " + targetItemKey));
+            var outward = LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Outward + " " + targetItemKey));
+            var inward = LinkTypes.FirstOrDefault(lt => linkTypeString.EndsWith(lt.Inward + " " + targetItemKey));
+            if (outward != default)
+            {
+                isInwardLink = false;
+                return outward;
+            }
+            else if (inward != default)
+            {
+                isInwardLink = true;
+                return inward;
+            }
+            // Neither outward or inward link was found
+            else
+            {
+                Logger.Log(LogLevel.Error, "Found link did neither fit any available inward nor outward description. "
+                    + $"Link type = '{linkTypeString}', "
+                    + $"Target item key = '{targetItemKey}'"
+                );
+                isInwardLink = false;
+                return null;
+            }
         }
 
         public IEnumerable<Comment> GetCommentsByItemKey(string itemKey)
