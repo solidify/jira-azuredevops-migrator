@@ -7,6 +7,7 @@ namespace JiraExport
         public string SourceItem { get; set; }
         public string TargetItem { get; set; }
         public string LinkType { get; set; }
+        public bool IsInwardLink { get; set; }
 
         public bool Equals(JiraLink other)
         {

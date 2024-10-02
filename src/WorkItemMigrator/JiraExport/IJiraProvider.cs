@@ -21,7 +21,7 @@ namespace JiraExport
 
         string GetUserEmail(string usernameOrAccountId);
 
-        IssueLinkType GetLinkType(string linkTypeString, string targetItemKey);
+        IssueLinkType GetLinkType(string linkTypeString, string targetItemKey, out bool isInwardLink);
 
         IEnumerable<Comment> GetCommentsByItemKey(string itemKey);
 
