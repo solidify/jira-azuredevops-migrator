@@ -67,6 +67,12 @@ If your custom field is not imported correctly into Azure DevOps, please go thro
 
 This error is usually indicative of incorrect configuration on the user's side. Please follow the checklist [here](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/faq.md#troubleshooting-my-custom-field-is-not-migrated-correctlynot-migrated-at-all) (the section above this one, in the same document) to ensure that you do not have any issues with your `config.json` file.
 
+## 4. I need to obtain a field reference name/link type in Azure DevOps
+
+Here is a reference sheet with all of the default fields in Azure DevOps: <https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops> (click each field to open up the documentation page and view the field reference name).
+
+Here is a reference sheet with all of the default link types in Azure DevOps: <https://learn.microsoft.com/en-us/azure/devops/boards/queries/link-type-reference?view=azure-devops>.
+
 ## 4. Guideline for migrating multiple projects
 
 ### Scenario 1: Single project
