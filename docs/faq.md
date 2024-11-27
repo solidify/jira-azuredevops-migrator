@@ -16,6 +16,8 @@ Example:
 
 ## 2. Why I am getting Unauthorized exception when running the export?
 
+### General advice
+
 - Ensure that your Jira credentials and Jira URL are correct.
 - Ensure that your `jira-export` command and all the flags are correct. See: <https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/jira-export.md>
 - Try different combinations of your jira user/api credentials. The functionality here could depend on wether you are using Jira Cloud or Jira Server, as well as wether you have set your user's email as public in the user profile in Jira Cloud, and jira might not be accepting certain credentials. Try all combinations of the following:
@@ -25,7 +27,19 @@ Example:
   - password: **user password** (same as login)
   - password: **API token**
 
+### Issues with escape sequences in credentials
+
 Another problem could be that you have characters in your `--password` parameter that is reserved by the terminal, e.g. **dollar sign** ($) in Powershell. A potential solution sometimes is to escape any dollar sign characters. So make sure that your `--password` parameter is properly escaped, depending on what terminal you are using. Example for Powershell: `$` becomes `$. Otherwise you can always try a different terminal like CMD or bash.
+
+### Issues with Captcha
+
+For some instances of Jira Server and some security configurations, the user can become silently locked out of Jira after repeated failed attempts to use the API Token.
+
+The solution is usually to navigate to your Jira project in a web browser, log out and log in again. If you are presented with a CAPTCHA, go ahead and solve the CAPTCHA and log in. You should now be able to authenticate to the Rest API again.
+
+If you regularly face this problem, we would recommend authenticating with **username and password** instead of the API Token.
+
+### Issues with user permissions
 
 If you are still not able to authenticate. Try and run the tool as another user. Also make sure to try as a user with admin privileges in your Jira organization.
 
