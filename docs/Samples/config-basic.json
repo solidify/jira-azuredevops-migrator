@@ -39,6 +39,10 @@
         "target": "System.LinkTypes.Related"
       },
       {
+        "source": "Cloners",
+        "target": "System.LinkTypes.Related"
+      },
+      {
         "source": "Duplicate",
         "target": "System.LinkTypes.Duplicate-Forward"
       }
