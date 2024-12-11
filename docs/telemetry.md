@@ -12,7 +12,7 @@ Currently we collect the following anonymous data:
 
 Note: Exception data cannot be 100% guaranteed to not leak production data
 
-All logging logic can be review in the 'src/WorkItemMigrator/Migration.Common.Log/Logger.cs' source file.
+All logging logic can be reviewed in the 'src/WorkItemMigrator/Migration.Common.Log/Logger.cs' source file.
 
 ## Opt out of tracking
 
