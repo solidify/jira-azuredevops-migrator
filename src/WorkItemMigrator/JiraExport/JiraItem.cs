@@ -397,12 +397,6 @@ namespace JiraExport
             }
             else
             {
-                if (linkType.Inward == linkType.Outward && sourceItemKey.CompareTo(targetItemKey) < 0)
-                {
-                    Logger.Log(LogLevel.Debug, $"Link is non-directional ({linkType.Name}) and sourceItem ({sourceItemKey}) is older then target item ({targetItemKey}). Link change will be part of target item.");
-                    return null;
-                }
-
                 return new RevisionAction<JiraLink>()
                 {
                     ChangeType = changeType,
