@@ -174,6 +174,24 @@ namespace JiraExport
             if (string.IsNullOrWhiteSpace(iterationPathsString))
                 return null;
 
+            // For certain configurations of Jira, the entire Sprint object is returned by the
+            // fields Rest API instead of the Sprint name
+            if (iterationPathsString.StartsWith("com.atlassian.greenhopper.service.sprint.Sprint@"))
+            {
+                Regex regex = new Regex(@",name=([^,]+),");
+                Match match = regex.Match(iterationPathsString);
+                if (match.Success)
+                {
+                    iterationPathsString = match.Groups[1].Value;
+                }
+                else
+                {
+                    Logger.Log(LogLevel.Error, "Missing 'name' property for Sprint object. "
+                        + $"Skipping mapping this sprint. The full object was: '{iterationPathsString}'."
+                        );
+                }
+            }
+
             var iterationPaths = iterationPathsString.Split(',').AsEnumerable();
             iterationPaths = iterationPaths.Select(ip => ip.Trim());
             var iterationPath = iterationPaths.Last();

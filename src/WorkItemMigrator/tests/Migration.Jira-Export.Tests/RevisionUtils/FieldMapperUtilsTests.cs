@@ -216,6 +216,18 @@ namespace Migration.Jira_Export.Tests.RevisionUtils
         }
 
         [Test]
+        public void When_calling_map_sprint_with_full_sprint_object_as_str_Then_expected_output_is_returned()
+        {
+            string sprintPath = "com.atlassian.greenhopper.service.sprint.Sprint@7c6e1967[id=442906,rapidViewId"
+                + "=187524,state=ACTIVE,name=LMS 2024_05,startDate=2024-10-14T00:00:00.000Z,endDate=2024-11-01T"
+                + "23:00:00.000Z,completeDate=<null>,activatedDate=2024-10-13T18:14:54.334Z,sequence=449386,goa"
+                + "l=,synced=false,autoStartStop=false,incompleteIssuesDestinationId=<null>]";
+            string expectedOutput = "LMS 2024_05";
+            object output = FieldMapperUtils.MapSprint(sprintPath);
+            Assert.AreEqual(expectedOutput, output);
+        }
+
+        [Test]
         public void When_calling_map_value_with_valid_args_Then_expected_output_is_returned()
         {
 
