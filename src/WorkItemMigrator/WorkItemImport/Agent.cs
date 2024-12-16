@@ -190,6 +190,10 @@ namespace WorkItemImport
             {
                 throw;
             }
+            catch (AttachmentNotFoundException)
+            {
+                throw;
+            }
             catch (FileNotFoundException ex)
             {
                 Logger.Log(LogLevel.Error, ex.Message);
