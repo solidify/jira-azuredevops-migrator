@@ -126,6 +126,10 @@ namespace WorkItemImport
                     {
                         _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                     }
+                    catch (AttachmentNotFoundException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
@@ -151,6 +155,10 @@ namespace WorkItemImport
                                     field.Target,
                                     _context.Journal.IsAttachmentMigrated
                                 );
+                            }
+                            catch (AttachmentNotFoundException)
+                            {
+                                throw;
                             }
                             catch (Exception ex)
                             {
