@@ -771,7 +771,10 @@ namespace WorkItemImport
                         isUpdated = true;
                     }
                     else
-                        Logger.Log(LogLevel.Warning, $"Attachment '{att}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}.");
+                    {
+                        Logger.Log(LogLevel.Warning, $"Attachment '{att}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}. This revision will be deferred until later.");
+                        throw new AttachmentNotFoundException("Attachment not found on work item");
+                    }
                 }
             }
             if (isUpdated)

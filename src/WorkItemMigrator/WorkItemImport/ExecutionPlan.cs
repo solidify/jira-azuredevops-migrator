@@ -12,6 +12,7 @@ namespace WorkItemImport
             public int WiId { get; set; } = -1;
             public WiRevision Revision { get; set; }
             public string WiType { get; internal set; }
+            public bool isDeferred { get; set; }
 
             public override string ToString()
             {
@@ -43,6 +44,18 @@ namespace WorkItemImport
             if (ReferenceQueue.Count > 0)
             {
                 nextItem = TransformToExecutionItem(ReferenceQueue.Dequeue());
+                return true;
+            }
+            else
+                return false;
+        }
+
+        public bool TryPeek(out ExecutionItem nextItem)
+        {
+            nextItem = null;
+            if (ReferenceQueue.Count > 0)
+            {
+                nextItem = TransformToExecutionItem(ReferenceQueue.Peek());
                 return true;
             }
             else

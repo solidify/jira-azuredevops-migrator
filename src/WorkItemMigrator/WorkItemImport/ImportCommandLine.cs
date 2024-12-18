@@ -16,6 +16,7 @@ namespace WorkItemImport
     {
         private CommandLineApplication commandLineApplication;
         private string[] args;
+        private List<ExecutionPlan.ExecutionItem> deferredExecutionItems = new List<ExecutionPlan.ExecutionItem>();
 
         public ImportCommandLine(params string[] args)
         {
@@ -112,10 +113,18 @@ namespace WorkItemImport
 
                 BeginSession(configFileName, config, forceFresh, agent, itemCount, revisionCount);
 
-                while (plan.TryPop(out ExecutionPlan.ExecutionItem executionItem))
+                while (plan.ReferenceQueue.Count > 0 || deferredExecutionItems.Count > 0)
                 {
+                    ExecutionPlan.ExecutionItem executionItem = null;
                     try
                     {
+                        executionItem = GetDeferredItemIfAvailable(plan, executionItem);
+
+                        if (executionItem == null)
+                        {
+                            plan.TryPop(out executionItem);
+                        }
+
                         if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
                         {
                             continue;
@@ -156,7 +165,14 @@ namespace WorkItemImport
                             continue;
                         }
 
-                        agent.ImportRevision(executionItem.Revision, wi, settings);
+                        try
+                        {
+                            agent.ImportRevision(executionItem.Revision, wi, settings);
+                        }
+                        catch (AttachmentNotFoundException)
+                        {
+                            importedItems = DeferItem(importedItems, executionItem);
+                        }
 
                         // Artifical wait (optional) to avoid throttling for ADO Services
                         if (config.SleepTimeBetweenRevisionImportMilliseconds > 0)
@@ -197,6 +213,44 @@ namespace WorkItemImport
                 EndSession(itemCount, revisionCount, sw);
             }
             return succeeded;
+        }
+
+        private int DeferItem(int importedItems, ExecutionPlan.ExecutionItem executionItem)
+        {
+            if (!executionItem.isDeferred)
+            {
+                executionItem.Revision.Time = executionItem.Revision.Time.AddMinutes(5);
+                executionItem.isDeferred = true;
+                deferredExecutionItems.Add(executionItem);
+                importedItems--;
+            }
+
+            return importedItems;
+        }
+
+        private ExecutionPlan.ExecutionItem GetDeferredItemIfAvailable(ExecutionPlan plan, ExecutionPlan.ExecutionItem executionItem)
+        {
+            foreach (var executionItemDeferred in deferredExecutionItems)
+            {
+                if (plan.TryPeek(out var nextItem))
+                {
+                    if (executionItemDeferred.Revision.Time < nextItem.Revision.Time)
+                    {
+                        executionItem = executionItemDeferred;
+                        deferredExecutionItems.Remove(executionItem);
+                        executionItem.Revision.Time = nextItem.Revision.Time.AddMilliseconds(-5);
+                        break;
+                    }
+                }
+                else
+                {
+                    executionItem = executionItemDeferred;
+                    deferredExecutionItems.Remove(executionItem);
+                    break;
+                }
+            }
+
+            return executionItem;
         }
 
         private static void BeginSession(string configFile, ConfigJson config, bool force, Agent agent, int itemsCount, int revisionCount)
