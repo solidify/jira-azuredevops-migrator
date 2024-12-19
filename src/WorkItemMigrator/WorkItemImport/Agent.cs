@@ -281,7 +281,7 @@ namespace WorkItemImport
         internal async Task<TeamProject> GetOrCreateProjectAsync()
         {
             ProjectHttpClient projectClient = RestConnection.GetClient<ProjectHttpClient>();
-            Logger.Log(LogLevel.Info, "Retreiving project info from Azure DevOps/TFS...");
+            Logger.Log(LogLevel.Info, "Retrieving project info from Azure DevOps/TFS...");
             TeamProject project = null;
 
             try
