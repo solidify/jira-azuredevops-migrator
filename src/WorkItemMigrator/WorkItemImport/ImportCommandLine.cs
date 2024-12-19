@@ -125,7 +125,11 @@ namespace WorkItemImport
                             plan.TryPop(out executionItem);
                         }
 
-                        if (!forceFresh && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index))
+                        if (
+                            !forceFresh
+                            && !executionItem.isDeferred
+                            && context.Journal.IsItemMigrated(executionItem.OriginId, executionItem.Revision.Index)
+                        )
                         {
                             continue;
                         }
