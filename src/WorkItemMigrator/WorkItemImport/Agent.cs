@@ -656,6 +656,14 @@ namespace WorkItemImport
         {
             bool success = true;
 
+            var saveLinkTimestamp = rev.Time;
+            if(rev.Fields.Count > 0)
+            {
+                // If this revision already has any fields, defer the link import by 2 miliseconds. Otherwise the Work Items API will
+                // send the response: "VS402625: Dates must be increasing with each revision"
+                saveLinkTimestamp = saveLinkTimestamp.AddMilliseconds(2);
+            }
+
             foreach (var link in rev.Links)
             {
                 try
@@ -676,11 +684,11 @@ namespace WorkItemImport
                         continue;
                     }
 
-                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi, settings, rev.Author, rev.Time))
+                    if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi, settings, rev.Author, saveLinkTimestamp))
                     {
                         success = false;
                     }
-                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi, settings, rev.Author, rev.Time))
+                    else if (link.Change == ReferenceChangeType.Removed && !_witClientUtils.RemoveAndSaveLink(link, wi, settings, rev.Author, saveLinkTimestamp))
                     {
                         success = false;
                     }
