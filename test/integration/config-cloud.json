@@ -272,8 +272,9 @@
         },
         {
           "source": "alexander-testar-custom-date-of-first-response",
+          "target": "Custom.CustomDateOfFirstResponse",
           "source-type": "name",
-          "target": "Custom.CustomDateOfFirstResponse"
+          "type": "datetime"
         },
         {
           "source": "alexander-testar-custom-group-picker-multiple-groups",
