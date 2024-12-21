@@ -770,7 +770,9 @@ namespace WorkItemImport
                         textField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
                         isUpdated = true;
                     }
-                    else
+                    else if (wi.Relations.Where(r => r.Rel == "AttachedFile").Count() < 100) // Do not throw AttachmentNotFoundException if there are
+                                                                                             // 100 attachments (ADO attachment count limit/work item).
+                                                                                             // This means that some attachments could have been skipped.
                     {
                         Logger.Log(LogLevel.Warning, $"Attachment '{att}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}. This revision will be deferred until later.");
                         throw new AttachmentNotFoundException("Attachment not found on work item");
