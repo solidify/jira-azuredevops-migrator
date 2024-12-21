@@ -664,8 +664,9 @@ namespace WorkItemImport
                 saveLinkTimestamp = saveLinkTimestamp.AddMilliseconds(2);
             }
             
-            foreach (var link in rev.Links)
+            for (int i = 0; i < rev.Links.Count; i++)
             {
+                var link = rev.Links[i];
                 try
                 {
                     int sourceWiId = _context.Journal.GetMigratedId(link.SourceOriginId);
@@ -682,6 +683,13 @@ namespace WorkItemImport
                             $" this work item is scheduled for import later in your migration.");
                         success = false;
                         continue;
+                    }
+
+                    if (i > 0)
+                    {
+                        // If this has multiple link updates, defer each ubsequent link import by 2 miliseconds.
+                        // Otherwise the Work Items API will send the response: "VS402625: Dates must be increasing with each revision"
+                        saveLinkTimestamp = saveLinkTimestamp.AddMilliseconds(2);
                     }
 
                     if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi, settings, rev.Author, saveLinkTimestamp))
