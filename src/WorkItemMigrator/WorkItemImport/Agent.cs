@@ -662,6 +662,8 @@ namespace WorkItemImport
                 // If this revision already has any fields, defer the link import by 2 miliseconds. Otherwise the Work Items API will
                 // send the response: "VS402625: Dates must be increasing with each revision"
                 saveLinkTimestamp = saveLinkTimestamp.AddMilliseconds(2);
+                // This needs to be set so that ApplyFields gets a later date, later on in the revision import
+                wi.Fields[WiFieldReference.ChangedDate] = saveLinkTimestamp.AddMilliseconds(2);
             }
             
             for (int i = 0; i < rev.Links.Count; i++)
@@ -690,6 +692,8 @@ namespace WorkItemImport
                         // If this has multiple link updates, defer each ubsequent link import by 2 miliseconds.
                         // Otherwise the Work Items API will send the response: "VS402625: Dates must be increasing with each revision"
                         saveLinkTimestamp = saveLinkTimestamp.AddMilliseconds(2);
+                        // This needs to be set so that ApplyFields gets a later date, later on in the revision import
+                        wi.Fields[WiFieldReference.ChangedDate] = saveLinkTimestamp.AddMilliseconds(2);
                     }
 
                     if (link.Change == ReferenceChangeType.Added && !_witClientUtils.AddAndSaveLink(link, wi, settings, rev.Author, saveLinkTimestamp))
