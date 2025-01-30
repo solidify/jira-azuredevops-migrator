@@ -198,6 +198,9 @@ namespace JiraExport
 
             iterationPath = ReplaceAzdoInvalidCharacters(iterationPath);
 
+            // Remove leading and trailing spaces, since these will be stripped by the Azure DevOps classification nodes Rest API
+            iterationPath = iterationPath.Trim();
+
             return iterationPath;
         }
 
