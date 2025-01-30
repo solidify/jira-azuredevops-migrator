@@ -766,8 +766,12 @@ namespace WorkItemImport
 
                     if (tfsAtt != null)
                     {
-                        string imageSrcPattern = $"src.*?=.*?\"([^\"])(?=.*{att.AttOriginId}).*?\"";
-                        textField = Regex.Replace(textField, imageSrcPattern, $"src=\"{tfsAtt.Url}\"");
+                        string imageSrcPattern1 = $"src.*?=.*?\"([^\"])(?=.*{att.AttOriginId}).*?\"";
+                        textField = Regex.Replace(textField, imageSrcPattern1, $"src=\"{tfsAtt.Url}\"");
+
+                        string imageSrcPattern2 = $"!{att.FileName}!";
+                        textField = Regex.Replace(textField, imageSrcPattern2, $"<img src=\"{tfsAtt.Url}\"/>");
+
                         isUpdated = true;
                     }
                     else if (wi.Relations.Where(r => r.Rel == "AttachedFile").Count() < 100) // Do not throw AttachmentNotFoundException if there are

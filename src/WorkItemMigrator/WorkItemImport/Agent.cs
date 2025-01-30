@@ -96,20 +96,6 @@ namespace WorkItemImport
                     _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
                 }
 
-                if (wi.Fields.ContainsKey(WiFieldReference.AcceptanceCriteria) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.AcceptanceCriteria].ToString()))
-                {
-                    Logger.Log(LogLevel.Debug, $"Correcting acceptance criteria on separate revision on '{rev}'.");
-
-                    try
-                    {
-                        _witClientUtils.CorrectAcceptanceCriteria(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex, $"Failed to correct acceptance criteria for '{wi.Id}', rev '{rev}'.");
-                    }
-                }
-
                 _witClientUtils.SaveWorkItemAttachments(rev, wi, settings);
 
                 foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
@@ -133,6 +119,24 @@ namespace WorkItemImport
                     catch (Exception ex)
                     {
                         Logger.Log(ex, $"Failed to correct description for '{wi.Id}', rev '{rev}'.");
+                    }
+
+                    if (wi.Fields.ContainsKey(WiFieldReference.AcceptanceCriteria) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.AcceptanceCriteria].ToString()))
+                    {
+                        Logger.Log(LogLevel.Debug, $"Correcting acceptance criteria on separate revision on '{rev}'.");
+
+                        try
+                        {
+                            _witClientUtils.CorrectAcceptanceCriteria(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                        }
+                        catch (AttachmentNotFoundException)
+                        {
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex, $"Failed to correct acceptance criteria for '{wi.Id}', rev '{rev}'.");
+                        }
                     }
 
                     // Correct other HTMl fields than description
