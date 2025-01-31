@@ -784,7 +784,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectComment(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                () => wiUtils.CorrectComment(null, null, null, MockedIsAttachmentMigratedDelegateTrue, new List<WiAttachment>()),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -826,7 +826,7 @@ namespace Migration.Wi_Import.Tests
                 }
             };
 
-            wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.CorrectComment(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue, new List<WiAttachment>());
 
             Assert.That(createdWI.Fields[WiFieldReference.History], Is.EqualTo(commentAfterTransformation));
         }
@@ -838,7 +838,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectDescription(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                () => wiUtils.CorrectDescription(null, null, null, MockedIsAttachmentMigratedDelegateTrue, new List<WiAttachment>()),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -849,7 +849,7 @@ namespace Migration.Wi_Import.Tests
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
 
             Assert.That(
-                () => wiUtils.CorrectAcceptanceCriteria(null, null, null, MockedIsAttachmentMigratedDelegateTrue),
+                () => wiUtils.CorrectAcceptanceCriteria(null, null, null, MockedIsAttachmentMigratedDelegateTrue, new List<WiAttachment>()),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -891,7 +891,7 @@ namespace Migration.Wi_Import.Tests
                 }
             };
 
-            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue, new List<WiAttachment>());
 
             Assert.That(createdWI.Fields[WiFieldReference.Description], Is.EqualTo(descriptionAfterTransformation));
         }
@@ -934,7 +934,7 @@ namespace Migration.Wi_Import.Tests
                 }
             };
 
-            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.CorrectDescription(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue, new List<WiAttachment>());
 
             Assert.That(createdWI.Fields[WiFieldReference.ReproSteps], Is.EqualTo(reproStepsAfterTransformation));
         }
@@ -977,7 +977,7 @@ namespace Migration.Wi_Import.Tests
                 }
             };
 
-            wiUtils.CorrectAcceptanceCriteria(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue);
+            wiUtils.CorrectAcceptanceCriteria(createdWI, wiItem, revision, MockedIsAttachmentMigratedDelegateTrue, new List<WiAttachment>());
 
             Assert.That(createdWI.Fields[WiFieldReference.AcceptanceCriteria], Is.EqualTo(acceptanceCriteriaAfterTransformation));
         }

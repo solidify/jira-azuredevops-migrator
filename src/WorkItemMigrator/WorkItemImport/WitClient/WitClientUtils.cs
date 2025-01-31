@@ -439,7 +439,13 @@ namespace WorkItemImport
             }
         }
 
-        public bool CorrectDescription(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        public bool CorrectDescription(
+            WorkItem wi,
+            WiItem wiItem,
+            WiRevision rev,
+            IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate,
+            List<WiAttachment> skippedAttachments
+        )
         {
             if (wi == null)
             {
@@ -462,7 +468,7 @@ namespace WorkItemImport
 
             bool descUpdated = false;
 
-            CorrectImagePath(wi, wiItem, rev, ref description, ref descUpdated, isAttachmentMigratedDelegate);
+            CorrectImagePath(wi, wiItem, rev, ref description, ref descUpdated, isAttachmentMigratedDelegate, skippedAttachments);
 
             if (descUpdated)
             {
@@ -479,7 +485,14 @@ namespace WorkItemImport
             return descUpdated;
         }
 
-        public bool CorrectRenderedField(WorkItem wi, WiItem wiItem, WiRevision rev, string fieldRef, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        public bool CorrectRenderedField(
+            WorkItem wi,
+            WiItem wiItem,
+            WiRevision rev,
+            string fieldRef,
+            IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate,
+            List<WiAttachment> skippedAttachments
+        )
         {
             if (wi == null)
             {
@@ -502,7 +515,7 @@ namespace WorkItemImport
 
             bool updated = false;
 
-            CorrectImagePath(wi, wiItem, rev, ref fieldValue, ref updated, isAttachmentMigratedDelegate);
+            CorrectImagePath(wi, wiItem, rev, ref fieldValue, ref updated, isAttachmentMigratedDelegate, skippedAttachments);
 
             if (updated)
             {
@@ -512,7 +525,13 @@ namespace WorkItemImport
             return updated;
         }
 
-        public bool CorrectAcceptanceCriteria(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        public bool CorrectAcceptanceCriteria(
+            WorkItem wi,
+            WiItem wiItem,
+            WiRevision rev,
+            IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate,
+            List<WiAttachment> skippedAttachments
+        )
         {
             if (wi == null)
             {
@@ -535,7 +554,7 @@ namespace WorkItemImport
 
             bool updated = false;
 
-            CorrectImagePath(wi, wiItem, rev, ref acceptanceCriteria, ref updated, isAttachmentMigratedDelegate);
+            CorrectImagePath(wi, wiItem, rev, ref acceptanceCriteria, ref updated, isAttachmentMigratedDelegate, skippedAttachments);
 
             if (updated)
             {
@@ -545,7 +564,13 @@ namespace WorkItemImport
             return updated;
         }
 
-        public void CorrectComment(WorkItem wi, WiItem wiItem, WiRevision rev, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        public void CorrectComment(
+            WorkItem wi,
+            WiItem wiItem,
+            WiRevision rev,
+            IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate,
+            List<WiAttachment> skippedAttachments
+        )
         {
             if (wi == null)
             {
@@ -564,7 +589,7 @@ namespace WorkItemImport
 
             string currentComment = wi.Fields[WiFieldReference.History].ToString();
             bool commentUpdated = false;
-            CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated, isAttachmentMigratedDelegate);
+            CorrectImagePath(wi, wiItem, rev, ref currentComment, ref commentUpdated, isAttachmentMigratedDelegate, skippedAttachments);
 
             if (commentUpdated)
                 wi.Fields[WiFieldReference.History] = currentComment;
@@ -575,7 +600,7 @@ namespace WorkItemImport
             return _witClientWrapper.GetWorkItem(wiId);
         }
 
-        public void SaveWorkItemAttachments(WiRevision rev, WorkItem wi, Settings settings)
+        public List<WiAttachment> SaveWorkItemAttachments(WiRevision rev, WorkItem wi, Settings settings)
         {
             if (rev == null)
             {
@@ -599,6 +624,7 @@ namespace WorkItemImport
             }
 
             // Save attachments
+            var skippedAttachments = new List<WiAttachment>();
             foreach (WiAttachment attachment in rev.Attachments)
             {
                 if (attachment.Change == ReferenceChangeType.Added)
@@ -626,6 +652,7 @@ namespace WorkItemImport
                                 $"exception. Skipping attachment: {attachment.FileName}. See full error " +
                                 $"message below.\n{e.InnerException.Message}");
                         }
+                        skippedAttachments.Add(attachment);
                     }
                 }
                 else if (attachment.Change == ReferenceChangeType.Removed)
@@ -633,6 +660,7 @@ namespace WorkItemImport
                     RemoveSingleAttachmentFromWorkItemAndSave(attachment, wi, settings, attachmentUpdatedDate, rev.Author);
                 }
             }
+            return skippedAttachments;
         }
 
         public void SaveWorkItemFields(WorkItem wi, Settings settings)
@@ -731,7 +759,15 @@ namespace WorkItemImport
             }
         }
 
-        private void CorrectImagePath(WorkItem wi, WiItem wiItem, WiRevision rev, ref string textField, ref bool isUpdated, IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate)
+        private void CorrectImagePath(
+            WorkItem wi,
+            WiItem wiItem,
+            WiRevision rev,
+            ref string textField,
+            ref bool isUpdated,
+            IsAttachmentMigratedDelegate<string, string, bool> isAttachmentMigratedDelegate,
+            List<WiAttachment> skippedAttachments
+        )
         {
             if (wi == null)
             {
@@ -774,9 +810,12 @@ namespace WorkItemImport
 
                         isUpdated = true;
                     }
-                    else if (wi.Relations.Where(r => r.Rel == "AttachedFile").Count() < 100) // Do not throw AttachmentNotFoundException if there are
-                                                                                             // 100 attachments (ADO attachment count limit/work item).
-                                                                                             // This means that some attachments could have been skipped.
+                    else if (
+                        wi.Relations.Where(r => r.Rel == "AttachedFile").Count() < 100
+                        && !skippedAttachments.Any(a => a.AttOriginId == att.AttOriginId)
+                    )    // Do not throw AttachmentNotFoundException if there are
+                         // 100 attachments (ADO attachment count limit/work item).
+                         // This means that some attachments could have been skipped.
                     {
                         Logger.Log(LogLevel.Warning, $"Attachment '{att}' referenced in text but is missing from work item {wiItem.OriginId}/{wi.Id}. This revision will be deferred until later.");
                         throw new AttachmentNotFoundException("Attachment not found on work item");

@@ -90,10 +90,17 @@ namespace WorkItemImport
                 if (incomplete)
                     Logger.Log(LogLevel.Warning, $"'{rev}' - not all changes were saved.");
 
+                var skippedAttachments = _witClientUtils.SaveWorkItemAttachments(rev, wi, settings);
+                foreach (string attOriginId in rev.Attachments.Select(wiAtt => wiAtt.AttOriginId))
+                {
+                    if (attachmentMap.TryGetValue(attOriginId, out WiAttachment tfsAtt))
+                        _context.Journal.MarkAttachmentAsProcessed(attOriginId, tfsAtt.AttOriginId);
+                }
+
                 if (wi.Fields.ContainsKey(WiFieldReference.History) && !string.IsNullOrEmpty(wi.Fields[WiFieldReference.History].ToString()))
                 {
                     Logger.Log(LogLevel.Debug, $"Correcting comments on '{rev}'.");
-                    _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                    _witClientUtils.CorrectComment(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated, skippedAttachments);
                 }
 
                 _witClientUtils.SaveWorkItemAttachments(rev, wi, settings);
@@ -110,7 +117,13 @@ namespace WorkItemImport
 
                     try
                     {
-                        _witClientUtils.CorrectDescription(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                        _witClientUtils.CorrectDescription(
+                            wi,
+                            _context.GetItem(rev.ParentOriginId), 
+                            rev,
+                            _context.Journal.IsAttachmentMigrated,
+                            skippedAttachments
+                        );
                     }
                     catch (AttachmentNotFoundException)
                     {
@@ -127,7 +140,13 @@ namespace WorkItemImport
 
                         try
                         {
-                            _witClientUtils.CorrectAcceptanceCriteria(wi, _context.GetItem(rev.ParentOriginId), rev, _context.Journal.IsAttachmentMigrated);
+                            _witClientUtils.CorrectAcceptanceCriteria(
+                                wi,
+                                _context.GetItem(rev.ParentOriginId),
+                                rev,
+                                _context.Journal.IsAttachmentMigrated,
+                                skippedAttachments
+                            );
                         }
                         catch (AttachmentNotFoundException)
                         {
@@ -157,7 +176,8 @@ namespace WorkItemImport
                                     _context.GetItem(rev.ParentOriginId),
                                     rev,
                                     field.Target,
-                                    _context.Journal.IsAttachmentMigrated
+                                    _context.Journal.IsAttachmentMigrated,
+                                    skippedAttachments
                                 );
                             }
                             catch (AttachmentNotFoundException)
