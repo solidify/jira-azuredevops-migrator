@@ -470,7 +470,8 @@ namespace JiraExport
             string valueStr = value.ToString();
             var fieldLimits = new Dictionary<string, int>()
             {
-                { WiFieldReference.Title, 255 }
+                { WiFieldReference.Title, 255 },
+                { WiFieldReference.Description, 1048576 }
             };
             if (fieldLimits.ContainsKey(field))
             {
