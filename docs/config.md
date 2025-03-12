@@ -38,6 +38,7 @@ The migration configuration file is defined in a json file with the properties d
 |**suppress-notifications**|False|boolean|Set to True to suppress all notifications in Azure DevOps about created and updated Work Items. Default = False.|
 |**include-development-links**|False|boolean|Set to True to migrated commit links from Jira to Azure DevOps. You will also need to fill out the **repository-map** property. Default = False.|
 |**sleep-time-between-revision-import-milliseconds**|False|integer|How many milliseconds to sleep between each revision import. Use this if throttling is an issue for ADO Services. Default = 0 (no sleep).|
+|**buffer-revisions-succeeding-attachment-imports-milliseconds**|False|integer|How many milliseconds to buffer each subsequent revision if there is a negative revision timestamp offset. Increase this if you get problems with VS402625 error messages. Default = 5 (ms).|
 |**process-template**|False|string|Process template in the target DevOps project. Supported values: Scrum, Agile or CMMI. Default = "Scrum".|
 |**link-map**|True|json|List of **links** to map between Jira and Azure DevOps/TFS work item link types.|
 |**type-map**|True|json|List of the work item **types** you want to migrate from Jira to Azure DevOps/TFS.|

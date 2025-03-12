@@ -280,7 +280,7 @@ namespace Migration.Wi_Import.Tests
             MockedWitClientWrapper witClientWrapper = new MockedWitClientWrapper();
             WitClientUtils wiUtils = new WitClientUtils(witClientWrapper);
             Assert.That(
-                () => wiUtils.EnsureDateFields(null, null),
+                () => wiUtils.EnsureDateFields(null, null, 0),
                 Throws.InstanceOf<ArgumentException>());
         }
 
@@ -303,7 +303,7 @@ namespace Migration.Wi_Import.Tests
 
             createdWI.Fields[WiFieldReference.ChangedDate] = now;
 
-            wiUtils.EnsureDateFields(rev, createdWI);
+            wiUtils.EnsureDateFields(rev, createdWI, 0);
 
             Assert.Multiple(() =>
             {
