@@ -240,7 +240,7 @@ namespace WorkItemImport
             rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.AssignedTo, Value = assignedTo });
         }
 
-        public void EnsureDateFields(WiRevision rev, WorkItem wi, int deferMS)
+        public void EnsureDateFields(WiRevision rev, WorkItem wi, int bufferMS)
         {
             if (rev == null)
             {
@@ -271,8 +271,8 @@ namespace WorkItemImport
                 else
                 {
                     // ADO can add a few milliseconds to work item createdDate when adding an attachment, hence adding more here to the revision time
-                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(deferMS).ToString("o") });
-                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(deferMS);
+                    rev.Fields.Add(new WiField() { ReferenceName = WiFieldReference.ChangedDate, Value = rev.Time.AddMilliseconds(bufferMS).ToString("o") });
+                    wi.Fields[WiFieldReference.ChangedDate] = rev.Time.AddMilliseconds(bufferMS);
                 }
             }
 
