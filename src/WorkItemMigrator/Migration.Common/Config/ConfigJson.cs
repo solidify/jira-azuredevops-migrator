@@ -81,6 +81,9 @@ namespace Common.Config
         [JsonProperty(PropertyName = "include-jira-css-styles")]
         public bool IncludeJiraCssStyles { get; set; } = false;
 
+        [JsonProperty(PropertyName = "defer-for-revisions-succeeding-attachment-imports-milliseconds")]
+        public int DeferForRevisionsSucceedingAttachmentImportsMilliseconds { get; set; } = 5;
+
         [JsonProperty(PropertyName = "ignore-empty-revisions")]
         public bool IgnoreEmptyRevisions { get; set; } = false;
 
