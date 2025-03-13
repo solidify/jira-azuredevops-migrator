@@ -432,7 +432,12 @@ curl -D-
 
 ## 19. I get the error message "VS402625: Dates must be increasing with each revision."
 
-ADO can sometimes add a few milliseconds to the work item changedDate when adding an attachment. This can have unfortunate consequences if the tool attempts to import a subsequent revision with a changedDate that is less than the previous reivison that was successfully imported.
+This error message will show up if the tool attempts to import a subsequent revision with a changedDate that is less than the current changedDate of the current state of the Work Item.
+
+This can have multiple causes:
+
+- Two consecutive revisions have the same date stamp, or the difference is 1ms or less (i.e. the issue is in the Jira issue data itself).
+- ADO can sometimes add a few milliseconds to the work item changedDate when adding an attachment.
 
 You may end up receiving an error message similar to this one:
 
