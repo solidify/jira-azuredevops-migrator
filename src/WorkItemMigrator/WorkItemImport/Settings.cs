@@ -23,5 +23,6 @@ namespace WorkItemImport
         public FieldMap FieldMap { get; internal set; }
         public bool SuppressNotifications { get; internal set; }
         public int BufferRevisionsSucceedingAttachmentImportsMilliseconds { get; set; }
+        public int ChangedDateBumpMS { get; set; }
     }
 }

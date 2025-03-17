@@ -84,6 +84,9 @@ namespace Common.Config
         [JsonProperty(PropertyName = "buffer-revisions-succeeding-attachment-imports-milliseconds")]
         public int BufferRevisionsSucceedingAttachmentImportsMilliseconds { get; set; } = 5;
 
+        [JsonProperty(PropertyName = "changeddate-bump-ms")]
+        public int ChangedDateBumpMS { get; set; } = 2;
+
         [JsonProperty(PropertyName = "ignore-empty-revisions")]
         public bool IgnoreEmptyRevisions { get; set; } = false;
 
