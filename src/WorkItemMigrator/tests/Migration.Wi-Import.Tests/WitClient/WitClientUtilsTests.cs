@@ -315,7 +315,7 @@ namespace Migration.Wi_Import.Tests
                 Assert.That(rev.Fields[1].ReferenceName, Is.EqualTo(WiFieldReference.ChangedDate));
                 Assert.That(
                     DateTime.Parse(rev.Fields[1].Value.ToString()),
-                    Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString()).AddMilliseconds(1)));
+                    Is.EqualTo(DateTime.Parse(rev.Fields[0].Value.ToString())));
             });
         }
 
