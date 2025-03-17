@@ -430,28 +430,28 @@ curl -D-
  "http://johnie:8081/rest/api/2/search"
 ```
 
-## 19. I get the error message "VS402625: Dates must be increasing with each revision."
+## 19. I get the warning message "VS402625: Dates must be increasing with each revision."
 
-This error message will show up if the tool attempts to import a subsequent revision with a changedDate that is less than the current changedDate of the current state of the Work Item.
+This warning message will show up if the tool attempts to import a subsequent revision with a changedDate that is less than the current changedDate of the current state of the Work Item.
 
 This can have multiple causes:
 
 - Two consecutive revisions have the same date stamp, or the difference is 1ms or less (i.e. the issue is in the Jira issue data itself).
 - ADO can sometimes add a few milliseconds to the work item changedDate when adding an attachment.
+- A link change in Jira has created a situation where the Link Import happens earlier in time than the timestamp of one of the revisions in the associated issues.
 
 You may end up receiving an error message similar to this one:
 
 ```txt
-[E][18:32:06] VS402625: Dates must be increasing with each revision.
-[E][18:32:06] Work Item 15312 failed to save.
+[W][11:15:29] Received response while updating Work Item: VS402625: Dates must be increasing with each revision.. Bumped Changed Date by 2ms and trying again... New ChangedDate: 3/31/2016 3:21:38 PM, ms: 172
 ```
 
-The solution is to buffer the subsequent revision's changedDate by a few miliseconds. This is the purpose of the configuration parameter `buffer-revisions-succeeding-attachment-imports-milliseconds` (default: 5). Add this parameter to your `config.json` file and try increasing the value by 1 (5, 6, 7, and so on...) until the import succeeds without errors.
+The tool is attempting to buffer the subsequent revision's changedDate by a few miliseconds in order to get around the error response from the ADO Rest API. The exact number of miliseconds to buffer can be controlled with the config parameter `changeddate-bump-ms` (default: 2). If you experience a lot of this warning message and believe that your import is slowing down because of it, go ahead and add this parameter to your `config.json` file and try increasing the value by 1 (3, 4, 5, and so on...) until the import succeeds without too many warnings.
 
 Example `config.json`:
 
 ```json
-  "buffer-revisions-succeeding-attachment-imports-milliseconds": 6,
+  "changeddate-bump-ms": 5,
 ```
 
 ## 20. Sprint names are corrupted. ADO Iteration paths are named "[ synced = false  ]"
