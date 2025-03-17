@@ -67,7 +67,7 @@ namespace WorkItemImport
                 if (rev.Index == 0)
                     _witClientUtils.EnsureClassificationFields(rev);
 
-                _witClientUtils.EnsureDateFields(rev, wi, settings.BufferRevisionsSucceedingAttachmentImportsMilliseconds);
+                _witClientUtils.EnsureDateFields(rev, wi);
                 _witClientUtils.EnsureAuthorFields(rev);
                 _witClientUtils.EnsureAssigneeField(rev, wi);
                 _witClientUtils.EnsureFieldsOnStateChange(rev, wi);

@@ -94,7 +94,6 @@ namespace WorkItemImport
                     IncludeDevelopmentLinks = config.IncludeDevelopmentLinks,
                     FieldMap = config.FieldMap,
                     SuppressNotifications = config.SuppressNotifications,
-                    BufferRevisionsSucceedingAttachmentImportsMilliseconds = config.BufferRevisionsSucceedingAttachmentImportsMilliseconds,
                     ChangedDateBumpMS = config.ChangedDateBumpMS
                 };
 

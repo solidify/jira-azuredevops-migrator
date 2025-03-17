@@ -22,7 +22,6 @@ namespace WorkItemImport
         public bool IncludeDevelopmentLinks { get; internal set; }
         public FieldMap FieldMap { get; internal set; }
         public bool SuppressNotifications { get; internal set; }
-        public int BufferRevisionsSucceedingAttachmentImportsMilliseconds { get; set; }
         public int ChangedDateBumpMS { get; set; }
     }
 }
