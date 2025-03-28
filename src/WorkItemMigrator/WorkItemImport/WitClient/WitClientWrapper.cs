@@ -124,9 +124,9 @@ namespace WorkItemImport
                     bool errorHandled = false;
                     foreach (Exception ex2 in ex.InnerExceptions)
                     {
-                        // Handle 'VS402625' and 'VS402624' error responses, the supplied ChangedDate was older than the latest revision already in ADO.
+                        // Handle 'VS402625' error responses, the supplied ChangedDate was older than the latest revision already in ADO.
                         // We must bump the ChangedDate by a small factor and try again.
-                        if (ex2.Message.Contains("VS402625") || ex2.Message.Contains("VS402624"))
+                        if (ex2.Message.Contains("VS402625"))
                         {
                             foreach (var patchOp in patchDocument)
                             {
@@ -141,6 +141,14 @@ namespace WorkItemImport
                             }
                             errorHandled = true;
                         }
+                        // Handle 'VS402624' error responses, the supplied ChangedDate was in the future.
++                        // We must wait a while and try again.
++                        else if (ex2.Message.Contains("VS402624"))
++                        {
++                            Logger.Log(LogLevel.Warning, $"Received response while updating Work Item: {ex2.Message}." +
++                                $" Waiting and trying again...");
++                            errorHandled = true;
+                         }
                     }
                     if (!errorHandled)
                     {
