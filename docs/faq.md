@@ -446,12 +446,6 @@ You may end up receiving an error message similar to this one:
 [W][11:15:29] Received response while updating Work Item: VS402625: Dates must be increasing with each revision.. Bumped Changed Date by 2ms and trying again... New ChangedDate: 3/31/2016 3:21:38 PM, ms: 172
 ```
 
-Or this one:
-
-```txt
-[W][12:11:37] Received response while updating Work Item: VS402624: Specified dates cannot be in the future.. Bumped ChangedDate by 2ms and trying again... New ChangedDate: 2025-03-28 12:11:37, ms: 160
-```
-
 The tool is attempting to buffer the subsequent revision's changedDate by a few miliseconds in order to get around the error response from the ADO Rest API. The exact number of miliseconds to buffer can be controlled with the config parameter `changeddate-bump-ms` (default: 2). If you experience a lot of this warning message and believe that your import is slowing down because of it, go ahead and add this parameter to your `config.json` file and try increasing the value by 1 (3, 4, 5, and so on...) until the import succeeds without too many warnings.
 
 Example `config.json`:
