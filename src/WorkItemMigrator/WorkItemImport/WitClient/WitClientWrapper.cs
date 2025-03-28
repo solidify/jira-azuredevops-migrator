@@ -121,12 +121,12 @@ namespace WorkItemImport
                 }
                 catch (AggregateException ex)
                 {
-                    bool datesMustIncreaseError = false;
+                    bool errorHandled = false;
                     foreach (Exception ex2 in ex.InnerExceptions)
                     {
-                        // Handle 'VS402625' error responses, the supplied ChangedDate was older than the latest revision already in ADO.
+                        // Handle 'VS402625' and 'VS402624' error responses, the supplied ChangedDate was older than the latest revision already in ADO.
                         // We must bump the ChangedDate by a small factor and try again.
-                        if (ex2.Message.Contains("VS402625"))
+                        if (ex2.Message.Contains("VS402625") || ex2.Message.Contains("VS402624"))
                         {
                             foreach (var patchOp in patchDocument)
                             {
@@ -139,10 +139,10 @@ namespace WorkItemImport
                                     break;
                                 }
                             }
-                            datesMustIncreaseError = true;
+                            errorHandled = true;
                         }
                     }
-                    if (!datesMustIncreaseError)
+                    if (!errorHandled)
                     {
                         throw;
                     }
