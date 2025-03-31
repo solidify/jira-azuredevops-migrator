@@ -142,13 +142,13 @@ namespace WorkItemImport
                             errorHandled = true;
                         }
                         // Handle 'VS402624' error responses, the supplied ChangedDate was in the future.
-+                        // We must wait a while and try again.
-+                        else if (ex2.Message.Contains("VS402624"))
-+                        {
-+                            Logger.Log(LogLevel.Warning, $"Received response while updating Work Item: {ex2.Message}." +
-+                                $" Waiting and trying again...");
-+                            errorHandled = true;
-                         }
+                        // We must wait a while and try again.
+                        else if (ex2.Message.Contains("VS402624"))
+                        {
+                            Logger.Log(LogLevel.Warning, $"Received response while updating Work Item: {ex2.Message}." +
+                                $" Waiting and trying again...");
+                           errorHandled = true;
+                        }
                     }
                     if (!errorHandled)
                     {
