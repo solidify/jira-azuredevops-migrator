@@ -81,13 +81,88 @@ If your custom field is not imported correctly into Azure DevOps, please go thro
 
 This error is usually indicative of incorrect configuration on the user's side. Please follow the checklist [here](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/faq.md#troubleshooting-my-custom-field-is-not-migrated-correctlynot-migrated-at-all) (the section above this one, in the same document) to ensure that you do not have any issues with your `config.json` file.
 
-## 4. I need to obtain a field reference name/link type in Azure DevOps
+## 4. (In depth) How does Link Mapping work?
+
+The Jira Azure DevOps Migration Tool uses the **link-map** property in the `config.json` file to map link types between Jira and Azure DevOps (ADO). 
+
+The `link-map` property in your `config.json` file should look like this:
+
+```json
+"link-map": {
+  "link": [
+    {
+      "source": "Epic",
+      "target": "System.LinkTypes.Hierarchy-Reverse"
+    },
+    {
+      "source": "Parent",
+      "target": "System.LinkTypes.Hierarchy-Reverse"
+    },
+    {
+      "source": "Child",
+      "target": "System.LinkTypes.Hierarchy-Forward"
+    },
+    {
+      "source": "Relates",
+      "target": "System.LinkTypes.Related"
+    },
+    {
+      "source": "Cloners",
+      "target": "System.LinkTypes.Related"
+    },
+    {
+      "source": "Duplicate",
+      "target": "System.LinkTypes.Duplicate-Forward"
+    }
+  ]
+}
+```
+
+### **How to Configure Link Mapping**
+
+1. **Identify Jira Link Types:**
+   - Go to **Settings > Jira Settings > Issues > Issue Types > Issue Types** in Jira Cloud.
+   - Locate the **Name**, **Outward Description**, and **Inward Description** for each link type.
+
+2. **Map Jira Link Types to ADO:**
+   - The **source** property in the mapping should match the **Name** of the link type in Jira.
+   - The **target** property should be the corresponding ADO link type.
+
+#### **Example: Standard Jira Link Types**
+
+| Name     | Outward Description | Inward Description |
+|---------|---------------------|---------------------|
+| Blocks  | blocks              | is blocked by        |
+| Cloners | clones              | is cloned by         |
+| Defect  | created             | created by           |
+| Duplicate | duplicates        | is duplicated by     |
+| Related | relates to          | relates to           |
+| Relates | relates to          | relates to           |
+| Test    | tests               | is tested by         |
+
+---
+
+### **Direction Handling**
+
+The tool automatically considers the direction of links. By default, links are assumed to be **outward**. If the link's description matches the **inward description** from Jira, the tool automatically **reverses the direction**:
+
+- **Forward:** Represents downward or child relationships (e.g., `Hierarchy-Forward`).
+- **Reverse:** Represents upward or parent relationships (e.g., `Hierarchy-Reverse`).
+
+#### **Example:**
+- If the **inwardDescription** of a link is "is blocked by" (from the "Blocks" link type), the tool will map it as `System.LinkTypes.Hierarchy-Reverse`.
+- Conversely, if the **outwardDescription** is "blocks", it will map as `System.LinkTypes.Hierarchy-Forward`.
+
+The tool retrieves the outward and inward descriptions from Jira's project metadata API. In directional or hierarchical link types, **"-Forward"** indicates a downward or child relationship, while **"Reverse-"** indicates an upward or parent relationship. The tool will adjust the link direction accordingly if the description matches the inward description of a given link type.
+
+
+## 5. I need to obtain a field reference name/link type in Azure DevOps
 
 Here is a reference sheet with all of the default fields in Azure DevOps: <https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops> (click each field to open up the documentation page and view the field reference name).
 
 Here is a reference sheet with all of the default link types in Azure DevOps: <https://learn.microsoft.com/en-us/azure/devops/boards/queries/link-type-reference?view=azure-devops>.
 
-## 5. Guideline for migrating multiple projects
+## 6. Guideline for migrating multiple projects
 
 ### Scenario 1: Single project
 
@@ -132,7 +207,7 @@ For example, let us say you are migrating the Jira projects A, B and C in sequen
 7. Export project C into **workspaceC**
 8. Import project C1
 
-## 6. What is the purpose of the --force flag?
+## 7. What is the purpose of the --force flag?
 
 Here you will find a description on what the `--force` flag does under various circumstances.
 
@@ -141,7 +216,7 @@ Here you will find a description on what the `--force` flag does under various c
 | Jira Exporter      | Items in the migration workspace (local) will be overwritten. | Items already downloaded in the workspace will be skipped. Items in the workspace will remain intact. | [jira-export.md](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/jira-export.md) |
 | Work Item Importer | Work Items in ADO will remain intact. New duplicate work items may be created. | Revisions which already have been imported will be skipped. Existing Work Items may be updated with new data if the incoming revisions have not already been imported. | [wi-import.md](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/wi-import.md)|
 
-## 7. How to migrate custom fields having dropdown lists?
+## 8. How to migrate custom fields having dropdown lists?
 
 - To map a custom field which is an dropdown list you can use MapArray mapper to get in a better way.
 Also take a look at the other possible [Mappers](config.md#mappers) to use.
@@ -158,7 +233,7 @@ Example:
 }
 ```
 
-## 8. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
+## 9. How to migrate correct user from Jira to Azure DevOps and assign to the new work items?
 
 - User mapping differs between Jira Cloud and Jira Server. To migrate users and assign the new work items in Azure DevOps to the same user as the original task had in Jira, we need to add a text file in the root that would look something like this:
 
@@ -200,7 +275,7 @@ Example:
     Jira.User3@some.domain=AzureDevOps.User3@some.domain
     ```
 
-## 9. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
+## 10. How to migrate the Work Log (Time Spent, Remaining Estimate fields)?
 
 You can migrate the logged and remaining time using the following field mappings.
 
@@ -225,7 +300,7 @@ The history of the **logged time** and **remaining time** will be preserved on e
 }
 ```
 
-## 10. How to map custom user picker fields
+## 11. How to map custom user picker fields
 
 Here is how we have successfully mapped user picker fields in the past. `source` should be the field name:
 
@@ -238,7 +313,7 @@ Here is how we have successfully mapped user picker fields in the past. `source`
 },
 ```
 
-## 11. How to map datetime fields
+## 12. How to map datetime fields
 
 Here is how we can map datetime fields like ResolvedDate:
 
@@ -250,7 +325,7 @@ Here is how we can map datetime fields like ResolvedDate:
 }
 ```
 
-## 12. How to migrate an issue fields to a comment
+## 13. How to migrate an issue fields to a comment
 
 Through some manual intervention, we can migrate every historical value of an **issue field** to a **Work Item Comments**. Simply do the following:
 
@@ -274,7 +349,7 @@ Through some manual intervention, we can migrate every historical value of an **
    - `e0cd3eb0-d8b7-4e62-ba35-c24d06d7f667` > `System.History`
 1. Run `WiImport` as usual.
 
-## 13. How to omit the Jira issue ID/key in the work item title
+## 14. How to omit the Jira issue ID/key in the work item title
 
 By default, the field mapping for `System.Title` will be set up so that the title is prefixed with the Issue key. This can be prevented by omitting the **MapTitle mapper** from the field map in the configuration:
 
@@ -295,7 +370,7 @@ Instead of the default:
   }
 ```
 
-## 14. What are the base-area-path and base-iteration-path properties in the config.json file?
+## 15. What are the base-area-path and base-iteration-path properties in the config.json file?
 
 **`base-area-path`:**  
 The `base-area-path` property in the migrator configuration specifies the root area path under which all migrated work items will be placed. This path organizes work items into different functional or project areas within Azure DevOps.
@@ -312,7 +387,7 @@ The `base-iteration-path` property defines the root iteration path for the migra
 
 In such cases, you may need to create a mapping strategy to translate Jira project components to Azure DevOps area and iteration paths. This might involve some manual configuration and planning to ensure that the migrated work items fit into the desired structure. See the next section in this FAQ for a guide on how to map sprints, iteration paths and area paths.
 
-## 15. How to map sprints, iteration paths and area paths
+## 16. How to map sprints, iteration paths and area paths
 
 It is possible to do custom mappings of the **Jira Sprints** as **Iteration Paths**, and vice versa for **Area Paths**.
 
@@ -371,7 +446,7 @@ This will set the Iteration path correctly. The final path will be like the foll
 - `<project name>\<base-iteration-path>\<mapped value>`
 - `<project name>\<base-area-path>\<mapped value>`
 
-## 16. How to migrate Development Links (commit, PR, branch)
+## 17. How to migrate Development Links (commit, PR, branch)
 
 If you have previously migrated your BitBucket git repositories to your Azure DevOps Server/organization, you can also migrate the development links of the Jira Issues to the corresponding ADO Work Items.
 
@@ -393,7 +468,7 @@ In your configuration file, you must specify the following properties:
 
 The **repository-map** must contain a key-value lookup table with the names of the Bitbucket git repositories and their translations in ADO.
 
-## 17. How to limit the number of issues to be exported during JIRA export (pagination)
+## 18. How to limit the number of issues to be exported during JIRA export (pagination)
 
 If you export or the whole migration takes too long, you can achieve something similar to pagination by limiting the export to batches of issues through the `query` property of your `config.json` file. Simply enter a JQL query that filters issues on the `ìd` property, for example:
 
@@ -407,7 +482,7 @@ And so on.
 
 You can always use the **issues** view in your Jira project to experiment with different JQL queries.
 
-## 18. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
+## 19. I get https response code 400 and a System.Aggregate Exception with the warning "Failed to get item count using query ...", and no items are exported
 
 The issue is usually a malformed query. Make sure that you have tried all of the following solutions:
 
@@ -430,7 +505,7 @@ curl -D-
  "http://johnie:8081/rest/api/2/search"
 ```
 
-## 19. I get the warning message "VS402625: Dates must be increasing with each revision."
+## 20. I get the warning message "VS402625: Dates must be increasing with each revision."
 
 This warning message will show up if the tool attempts to import a subsequent revision with a changedDate that is less than the current changedDate of the current state of the Work Item.
 
@@ -454,7 +529,7 @@ Example `config.json`:
   "changeddate-bump-ms": 5,
 ```
 
-## 20. Sprint names are corrupted. ADO Iteration paths are named "[ synced = false  ]"
+## 21. Sprint names are corrupted. ADO Iteration paths are named "[ synced = false  ]"
 
 The issue is usually that a custom field has been defined in Jira which is also named "Sprint", and the tool is picking up this field instead of the default Srpint field.
 
@@ -482,7 +557,7 @@ It could be worth trying this mapping when running against Jira Cloud too:
 
 It seems that for jira server, the field IDs can different between different developer instances. You can use the Get Fields endpoint to find out which field ID (customfield_xxxxx) is used by Sprint in your instance: https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#about
 
-## 21. Azure DevOps Rate and usage limits (ADO Cloud only)
+## 22. Azure DevOps Rate and usage limits (ADO Cloud only)
 
 In the unlikely event that you experience issues with being rate limited by Azure DevOps, we always recommend the following procedure:
 
