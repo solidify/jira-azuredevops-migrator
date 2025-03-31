@@ -121,7 +121,7 @@ namespace WorkItemImport
                 }
                 catch (AggregateException ex)
                 {
-                    bool datesMustIncreaseError = false;
+                    bool errorHandled = false;
                     foreach (Exception ex2 in ex.InnerExceptions)
                     {
                         // Handle 'VS402625' error responses, the supplied ChangedDate was older than the latest revision already in ADO.
@@ -139,10 +139,18 @@ namespace WorkItemImport
                                     break;
                                 }
                             }
-                            datesMustIncreaseError = true;
+                            errorHandled = true;
+                        }
+                        // Handle 'VS402624' error responses, the supplied ChangedDate was in the future.
+                        // We must wait a while and try again.
+                        else if (ex2.Message.Contains("VS402624"))
+                        {
+                            Logger.Log(LogLevel.Warning, $"Received response while updating Work Item: {ex2.Message}." +
+                                $" Waiting and trying again...");
+                           errorHandled = true;
                         }
                     }
-                    if (!datesMustIncreaseError)
+                    if (!errorHandled)
                     {
                         throw;
                     }
