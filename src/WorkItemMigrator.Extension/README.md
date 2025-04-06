@@ -18,15 +18,15 @@ Some of the capabilities include:
 
 # Getting the tools
 
-* Download [the latest release from GitHub](https://github.com/solidify/jira-azuredevops-migrator/releases) and extract the files to your local workspace.
+- Download [the latest release from GitHub](https://github.com/solidify/jira-azuredevops-migrator/releases) and extract the files to your local workspace.
 
 # Getting started
 
 The tools are provided as-is and will require detailed understanding of how to migrate work items between different systems in order to do a successful migration. If you need support or help with migrations feel free to [contact the team at Solidify](mailto:support.jira-migrator@solidify.dev) for expert consulting services.
 
-* See the [migration process overview](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/overview.md) for information on how to get started.
-* Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/blog/jira-to-vsts-migration-work-items) for more context of the process.
-* Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/blog/jira-azure-devops-migration) for a complete step-by-step walkthrough on a migration.
+- See the [migration process overview](https://github.com/solidify/jira-azuredevops-migrator/blob/master/docs/overview.md) for information on how to get started.
+- Read the article [Jira to VSTS migration: migrating work items](https://solidify.se/blog/jira-to-vsts-migration-work-items) for more context of the process.
+- Read the article [Jira to Azure DevOps (VSTS or TFS) migration](https://solidify.se/blog/jira-azure-devops-migration) for a complete step-by-step walkthrough on a migration.
 
 ## Jira Azure DevOps Migrator, Premium Offerings
 

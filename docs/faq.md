@@ -83,7 +83,7 @@ This error is usually indicative of incorrect configuration on the user's side. 
 
 ## 4. (In depth) How does Link Mapping work?
 
-The Jira Azure DevOps Migration Tool uses the **link-map** property in the `config.json` file to map link types between Jira and Azure DevOps (ADO). 
+The Jira Azure DevOps Migration Tool uses the **link-map** property in the `config.json` file to map link types between Jira and Azure DevOps (ADO).
 
 The `link-map` property in your `config.json` file should look like this:
 
@@ -150,11 +150,11 @@ The tool automatically considers the direction of links. By default, links are a
 - **Reverse:** Represents upward or parent relationships (e.g., `Hierarchy-Reverse`).
 
 #### **Example:**
+
 - If the **inwardDescription** of a link is "is blocked by" (from the "Blocks" link type), the tool will map it as `System.LinkTypes.Hierarchy-Reverse`.
 - Conversely, if the **outwardDescription** is "blocks", it will map as `System.LinkTypes.Hierarchy-Forward`.
 
 The tool retrieves the outward and inward descriptions from Jira's project metadata API. In directional or hierarchical link types, **"-Forward"** indicates a downward or child relationship, while **"Reverse-"** indicates an upward or parent relationship. The tool will adjust the link direction accordingly if the description matches the inward description of a given link type.
-
 
 ## 5. I need to obtain a field reference name/link type in Azure DevOps
 
@@ -378,7 +378,7 @@ The `base-area-path` property in the migrator configuration specifies the root a
 **`base-iteration-path`:**  
 The `base-iteration-path` property defines the root iteration path for the migrated work items. This path is used to organize work items according to different iterations or sprints.
 
-### How to determine the correct values:
+### How to determine the correct values
 
 - **`base-area-path`:** Navigate to your Azure DevOps project and go to **Project Settings** > **Project Configuration** > **Areas**. Identify the root area path you want to use for your migrated work items.
 - **`base-iteration-path`:** Similarly, navigate to **Project Settings** > **Project Configuration** > **Iterations**. Identify the root iteration path you want to use.
@@ -555,7 +555,7 @@ It could be worth trying this mapping when running against Jira Cloud too:
       },
 ```
 
-It seems that for jira server, the field IDs can different between different developer instances. You can use the Get Fields endpoint to find out which field ID (customfield_xxxxx) is used by Sprint in your instance: https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#about
+It seems that for jira server, the field IDs can different between different developer instances. You can use the Get Fields endpoint to find out which field ID (customfield_xxxxx) is used by Sprint in your instance: <https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#about>
 
 ## 22. Azure DevOps Rate and usage limits (ADO Cloud only)
 
