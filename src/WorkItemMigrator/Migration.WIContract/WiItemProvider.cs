@@ -32,6 +32,8 @@ namespace Migration.WIContract
                 serialized = Regex.Replace(serialized, @"\\\\u[0-F]{4,}", "");
             }
 
+            serialized = serialized.Replace("\\u001b", "\n"); // Clean up Unicode escape characters
+
             var deserialized = JsonConvert.DeserializeObject<WiItem>(serialized, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
             foreach (var rev in deserialized.Revisions)
@@ -59,7 +61,9 @@ namespace Migration.WIContract
                 }
                 catch (Exception)
                 {
-                    Logger.Log(LogLevel.Warning, $"Failed to load '{Path.GetFileName(filePath)}' (perhaps not a migration file?).");
+                    Logger.Log(LogLevel.Warning, $"Failed to load '{Path.GetFileName(filePath)}', possible reasons:\n " +
+                        $"- Perhaps not a migration file?\n " +
+                        $"- Perhaps the file contains unhandled Unicode sequences (e.g. \\u1234, \\uXXXX) or non-unicode characters? Invalid characters must be stripped.");
                 }
             }
             return result;

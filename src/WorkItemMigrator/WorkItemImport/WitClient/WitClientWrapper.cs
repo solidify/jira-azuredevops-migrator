@@ -28,8 +28,9 @@ namespace WorkItemImport
         private VssConnection Connection { get; }
         private TeamProjectReference TeamProject { get; }
         private GitHttpClient GitClient { get; }
+        private int ChangedDateBumpMS { get; }
 
-        public WitClientWrapper(string collectionUri, string project, string personalAccessToken)
+        public WitClientWrapper(string collectionUri, string project, string personalAccessToken, int changedDateBumpMS)
         {
             var credentials = new VssBasicCredential("", personalAccessToken);
             Connection = new VssConnection(new Uri(collectionUri), credentials);
@@ -37,6 +38,7 @@ namespace WorkItemImport
             ProjectClient = Connection.GetClient<ProjectHttpClient>();
             TeamProject = ProjectClient.GetProject(project).Result;
             GitClient = Connection.GetClient<GitHttpClient>();
+            ChangedDateBumpMS = changedDateBumpMS;
         }
 
         public WorkItem CreateWorkItem(string wiType, bool suppressNotifications, DateTime? createdDate = null, string createdBy = "")
@@ -104,13 +106,56 @@ namespace WorkItemImport
 
         public WorkItem UpdateWorkItem(JsonPatchDocument patchDocument, int workItemId, bool suppressNotifications)
         {
-            return WitClient.UpdateWorkItemAsync(
-                document: patchDocument,
-                id: workItemId,
-                suppressNotifications: suppressNotifications,
-                bypassRules: true,
-                expand: WorkItemExpand.All
-            ).Result;
+            while (true)
+            {
+                try
+                {
+                    var result = WitClient.UpdateWorkItemAsync(
+                        document: patchDocument,
+                        id: workItemId,
+                        suppressNotifications: suppressNotifications,
+                        bypassRules: true,
+                        expand: WorkItemExpand.All
+                    ).Result;
+                    return result;
+                }
+                catch (AggregateException ex)
+                {
+                    bool errorHandled = false;
+                    foreach (Exception ex2 in ex.InnerExceptions)
+                    {
+                        // Handle 'VS402625' error responses, the supplied ChangedDate was older than the latest revision already in ADO.
+                        // We must bump the ChangedDate by a small factor and try again.
+                        if (ex2.Message.Contains("VS402625"))
+                        {
+                            foreach (var patchOp in patchDocument)
+                            {
+                                if (patchOp.Path == "/fields/System.ChangedDate")
+                                {
+                                    patchOp.Value = ((DateTime)patchOp.Value).AddMilliseconds(ChangedDateBumpMS);
+                                    Logger.Log(LogLevel.Warning, $"Received response while updating Work Item: {ex2.Message}." +
+                                        $" Bumped ChangedDate by {ChangedDateBumpMS}ms and trying again... New ChangedDate: {patchOp.Value}, ms: " +
+                                        ((DateTime)patchOp.Value).Millisecond);
+                                    break;
+                                }
+                            }
+                            errorHandled = true;
+                        }
+                        // Handle 'VS402624' error responses, the supplied ChangedDate was in the future.
+                        // We must wait a while and try again.
+                        else if (ex2.Message.Contains("VS402624"))
+                        {
+                            Logger.Log(LogLevel.Warning, $"Received response while updating Work Item: {ex2.Message}." +
+                                $" Waiting and trying again...");
+                           errorHandled = true;
+                        }
+                    }
+                    if (!errorHandled)
+                    {
+                        throw;
+                    }
+                }
+            }
         }
 
         public TeamProject GetProject(string projectId)
