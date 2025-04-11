@@ -150,7 +150,7 @@ The tool automatically considers the direction of links. By default, links are a
 - **Reverse:** Represents upward or parent relationships (e.g., `Hierarchy-Reverse`).
 
 #### **Example:**
-- If the **inwardDescription** of a link is "is blocked by" (from the "Blocks" link type), the tool will map it as `System.LinkTypes.Hierarchy-Reverse`.
+- If the **outwardDescription** of a link is "is blocked by" (from the "Blocks" link type), the tool will map it as `System.LinkTypes.Hierarchy-Reverse`.
 - Conversely, if the **outwardDescription** is "blocks", it will map as `System.LinkTypes.Hierarchy-Forward`.
 
 The tool retrieves the outward and inward descriptions from Jira's project metadata API. In directional or hierarchical link types, **"-Forward"** indicates a downward or child relationship, while **"Reverse-"** indicates an upward or parent relationship. The tool will adjust the link direction accordingly if the description matches the inward description of a given link type.
