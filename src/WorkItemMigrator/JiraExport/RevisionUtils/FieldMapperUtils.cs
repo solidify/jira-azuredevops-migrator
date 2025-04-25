@@ -278,6 +278,9 @@ namespace JiraExport
                     htmlValue = "<style>" + css + "</style>" + htmlValue;
             }
 
+            // Correct No-Break Space (U+00A0)
+            htmlValue = Regex.Replace(htmlValue, @"\u00A0", " ");
+
             return htmlValue;
         }
 
