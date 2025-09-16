@@ -24,7 +24,7 @@ namespace JiraExport
             IncludeSubItems = 4
         }
 
-        private readonly string JiraApiV2 = "rest/api/2";
+        private readonly string JiraApiV3 = "rest/api/3";
 
         private ILookup<string, string> JiraNameFieldCache = null;
 
@@ -140,7 +140,7 @@ namespace JiraExport
 
             try
             {
-                var response = await _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/attachment/{id}");
+                var response = await _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/attachment/{id}");
                 var attObj = (JObject)response;
 
                 return new JiraAttachment
@@ -229,7 +229,7 @@ namespace JiraExport
                 JToken response = null;
                 try
                 {
-                    response = _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
+                    response = _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/search?jql={jql}&startAt={currentStart}&maxResults={Settings.BatchSize}&fields=key").Result;
                 }
                 catch (Exception e)
                 {
@@ -321,7 +321,7 @@ namespace JiraExport
             Logger.Log(LogLevel.Debug, $"Get item count using query: '{jql}'");
             try
             {
-                var response = _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/search?jql={jql}&maxResults=0").Result;
+                var response = _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/search?jql={jql}&maxResults=0").Result;
 
                 return (int)response.SelectToken("$.total");
             }
@@ -335,13 +335,13 @@ namespace JiraExport
 
         public JiraVersion GetJiraVersion()
         {
-            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/serverInfo").Result;
+            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/serverInfo").Result;
             return new JiraVersion((string)response.SelectToken("$.version"), (string)response.SelectToken("$.deploymentType"));
         }
 
         public IEnumerable<JObject> DownloadChangelog(string issueKey)
         {
-            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{issueKey}?expand=changelog,renderedFields&fields=created").Result;
+            var response = (JObject)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/issue/{issueKey}?expand=changelog,renderedFields&fields=created").Result;
             return response.SelectTokens("$.changelog.histories[*]").Cast<JObject>();
         }
 
@@ -350,7 +350,7 @@ namespace JiraExport
             try
             {
                 var response =
-                    _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/issue/{key}?expand=renderedFields").Result;
+                    _jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/issue/{key}?expand=renderedFields").Result;
 
                 var remoteItem = (JObject)response;
                 return remoteItem;
@@ -440,7 +440,7 @@ namespace JiraExport
 
             if (JiraNameFieldCache == null)
             {
-                response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                response = (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/field").Result;
                 JiraNameFieldCache = CreateFieldCacheLookup(response, "name", "id");
             }
 
@@ -450,7 +450,7 @@ namespace JiraExport
             {
                 if (JiraKeyFieldCache == null)
                 {
-                    response = response ?? (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV2}/field").Result;
+                    response = response ?? (JArray)_jiraServiceWrapper.RestClient.ExecuteRequestAsync(Method.GET, $"{JiraApiV3}/field").Result;
                     JiraKeyFieldCache = CreateFieldCacheLookup(response, "key", "id");
                 }
                 customId = GetItemFromFieldCache(propertyName, JiraKeyFieldCache);
