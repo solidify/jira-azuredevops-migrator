@@ -63,7 +63,7 @@ If your issue is related to sprint data, include the contents of the `Sprints` f
 
 ---
 
-### 5. `Releases` folder (if the problem involves releases or fix versions)
+### 5. Releases folder (if the problem involves releases or fix versions)
 
 If your issue is related to Jira Fix Versions / Release work items (only applicable when `export-releases: true` is set in your config), include the contents of the `Releases` folder.
 
@@ -87,7 +87,7 @@ Use this as a reminder before you hit Send:
 
 ---
 
-## What to Write in the Email
+## What to write in the email
 
 Please include the following in the body of your email:
 
