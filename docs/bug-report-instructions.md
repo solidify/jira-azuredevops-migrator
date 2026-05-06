@@ -2,8 +2,6 @@
 
 Thank you for taking the time to report an issue! To help us diagnose and fix the problem as quickly as possible, please include the files described below when you email us at **support.jira-migrator@solidify.dev**.
 
-When investigating issues, we require some diagnostic files from the user. Please follow [bug-report-instructions](https://github.com/solidify/jira-azuredevops-migrator/docs/bug-report-instructions) when you send an email with your bug report to make sure we get all the files we need to investigate the bug.
-
 ---
 
 ## 1. Find your workspace folder
