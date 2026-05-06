@@ -38,6 +38,8 @@ If you need help with migrations, feel free to [contact the team at Solidify](ma
 
 Support and bug reporting are managed via [**GitHub Issues**](https://github.com/solidify/jira-azuredevops-migrator/issues). Please create a new issue and fill in the corresponding issue template.
 
+When investigating issues, we require some diagnostic files from the user. Please follow [bug-report-instructions](https://github.com/solidify/jira-azuredevops-migrator/docs/bug-report-instructions) when you send an email with your bug report to make sure we get all the files we need to investigate the bug.
+
 Note: We do not answer Discussions, as these have less traceability than Issues. Discussions are instead reserved for community discussions.
 
 ## Jira Azure DevOps Migrator, Premium Offerings
